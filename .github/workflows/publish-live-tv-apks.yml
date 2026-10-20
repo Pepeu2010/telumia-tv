@@ -1,0 +1,179 @@
+name: Publish updated Live TV APKs to a release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: Successful fullDebug run containing the APK artifacts
+        required: true
+        type: string
+      source_commit:
+        description: Exact 40-character source SHA built by that run
+        required: true
+        type: string
+      release_tag:
+        description: Existing release to receive additive Android TV assets
+        required: true
+        default: v1.0.0
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: publish-live-tv-apks-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Attach verified APKs and update release checksums
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source run and release target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]
+          [[ "$SOURCE_COMMIT" =~ ^[0-9a-fA-F]{40}$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          RUN_JSON="$(gh run view "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --json conclusion,headSha)"
+          [[ "$(jq -r .conclusion <<<"$RUN_JSON")" == success ]]
+          [[ "$(jq -r .headSha <<<"$RUN_JSON")" == "$SOURCE_COMMIT" ]]
+          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isDraft,isPrerelease,tagName)"
+          [[ "$(jq -r .isDraft <<<"$RELEASE_JSON")" == false ]]
+          [[ "$(jq -r .isPrerelease <<<"$RELEASE_JSON")" == false ]]
+          [[ "$(jq -r .tagName <<<"$RELEASE_JSON")" == "$RELEASE_TAG" ]]
+
+      - name: Download universal APK from the source run
+        uses: actions/download-artifact@v4
+        with:
+          name: app-full-universal-debug.apk
+          path: release-assets/staging/universal
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+
+      - name: Download ARM64 APK from the source run
+        uses: actions/download-artifact@v4
+        with:
+          name: telumia-tv-arm64-v8a-debug.apk
+          path: release-assets/staging/arm64
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+
+      - name: Download ARMv7 APK from the source run
+        uses: actions/download-artifact@v4
+        with:
+          name: telumia-tv-armeabi-v7a-debug.apk
+          path: release-assets/staging/armv7
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id }}
+
+      - name: Prepare assets, checksums, and release manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets/final
+          cp release-assets/staging/universal/app-full-universal-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-universal-debug.apk
+          cp release-assets/staging/arm64/telumia-tv-arm64-v8a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-arm64-v8a-debug.apk
+          cp release-assets/staging/armv7/telumia-tv-armeabi-v7a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-armeabi-v7a-debug.apk
+          for file in release-assets/final/*.apk; do
+            [[ "$(stat -c %s "$file")" -gt 500000 ]]
+            [[ "$(head -c 4 "$file" | od -An -tx1 | tr -d ' \n')" == 504b0304 ]]
+          done
+
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern release-manifest.json --pattern SHA256SUMS.txt --dir release-assets
+
+          (cd release-assets/final && sha256sum *.apk) > release-assets/new-sums.txt
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          assets_dir = Path("release-assets/final")
+          new_assets = []
+          for path in sorted(assets_dir.glob("*.apk")):
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              new_assets.append({"name": path.name, "bytes": path.stat().st_size, "sha256": digest})
+
+          manifest_path = Path("release-assets/release-manifest.json")
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          known = {item.get("name") for item in manifest.get("assets", [])}
+          if any(item["name"] in known for item in new_assets):
+              raise SystemExit("Refusing to duplicate an existing release manifest asset name")
+          manifest.setdefault("assets", []).extend(new_assets)
+          build = {
+              "kind": "android-tv-debug-update",
+              "displayVersion": "1.0.0",
+              "sourceCommit": os.environ["SOURCE_COMMIT"],
+              "workflowRunId": int(os.environ["SOURCE_RUN_ID"]),
+              "workflowRunUrl": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['SOURCE_RUN_ID']}",
+              "publishedAtUtc": datetime.now(timezone.utc).isoformat(),
+              "unitTests": "Selected JVM tests passed.",
+              "instrumentation": "Instrumentation tests compiled but were not executed on a device.",
+              "limitations": [
+                  "FullDebug APKs signed with the CI debug key; these signatures may not match APKs already installed from the 1.0.0 release.",
+                  "No physical Android TV Box QA was performed for this build."
+              ],
+              "assets": new_assets
+          }
+          builds = manifest.setdefault("additionalBuilds", [])
+          builds[:] = [item for item in builds if item.get("workflowRunId") != build["workflowRunId"]]
+          builds.append(build)
+          manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          sums_path = Path("release-assets/SHA256SUMS.txt")
+          old_lines = [line for line in sums_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+          old_names = {line.split(maxsplit=1)[-1].lstrip("* ") for line in old_lines}
+          for item in new_assets:
+              if item["name"] in old_names:
+                  raise SystemExit("Refusing to overwrite an existing checksum entry")
+          new_lines = Path("release-assets/new-sums.txt").read_text(encoding="utf-8").splitlines()
+          sums_path.write_text("\n".join(old_lines + new_lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Upload APKs and refreshed release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" release-assets/final/*.apk \
+            release-assets/SHA256SUMS.txt release-assets/release-manifest.json \
+            --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Add build notes to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          marker='<!-- telumia-tv-live-tv-r10-build -->'
+          body="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)"
+          if ! grep -Fq "$marker" <<<"$body"; then
+            {
+              printf '%s\n\n' "$body"
+              printf '%s\n\n' "$marker"
+              printf '%s\n\n' '### Atualização Android TV — Live TV r10'
+              printf 'APKs de depuração atualizados da versão interna **1.0.0**, construídos do commit `%s` no [run %s](https://github.com/%s/actions/runs/%s). Incluem atualização periódica do EPG e seleção de fuso horário por perfil.\n\n' "$SOURCE_COMMIT" "$SOURCE_RUN_ID" "$GITHUB_REPOSITORY" "$SOURCE_RUN_ID"
+              printf '%s\n' '- `Telumia-TV-1.0.0-r10-universal-debug.apk` — instala em arquiteturas suportadas.' '- `Telumia-TV-1.0.0-r10-arm64-v8a-debug.apk` — recomendado para aparelhos ARM64.' '- `Telumia-TV-1.0.0-r10-armeabi-v7a-debug.apk` — aparelhos ARM de 32 bits.'
+              printf '\n%s\n' 'Os APKs usam uma chave de depuração gerada pelo CI e podem não atualizar sobre a instalação dos APKs anteriores da release; pode ser necessário desinstalar a versão anterior. Os testes instrumentados foram compilados, mas não executados em TV Box física. Os arquivos anteriores foram preservados; confira os SHA-256 e o manifesto atualizados.'
+            } > release-notes.md
+            gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --notes-file release-notes.md
+          fi

@@ -75,8 +75,8 @@ jobs:
             rm "$archive"
           }
           download_artifact app-full-universal-debug.apk app-full-universal-debug.apk release-assets/staging/universal
-          download_artifact telumia-tv-arm64-v8a-debug.apk telumia-tv-arm64-v8a-debug.apk release-assets/staging/arm64
-          download_artifact telumia-tv-armeabi-v7a-debug.apk telumia-tv-armeabi-v7a-debug.apk release-assets/staging/armv7
+          download_artifact app-full-arm64-v8a-debug.apk app-full-arm64-v8a-debug.apk release-assets/staging/arm64
+          download_artifact app-full-armeabi-v7a-debug.apk app-full-armeabi-v7a-debug.apk release-assets/staging/armv7
 
       - name: Prepare assets, checksums, and release manifest
         env:
@@ -88,8 +88,8 @@ jobs:
           set -euo pipefail
           mkdir -p release-assets/final
           cp release-assets/staging/universal/app-full-universal-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-universal-debug.apk
-          cp release-assets/staging/arm64/telumia-tv-arm64-v8a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-arm64-v8a-debug.apk
-          cp release-assets/staging/armv7/telumia-tv-armeabi-v7a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-armeabi-v7a-debug.apk
+          cp release-assets/staging/arm64/app-full-arm64-v8a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-arm64-v8a-debug.apk
+          cp release-assets/staging/armv7/app-full-armeabi-v7a-debug.apk release-assets/final/Telumia-TV-1.0.0-r10-armeabi-v7a-debug.apk
           for file in release-assets/final/*.apk; do
             [[ "$(stat -c %s "$file")" -gt 500000 ]]
             [[ "$(head -c 4 "$file" | od -An -tx1 | tr -d ' \n')" == 504b0304 ]]

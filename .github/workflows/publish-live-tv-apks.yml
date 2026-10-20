@@ -70,7 +70,7 @@ jobs:
               "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" \
               --output "$archive"
             unzip -t "$archive"
-            unzip -p "$archive" "$expected_file" > "$target_dir/$expected_file"
+            cp "$archive" "$target_dir/$expected_file"
             [[ "$(stat -c %s "$target_dir/$expected_file")" -gt 500000 ]]
             rm "$archive"
           }

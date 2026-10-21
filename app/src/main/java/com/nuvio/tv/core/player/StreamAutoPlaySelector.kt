@@ -2,6 +2,8 @@ package com.nuvio.tv.core.player
 
 import com.nuvio.tv.core.build.AppFeaturePolicy
 import com.nuvio.tv.core.runtime.DeviceVideoCodecCapabilities
+import com.nuvio.tv.core.runtime.DeviceHdrCapabilities
+import com.nuvio.tv.core.runtime.DeviceHdrFormat
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.data.local.StreamAutoPlaySource
 import com.nuvio.tv.domain.model.AddonStreams
@@ -62,7 +64,8 @@ object StreamAutoPlaySelector {
         preferredBingeGroup: String? = null,
         preferBingeGroupInSelection: Boolean = false,
         bingeGroupOnly: Boolean = false,
-        deviceVideoCodecs: DeviceVideoCodecCapabilities? = null
+        deviceVideoCodecs: DeviceVideoCodecCapabilities? = null,
+        deviceHdrCapabilities: DeviceHdrCapabilities? = null
     ): Stream? {
         if (streams.isEmpty()) return null
 
@@ -110,7 +113,7 @@ object StreamAutoPlaySelector {
             StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
             StreamAutoPlayMode.BEST_QUALITY, StreamAutoPlayMode.BALANCED, StreamAutoPlayMode.DATA_SAVER ->
                 candidateStreams.filter { isPlayable(it) }.maxByOrNull {
-                    scoreSource(it, mode, deviceVideoCodecs).total
+                    scoreSource(it, mode, deviceVideoCodecs, deviceHdrCapabilities).total
                 }
             StreamAutoPlayMode.REGEX_MATCH -> {
                 val pattern = regexPattern.trim()
@@ -164,6 +167,7 @@ object StreamAutoPlaySelector {
     }
 
     enum class DecoderSupport { SUPPORTED, SOFTWARE_ONLY, UNSUPPORTED, UNKNOWN }
+    enum class HdrSupport { SUPPORTED, UNSUPPORTED, UNKNOWN }
 
     /** Every ranking component is explicit; codec evidence stays unknown when either side is unknown. */
     data class SourceScore(
@@ -171,18 +175,21 @@ object StreamAutoPlaySelector {
         val sizePoints: Int,
         val cachedPoints: Int,
         val decoderCompatibilityPoints: Int,
+        val hdrCompatibilityPoints: Int,
         val decoderSupport: DecoderSupport,
+        val hdrSupport: HdrSupport,
         val declaredCodecMime: String?,
         val declaredHeight: Int?,
         val declaredBytes: Long?
     ) {
-        val total: Int get() = resolutionPoints + sizePoints + cachedPoints + decoderCompatibilityPoints
+        val total: Int get() = resolutionPoints + sizePoints + cachedPoints + decoderCompatibilityPoints + hdrCompatibilityPoints
     }
 
     fun scoreSource(
         stream: Stream,
         mode: StreamAutoPlayMode,
-        deviceVideoCodecs: DeviceVideoCodecCapabilities? = null
+        deviceVideoCodecs: DeviceVideoCodecCapabilities? = null,
+        deviceHdrCapabilities: DeviceHdrCapabilities? = null
     ): SourceScore {
         val parsed = stream.clientResolve?.stream?.raw?.parsed
         val declaredResolution = parsed?.resolution?.trim()?.lowercase(java.util.Locale.ROOT)
@@ -229,16 +236,61 @@ object StreamAutoPlaySelector {
                 SOFTWARE_ONLY_DECODER_PENALTY
             else -> 0
         }
+        val hdrSupport = hdrSupport(parsed?.hdr, height, deviceHdrCapabilities, deviceVideoCodecs)
+        val hdrCompatibilityPoints = if (mode.usesSourceScore && hdrSupport == HdrSupport.UNSUPPORTED) {
+            UNSUPPORTED_HDR_PENALTY
+        } else 0
         return SourceScore(
             resolutionPoints = resolutionPoints,
             sizePoints = sizePoints,
             cachedPoints = cachedPoints,
             decoderCompatibilityPoints = decoderCompatibilityPoints,
+            hdrCompatibilityPoints = hdrCompatibilityPoints,
             decoderSupport = decoderSupport,
+            hdrSupport = hdrSupport,
             declaredCodecMime = declaredCodecMime,
             declaredHeight = height,
             declaredBytes = bytes
         )
+    }
+
+    internal fun hdrSupport(
+        declaredHdr: List<String>?,
+        declaredHeight: Int?,
+        deviceHdrCapabilities: DeviceHdrCapabilities?,
+        deviceVideoCodecs: DeviceVideoCodecCapabilities?
+    ): HdrSupport {
+        val formats = declaredHdr.orEmpty().mapNotNull(::declaredHdrFormat).toSet()
+        if (formats.isEmpty()) return HdrSupport.UNKNOWN
+        val supportedFormats = deviceHdrCapabilities?.supportedFormats ?: return HdrSupport.UNKNOWN
+        val statuses = formats.map { format ->
+            val displaySupports = format in supportedFormats
+            if (!displaySupports) return@map HdrSupport.UNSUPPORTED
+            if (format == DeviceHdrFormat.DOLBY_VISION) {
+                when (decoderSupport("video/dolby-vision", declaredHeight, deviceVideoCodecs)) {
+                    DecoderSupport.SUPPORTED, DecoderSupport.SOFTWARE_ONLY -> HdrSupport.SUPPORTED
+                    DecoderSupport.UNSUPPORTED -> HdrSupport.UNSUPPORTED
+                    DecoderSupport.UNKNOWN -> HdrSupport.UNKNOWN
+                }
+            } else HdrSupport.SUPPORTED
+        }
+        return when {
+            statuses.any { it == HdrSupport.SUPPORTED } -> HdrSupport.SUPPORTED
+            statuses.any { it == HdrSupport.UNKNOWN } -> HdrSupport.UNKNOWN
+            else -> HdrSupport.UNSUPPORTED
+        }
+    }
+
+    private fun declaredHdrFormat(value: String): DeviceHdrFormat? {
+        val normalized = value.lowercase(java.util.Locale.ROOT).replace(Regex("[^a-z0-9]+"), "")
+        return when {
+            normalized.contains("dolbyvision") || normalized in setOf("dv", "dovi", "dvh1", "dvhe", "dvonly") ->
+                DeviceHdrFormat.DOLBY_VISION
+            normalized.contains("hdr10plus") || normalized.contains("hdr10p") -> DeviceHdrFormat.HDR10_PLUS
+            normalized == "hdr10" || normalized == "hdr10only" -> DeviceHdrFormat.HDR10
+            normalized == "hlg" -> DeviceHdrFormat.HLG
+            else -> null
+        }
     }
 
     internal fun decoderSupport(
@@ -300,4 +352,5 @@ object StreamAutoPlaySelector {
 
     private const val UNSUPPORTED_DECODER_PENALTY = -600
     private const val SOFTWARE_ONLY_DECODER_PENALTY = -160
+    private const val UNSUPPORTED_HDR_PENALTY = -400
 }

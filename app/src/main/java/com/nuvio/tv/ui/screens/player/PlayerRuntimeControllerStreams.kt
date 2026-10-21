@@ -1827,11 +1827,15 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
             val deviceVideoCodecs = async(Dispatchers.IO) {
                 runCatching { DeviceCapabilities.videoCodecCapabilities() }.getOrNull()
             }
+            val deviceHdrCapabilities = async(Dispatchers.IO) {
+                runCatching { DeviceCapabilities.hdr(context) }.getOrNull()
+            }
 
             suspend fun trySelectStream(data: List<AddonStreams>): Stream? {
                 val orderedStreams = StreamAutoPlaySelector.orderAddonStreams(data, installedAddonOrder)
                 val allStreams = orderedStreams.flatMap { it.streams }
                 val codecSnapshot = if (effectiveMode.usesSourceScore) deviceVideoCodecs.await() else null
+                val hdrSnapshot = if (effectiveMode.usesSourceScore) deviceHdrCapabilities.await() else null
                 return StreamAutoPlaySelector.selectAutoPlayStream(
                     streams = allStreams,
                     mode = effectiveMode,
@@ -1847,7 +1851,8 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
                     },
                     preferBingeGroupInSelection = playerSettings.streamAutoPlayPreferBingeGroupForNextEpisode,
                     bingeGroupOnly = bingeGroupOnlyManualMode,
-                    deviceVideoCodecs = codecSnapshot
+                    deviceVideoCodecs = codecSnapshot,
+                    deviceHdrCapabilities = hdrSnapshot
                 )
             }
 

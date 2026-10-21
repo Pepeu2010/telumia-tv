@@ -362,6 +362,9 @@ class StreamScreenViewModel @Inject constructor(
             val deviceVideoCodecs = async(Dispatchers.IO) {
                 runCatching { DeviceCapabilities.videoCodecCapabilities() }.getOrNull()
             }
+            val deviceHdrCapabilities = async(Dispatchers.IO) {
+                runCatching { DeviceCapabilities.hdr(context) }.getOrNull()
+            }
             streamLoadCompleted = false
             val playerSettings = playerSettingsDataStore.playerSettings.first()
             if (manualSelection) {
@@ -526,6 +529,11 @@ class StreamScreenViewModel @Inject constructor(
                     } else {
                         null
                     }
+                    val hdrSnapshot = if (playerSettings.streamAutoPlayMode.usesSourceScore) {
+                        deviceHdrCapabilities.await()
+                    } else {
+                        null
+                    }
                     StreamAutoPlaySelector.selectAutoPlayStream(
                         streams = allStreams,
                         mode = playerSettings.streamAutoPlayMode,
@@ -536,7 +544,8 @@ class StreamScreenViewModel @Inject constructor(
                         selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins,
                         preferredBingeGroup = persistedBingeGroup,
                         preferBingeGroupInSelection = persistedBingeGroup != null,
-                        deviceVideoCodecs = codecSnapshot
+                        deviceVideoCodecs = codecSnapshot,
+                        deviceHdrCapabilities = hdrSnapshot
                     )
                 }
                 if (selectedAutoPlayStream != null) {

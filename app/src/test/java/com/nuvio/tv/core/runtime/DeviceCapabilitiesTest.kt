@@ -63,6 +63,25 @@ class DeviceCapabilitiesTest {
     }
 
     @Test
+    fun reportedHdrTypesMapOnlyToFormatsAvailableOnThatAndroidApi() {
+        val hdr10 = android.view.Display.HdrCapabilities.HDR_TYPE_HDR10
+        val hdr10Plus = android.view.Display.HdrCapabilities.HDR_TYPE_HDR10_PLUS
+        val hlg = android.view.Display.HdrCapabilities.HDR_TYPE_HLG
+        val dolbyVision = android.view.Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION
+        val reported = intArrayOf(hdr10, hdr10Plus, hlg, dolbyVision)
+
+        assertEquals(
+            setOf(DeviceHdrFormat.HDR10, DeviceHdrFormat.HLG),
+            DeviceCapabilities.hdrFormats(reported, android.os.Build.VERSION_CODES.N),
+        )
+        assertEquals(
+            setOf(DeviceHdrFormat.HDR10, DeviceHdrFormat.HDR10_PLUS, DeviceHdrFormat.HLG, DeviceHdrFormat.DOLBY_VISION),
+            DeviceCapabilities.hdrFormats(reported, android.os.Build.VERSION_CODES.Q),
+        )
+        assertEquals(emptySet<DeviceHdrFormat>(), DeviceCapabilities.hdrFormats(intArrayOf(), android.os.Build.VERSION_CODES.Q))
+    }
+
+    @Test
     fun unknownMemoryRemainsExplicitUntilThePerformancePolicyChoosesSafeDefaults() {
         assertEquals(
             DeviceResourceTier.UNKNOWN,

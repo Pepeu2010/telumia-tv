@@ -96,6 +96,7 @@ import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.core.player.StreamAutoPlaySelector
 import com.nuvio.tv.core.runtime.DeviceCapabilities
 import com.nuvio.tv.core.runtime.DeviceVideoCodecCapabilities
+import com.nuvio.tv.core.runtime.DeviceHdrCapabilities
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.ui.components.SourceChipItem
 import com.nuvio.tv.ui.components.SourceChipStatus
@@ -759,6 +760,8 @@ private fun RightStreamSection(
     var firstResultFocusAssigned by remember { mutableStateOf(shouldRestoreFocusedStream) }
     val scope = rememberCoroutineScope()
     var deviceVideoCodecs by remember { mutableStateOf<DeviceVideoCodecCapabilities?>(null) }
+    var deviceHdrCapabilities by remember { mutableStateOf<DeviceHdrCapabilities?>(null) }
+    val applicationContext = LocalContext.current.applicationContext
     var focusJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     val orderedAddonNames = remember(availableAddons, sourceChips) {
         buildList {
@@ -800,9 +803,12 @@ private fun RightStreamSection(
         enter = true
     }
     LaunchedEffect(Unit) {
-        deviceVideoCodecs = withContext(Dispatchers.IO) {
-            runCatching { DeviceCapabilities.videoCodecCapabilities() }.getOrNull()
+        val snapshots = withContext(Dispatchers.IO) {
+            runCatching { DeviceCapabilities.videoCodecCapabilities() }.getOrNull() to
+                runCatching { DeviceCapabilities.hdr(applicationContext) }.getOrNull()
         }
+        deviceVideoCodecs = snapshots.first
+        deviceHdrCapabilities = snapshots.second
     }
     LaunchedEffect(shouldRestoreFocusedStream) {
         if (shouldRestoreFocusedStream) {
@@ -935,6 +941,7 @@ private fun RightStreamSection(
                             showAddonLogo = showAddonLogo,
                             badgePlacement = badgePlacement,
                             deviceVideoCodecs = deviceVideoCodecs,
+                            deviceHdrCapabilities = deviceHdrCapabilities,
                             hasBadgeRules = hasBadgeRules,
                             onAddonFilterSelected = { onAddonFilterSelectedGuarded(it) },
                             orderedAddonNames = orderedAddonNames,
@@ -1045,6 +1052,7 @@ private fun StreamsList(
     selectionMode: StreamAutoPlayMode,
     streams: List<Stream>,
     deviceVideoCodecs: DeviceVideoCodecCapabilities?,
+    deviceHdrCapabilities: DeviceHdrCapabilities?,
     onStreamSelected: (Stream) -> Unit,
     focusedStreamIndex: Int = 0,
     shouldRestoreFocusedStream: Boolean = false,
@@ -1204,6 +1212,7 @@ private fun StreamsList(
                     selectionMode = selectionMode,
                     stream = stream,
                     deviceVideoCodecs = deviceVideoCodecs,
+                    deviceHdrCapabilities = deviceHdrCapabilities,
                     showFileSizeBadges = showFileSizeBadges,
                     showAddonLogo = showAddonLogo,
                     badgePlacement = badgePlacement,
@@ -1238,6 +1247,7 @@ private fun StreamCard(
     selectionMode: StreamAutoPlayMode,
     stream: Stream,
     deviceVideoCodecs: DeviceVideoCodecCapabilities?,
+    deviceHdrCapabilities: DeviceHdrCapabilities?,
     showFileSizeBadges: Boolean,
     showAddonLogo: Boolean,
     badgePlacement: StreamBadgePlacement,
@@ -1359,8 +1369,8 @@ private fun StreamCard(
                 }
 
                 if (selectionMode.usesSourceScore) {
-                    val score = remember(stream, selectionMode, deviceVideoCodecs) {
-                        StreamAutoPlaySelector.scoreSource(stream, selectionMode, deviceVideoCodecs)
+                    val score = remember(stream, selectionMode, deviceVideoCodecs, deviceHdrCapabilities) {
+                        StreamAutoPlaySelector.scoreSource(stream, selectionMode, deviceVideoCodecs, deviceHdrCapabilities)
                     }
                     val decoderStatus = stringResource(
                         when (score.decoderSupport) {
@@ -1368,6 +1378,13 @@ private fun StreamCard(
                             StreamAutoPlaySelector.DecoderSupport.SOFTWARE_ONLY -> R.string.source_decoder_software_only
                             StreamAutoPlaySelector.DecoderSupport.UNSUPPORTED -> R.string.source_decoder_unsupported
                             StreamAutoPlaySelector.DecoderSupport.UNKNOWN -> R.string.source_decoder_unknown
+                        }
+                    )
+                    val hdrStatus = stringResource(
+                        when (score.hdrSupport) {
+                            StreamAutoPlaySelector.HdrSupport.SUPPORTED -> R.string.source_hdr_supported
+                            StreamAutoPlaySelector.HdrSupport.UNSUPPORTED -> R.string.source_hdr_unsupported
+                            StreamAutoPlaySelector.HdrSupport.UNKNOWN -> R.string.source_hdr_unknown
                         }
                     )
                     Text(
@@ -1378,7 +1395,9 @@ private fun StreamCard(
                             score.sizePoints,
                             score.cachedPoints,
                             score.decoderCompatibilityPoints,
-                            decoderStatus
+                            decoderStatus,
+                            score.hdrCompatibilityPoints,
+                            hdrStatus,
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = NuvioTheme.extendedColors.textSecondary

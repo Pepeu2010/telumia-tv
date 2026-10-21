@@ -3,6 +3,8 @@ package com.nuvio.tv.core.player
 import com.nuvio.tv.core.build.AppFeaturePolicy
 import com.nuvio.tv.core.runtime.DeviceVideoCodecCapabilities
 import com.nuvio.tv.core.runtime.DeviceVideoDecoderCapability
+import com.nuvio.tv.core.runtime.DeviceHdrCapabilities
+import com.nuvio.tv.core.runtime.DeviceHdrFormat
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.data.local.StreamAutoPlaySource
 import com.nuvio.tv.domain.model.AddonStreams
@@ -129,6 +131,67 @@ class StreamAutoPlaySelectorTest {
         assertEquals("video/av01", StreamAutoPlaySelector.declaredVideoMime("av01"))
         assertEquals("video/x-vnd.on2.vp9", StreamAutoPlaySelector.declaredVideoMime("VP9"))
         assertEquals("video/dolby-vision", StreamAutoPlaySelector.declaredVideoMime("Dolby Vision"))
+    }
+
+    @Test fun `unsupported declared HDR source yields to a display-compatible fallback`() {
+        val hdr4k = withParsedVideo("HEVC", "2160p", hdr = listOf("HDR10_PLUS"))
+        val sdr1080 = withParsedVideo("HEVC", "1080p")
+        val codecs = DeviceVideoCodecCapabilities(
+            decoders = listOf(DeviceVideoDecoderCapability("video/hevc", 3840, 2160, true))
+        )
+        val display = DeviceHdrCapabilities(setOf(DeviceHdrFormat.HDR10))
+        val selected = StreamAutoPlaySelector.selectAutoPlayStream(
+            streams = listOf(hdr4k, sdr1080), mode = StreamAutoPlayMode.BEST_QUALITY,
+            regexPattern = "", source = StreamAutoPlaySource.ALL_SOURCES,
+            installedAddonNames = setOf("AddonA"), selectedAddons = emptySet(), selectedPlugins = emptySet(),
+            deviceVideoCodecs = codecs, deviceHdrCapabilities = display
+        )
+
+        assertEquals(sdr1080, selected)
+        val score = StreamAutoPlaySelector.scoreSource(hdr4k, StreamAutoPlayMode.BEST_QUALITY, codecs, display)
+        assertEquals(StreamAutoPlaySelector.HdrSupport.UNSUPPORTED, score.hdrSupport)
+        assertEquals(-400, score.hdrCompatibilityPoints)
+    }
+
+    @Test fun `HDR scoring keeps missing claims and unavailable display inventory neutral`() {
+        val source = withParsedVideo("HEVC", "2160p", hdr = listOf("HDR10"))
+        val unknownDisplay = DeviceHdrCapabilities(null)
+        val score = StreamAutoPlaySelector.scoreSource(source, StreamAutoPlayMode.BALANCED, null, unknownDisplay)
+
+        assertEquals(StreamAutoPlaySelector.HdrSupport.UNKNOWN, score.hdrSupport)
+        assertEquals(0, score.hdrCompatibilityPoints)
+        assertEquals(
+            StreamAutoPlaySelector.HdrSupport.UNKNOWN,
+            StreamAutoPlaySelector.scoreSource(withParsedVideo("HEVC", "2160p"), StreamAutoPlayMode.BALANCED,
+                null, DeviceHdrCapabilities(emptySet())).hdrSupport
+        )
+        assertEquals(
+            StreamAutoPlaySelector.HdrSupport.SUPPORTED,
+            StreamAutoPlaySelector.scoreSource(source, StreamAutoPlayMode.BALANCED, null,
+                DeviceHdrCapabilities(setOf(DeviceHdrFormat.HDR10))).hdrSupport
+        )
+        assertEquals(
+            StreamAutoPlaySelector.HdrSupport.UNKNOWN,
+            StreamAutoPlaySelector.scoreSource(withParsedVideo("HEVC", "2160p", hdr = listOf("HDR")),
+                StreamAutoPlayMode.BALANCED, null, DeviceHdrCapabilities(setOf(DeviceHdrFormat.HDR10))).hdrSupport
+        )
+    }
+
+    @Test fun `Dolby Vision requires both display support and an advertised decoder`() {
+        val dv = withParsedVideo("HEVC", "1080p", hdr = listOf("Dolby Vision"))
+        val display = DeviceHdrCapabilities(setOf(DeviceHdrFormat.DOLBY_VISION))
+
+        assertEquals(
+            StreamAutoPlaySelector.HdrSupport.UNKNOWN,
+            StreamAutoPlaySelector.scoreSource(dv, StreamAutoPlayMode.BEST_QUALITY, null, display).hdrSupport
+        )
+        val decoders = DeviceVideoCodecCapabilities(
+            decoders = listOf(DeviceVideoDecoderCapability("video/dolby-vision", 1920, 1080, true))
+        )
+        assertEquals(
+            StreamAutoPlaySelector.HdrSupport.SUPPORTED,
+            StreamAutoPlaySelector.scoreSource(dv, StreamAutoPlayMode.BEST_QUALITY, decoders, display).hdrSupport
+        )
     }
 
     @Test fun `data saver prefers smaller known files without rewarding unknown size`() {
@@ -533,7 +596,7 @@ class StreamAutoPlaySelectorTest {
         }
     )
 
-    private fun withParsedVideo(codec: String?, resolution: String?): Stream = stream(
+    private fun withParsedVideo(codec: String?, resolution: String?, hdr: List<String>? = null): Stream = stream(
         addonName = "AddonA",
         url = "https://example.com/${codec.orEmpty()}-${resolution.orEmpty()}"
     ).copy(
@@ -548,7 +611,7 @@ class StreamAutoPlaySelectorTest {
                     tracker = null, indexer = null, network = null,
                     parsed = StreamClientResolveParsed(
                         rawTitle = null, parsedTitle = null, year = null, resolution = resolution,
-                        seasons = null, episodes = null, quality = null, hdr = null, codec = codec,
+                        seasons = null, episodes = null, quality = null, hdr = hdr, codec = codec,
                         audio = null, channels = null, languages = null, group = null, network = null,
                         edition = null, duration = null, bitDepth = null, extended = null,
                         theatrical = null, remastered = null, unrated = null

@@ -26,6 +26,11 @@ data class DeviceDisplayCapabilities(
     val supportedHdrTypes: IntArray?,
 )
 
+enum class DeviceHdrFormat { HDR10, HDR10_PLUS, HLG, DOLBY_VISION }
+
+/** Null formats mean the active display did not report its HDR inventory. */
+data class DeviceHdrCapabilities(val supportedFormats: Set<DeviceHdrFormat>?)
+
 /** Dolby Vision decoder profiles advertised by Android's regular codec list. */
 data class DolbyVisionDecoderCapabilities(
     val profile7: Boolean = false,
@@ -67,21 +72,40 @@ object DeviceCapabilities {
 
     /** Reads display and HDR facts through one shared platform boundary. */
     fun display(context: Context, display: Display?): DeviceDisplayCapabilities {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || display == null) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             return DeviceDisplayCapabilities(emptyList(), -1, null)
         }
-        val modes = runCatching { display.supportedModes.toList() }.getOrDefault(emptyList())
-        val currentModeId = runCatching { display.mode.modeId }.getOrDefault(-1)
+        val displayManager = runCatching { context.getSystemService(DisplayManager::class.java) }.getOrNull()
+        val activeDisplay = display ?: runCatching { displayManager?.getDisplay(Display.DEFAULT_DISPLAY) }.getOrNull()
+        if (activeDisplay == null) return DeviceDisplayCapabilities(emptyList(), -1, null)
+        val modes = runCatching { activeDisplay.supportedModes.toList() }.getOrDefault(emptyList())
+        val currentModeId = runCatching { activeDisplay.mode.modeId }.getOrDefault(-1)
         val hdrTypes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             @Suppress("DEPRECATION")
             runCatching {
-                val displayManager = context.getSystemService(DisplayManager::class.java)
-                displayManager?.getDisplay(Display.DEFAULT_DISPLAY)?.hdrCapabilities?.supportedHdrTypes
+                activeDisplay.hdrCapabilities?.supportedHdrTypes
             }.getOrNull()
         } else {
             null
         }
         return DeviceDisplayCapabilities(modes, currentModeId, hdrTypes)
+    }
+
+    /** Reads active output HDR support on demand because display capabilities can change. */
+    fun hdr(context: Context): DeviceHdrCapabilities {
+        val supportedTypes = display(context, null).supportedHdrTypes ?: return DeviceHdrCapabilities(null)
+        return DeviceHdrCapabilities(hdrFormats(supportedTypes, Build.VERSION.SDK_INT))
+    }
+
+    internal fun hdrFormats(supportedTypes: IntArray, sdkInt: Int): Set<DeviceHdrFormat> = buildSet {
+        if (Display.HdrCapabilities.HDR_TYPE_HDR10 in supportedTypes) add(DeviceHdrFormat.HDR10)
+        if (sdkInt >= Build.VERSION_CODES.Q && Display.HdrCapabilities.HDR_TYPE_HDR10_PLUS in supportedTypes) {
+            add(DeviceHdrFormat.HDR10_PLUS)
+        }
+        if (Display.HdrCapabilities.HDR_TYPE_HLG in supportedTypes) add(DeviceHdrFormat.HLG)
+        if (sdkInt >= Build.VERSION_CODES.O && Display.HdrCapabilities.HDR_TYPE_DOLBY_VISION in supportedTypes) {
+            add(DeviceHdrFormat.DOLBY_VISION)
+        }
     }
 
     /** Enumerates the platform's regular video decoders once, keeping query failures unknown. */

@@ -33,6 +33,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +47,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -75,6 +80,7 @@ class SearchViewModel @Inject constructor(
 
     private val catalogsMap = linkedMapOf<String, CatalogRow>()
     private val catalogOrder = mutableListOf<String>()
+    private val brazilianAliasRequestLimit = Semaphore(2)
 
     private var activeSearchJobs: List<Job> = emptyList()
 
@@ -729,14 +735,38 @@ class SearchViewModel @Inject constructor(
             com.nuvio.tv.core.catalog.brazilianSearchQueries(query) else listOf(query)
         val aliasItems = mutableListOf<MetaPreview>()
         var aliasRow: CatalogRow? = null
-        for (alias in aliases.drop(1)) {
-            val extra = catalogRepository.getCatalog(
-                addonBaseUrl = addon.baseUrl, addonId = addon.id, addonName = addon.displayName,
-                catalogId = catalog.id, catalogName = catalog.name, type = catalog.apiType,
-                skip = 0, skipStep = 0, extraArgs = mapOf("search" to alias), supportsSkip = false,
-                posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH,
-            ).first { it !is NetworkResult.Loading }
-            if (!isCurrentSearch(generation, query)) return
+        val aliasResults = coroutineScope {
+            aliases.drop(1)
+                .map { alias ->
+                    async {
+                        brazilianAliasRequestLimit.withPermit {
+                            try {
+                                catalogRepository.getCatalog(
+                                    addonBaseUrl = addon.baseUrl,
+                                    addonId = addon.id,
+                                    addonName = addon.displayName,
+                                    catalogId = catalog.id,
+                                    catalogName = catalog.name,
+                                    type = catalog.apiType,
+                                    skip = 0,
+                                    skipStep = 0,
+                                    extraArgs = mapOf("search" to alias),
+                                    supportsSkip = false,
+                                    posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH,
+                                ).first { it !is NetworkResult.Loading }
+                            } catch (error: CancellationException) {
+                                throw error
+                            } catch (_: Exception) {
+                                null
+                            }
+                        }
+                    }
+                }
+                .awaitAll()
+        }
+        if (!isCurrentSearch(generation, query)) return
+        for (result in aliasResults) {
+            val extra = result ?: continue
             if (extra is NetworkResult.Success) {
                 aliasItems += extra.data.items
                 if (aliasRow == null) aliasRow = extra.data

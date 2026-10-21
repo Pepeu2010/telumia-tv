@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -62,6 +63,23 @@ class SearchViewModelConcurrencyTest {
         assertEquals(1, items.size)
         assertEquals("Iludida", items.single().name)
         assertEquals("tt12879200", items.single().id)
+    }
+
+    @Test
+    fun `Brazilian title aliases overlap but remain capped for TV resources`() = runTest {
+        val addon = searchableAddon().let {
+            it.copy(types = listOf(ContentType.SERIES), rawTypes = listOf("series"),
+                catalogs = it.catalogs.map { catalog -> catalog.copy(type = ContentType.SERIES, rawType = "series") })
+        }
+        val catalogs = ImmediateCatalogRepository(addon, regionalFixture = true, delayAliasRequests = true)
+        val viewModel = newViewModel(GatedAddonRepository(addon, CompletableDeferred(Unit)), catalogs)
+
+        viewModel.onEvent(SearchEvent.QueryChanged("Iludida"))
+        advanceUntilIdle()
+
+        assertEquals(2, catalogs.maxConcurrentAliasRequests.get())
+        assertEquals(setOf("Iludida", "Sadakatsiz", "The Unfaithful", "A Woman Scorned"), catalogs.queries.toSet())
+        assertEquals("Iludida", viewModel.uiState.value.catalogRows.single().items.single().name)
     }
 
     @Before
@@ -188,8 +206,11 @@ class SearchViewModelConcurrencyTest {
     private class ImmediateCatalogRepository(
         private val addon: Addon,
         private val regionalFixture: Boolean = false,
+        private val delayAliasRequests: Boolean = false,
     ) : CatalogRepository {
         val queries = mutableListOf<String>()
+        private val concurrentAliasRequests = AtomicInteger()
+        val maxConcurrentAliasRequests = AtomicInteger()
 
         override fun getCatalog(
             addonBaseUrl: String,
@@ -206,12 +227,22 @@ class SearchViewModelConcurrencyTest {
         ): Flow<NetworkResult<CatalogRow>> = flow {
             val query = extraArgs.getValue("search")
             queries += query
-            emit(NetworkResult.Loading)
-            if (regionalFixture && query == "Iludida") {
-                emit(NetworkResult.Error("Catalog only recognizes the original title"))
-                return@flow
+            val isAliasQuery = query in setOf("Sadakatsiz", "The Unfaithful", "A Woman Scorned")
+            val activeAliases = if (isAliasQuery) concurrentAliasRequests.incrementAndGet() else 0
+            if (isAliasQuery) {
+                maxConcurrentAliasRequests.updateAndGet { current -> maxOf(current, activeAliases) }
             }
-            emit(NetworkResult.Success(row(addon, query)))
+            try {
+                emit(NetworkResult.Loading)
+                if (isAliasQuery && delayAliasRequests) delay(100)
+                if (regionalFixture && query == "Iludida") {
+                    emit(NetworkResult.Error("Catalog only recognizes the original title"))
+                    return@flow
+                }
+                emit(NetworkResult.Success(row(addon, query)))
+            } finally {
+                if (isAliasQuery) concurrentAliasRequests.decrementAndGet()
+            }
         }
 
         private fun row(addon: Addon, query: String): CatalogRow = CatalogRow(

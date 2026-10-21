@@ -246,6 +246,7 @@ jobs:
           sums_url="$(jq -r '.assets[] | select(.name == "SHA256SUMS.txt") | .url' <<<"$tv_release")"
           [[ -n "$sums_url" && "$sums_url" != null ]]
           curl --fail --show-error --location --retry 5 "$sums_url" -o release-assets/SHA256SUMS.txt
+          sed -i 's/\r$//' release-assets/SHA256SUMS.txt
           while IFS=$'\t' read -r asset_name asset_digest; do
             expected="${asset_digest#sha256:}"
             recorded="$(awk -v name="$asset_name" '$2 == "./" name || $2 == name {print $1}' release-assets/SHA256SUMS.txt)"

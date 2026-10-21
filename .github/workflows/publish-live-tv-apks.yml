@@ -171,7 +171,7 @@ jobs:
 
           **Estes são APKs de depuração assinados pela chave de CI.** A assinatura pode diferir de uma instalação anterior; nesse caso, desinstale a versão anterior antes de instalar este pré-lançamento.
 
-          Inclui o instalador Windows x64 Telumia Desktop **${DESKTOP_VERSION}** (`Telumia-Windows-x64-${DESKTOP_VERSION}.msi`). A versão de PC permanece explicitada separadamente quando não acompanha o número Android TV.
+          Inclui o instalador Windows x64 Telumia Desktop **${DESKTOP_VERSION}** (\`Telumia-Windows-x64-${DESKTOP_VERSION}.msi\`). A versão de PC permanece explicitada separadamente quando não acompanha o número Android TV.
 
           Os hashes SHA-256 estão em SHA256SUMS.txt.
           EOF

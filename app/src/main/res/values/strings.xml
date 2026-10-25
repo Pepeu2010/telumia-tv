@@ -2455,6 +2455,12 @@
     <string name="live_tv_enable">Enable</string>
     <string name="live_tv_remove">Remove</string>
     <string name="live_tv_channels">Channels (%1$d)</string>
+    <string name="live_tv_quick_switch_title">Quick channel selection</string>
+    <string name="live_tv_quick_switch_hint">Use Up and Down to browse, Select to watch, and Back to close.</string>
+    <string name="live_tv_quick_switch_close">Close</string>
+    <string name="live_tv_quick_switch_current">Now playing</string>
+    <string name="live_tv_quick_switch_now">Now until %1$s · %2$s</string>
+    <string name="live_tv_quick_switch_next">Next at %1$s · %2$s</string>
     <string name="live_tv_empty_channels">Add a source above, then refresh to load its channels.</string>
     <string name="live_tv_no_current_program">No current programme in the guide</string>
     <string name="live_tv_next">Next</string>

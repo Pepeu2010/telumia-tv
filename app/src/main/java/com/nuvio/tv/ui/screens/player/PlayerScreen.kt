@@ -139,7 +139,11 @@ import com.nuvio.tv.data.local.SubtitleStyleSettings
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.domain.model.LiveTvChannel
+import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.ui.components.LoadingIndicator
+import com.nuvio.tv.ui.screens.livetv.LiveTvQuickChannelOverlay
+import com.nuvio.tv.ui.screens.livetv.liveTvPlayableChannels
 import android.text.format.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -181,7 +185,15 @@ fun PlayerScreen(
     onPlaybackErrorBack: () -> Unit = { onBackPress(null, null, null, false, false) },
     onPlaybackEnded: ((nextVideoId: String?, nextSeason: Int?, nextEpisode: Int?, exitReason: PlayerExitReason?) -> Unit)? = null,
     onPlayRecommendation: (PostPlayRecommendation, manualSelection: Boolean) -> Unit = { _, _ -> },
-    onOpenRecommendationDetails: (PostPlayRecommendation) -> Unit = {}
+    onOpenRecommendationDetails: (PostPlayRecommendation) -> Unit = {},
+    isLiveTv: Boolean = false,
+    liveTvChannels: List<LiveTvChannel> = emptyList(),
+    liveTvPrograms: List<LiveTvProgram> = emptyList(),
+    liveTvFavoriteChannelIds: Set<String> = emptySet(),
+    liveTvTimeZoneId: String = "device",
+    currentLiveTvChannelId: String? = null,
+    liveTvQuickSelectOnStart: Boolean = false,
+    onLiveTvChannelSelected: (LiveTvChannel) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val postPlayRecommendationState by viewModel.postPlayRecommendationUiState.collectAsState()
@@ -202,6 +214,15 @@ fun PlayerScreen(
     val bookmarkState by viewModel.sceneBookmarks.state.collectAsState()
     val postPlayRecommendationFocusRequester = remember { FocusRequester() }
     val postPlayRecommendationPlayerWindowFocusRequester = remember { FocusRequester() }
+    val liveTvSelectableChannels = remember(isLiveTv, liveTvChannels) {
+        if (isLiveTv) liveTvPlayableChannels(liveTvChannels) else emptyList()
+    }
+    var liveTvQuickSelectorVisible by remember(currentLiveTvChannelId, liveTvQuickSelectOnStart) {
+        mutableStateOf(false)
+    }
+    var liveTvQuickSelectPending by remember(liveTvQuickSelectOnStart) {
+        mutableStateOf(liveTvQuickSelectOnStart)
+    }
     var skipButtonActuallyVisible by remember { mutableStateOf(false) }
     var restoreStreamInfoFocus by remember { mutableStateOf(false) }
     var focusPlayAfterMoreBack by remember { mutableStateOf(false) }
@@ -310,7 +331,10 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
-        if (uiState.showSceneBookmarks) {
+        if (liveTvQuickSelectorVisible) {
+            liveTvQuickSelectorVisible = false
+            runCatching { containerFocusRequester.requestFocus() }
+        } else if (uiState.showSceneBookmarks) {
             viewModel.onEvent(PlayerEvent.OnDismissSceneBookmarks)
             restoreBookmarksFocus = true
         } else if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
@@ -365,6 +389,13 @@ fun PlayerScreen(
             viewModel.hideControls()
         } else {
             exitPlayer()
+        }
+    }
+
+    LaunchedEffect(liveTvSelectableChannels.isNotEmpty()) {
+        if (liveTvQuickSelectPending && liveTvSelectableChannels.isNotEmpty()) {
+            liveTvQuickSelectorVisible = true
+            liveTvQuickSelectPending = false
         }
     }
 
@@ -783,6 +814,7 @@ fun PlayerScreen(
                         uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
+                        liveTvQuickSelectorVisible ||
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
@@ -853,7 +885,11 @@ fun PlayerScreen(
                         }
                         KeyEvent.KEYCODE_DPAD_UP -> {
                                 if (!uiState.showControls) {
-                                    viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                    if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                        liveTvQuickSelectorVisible = true
+                                    } else {
+                                        viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                    }
                                 } else {
                                     try {
                                         progressBarFocusRequester.requestFocus()
@@ -878,10 +914,23 @@ fun PlayerScreen(
                             }
                         KeyEvent.KEYCODE_DPAD_DOWN -> {
                             if (!uiState.showControls) {
-                                viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                    liveTvQuickSelectorVisible = true
+                                } else {
+                                    viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                }
                                 true
                             } else {
                                 // Let focus system handle navigation when controls are visible
+                                false
+                            }
+                        }
+                        KeyEvent.KEYCODE_CHANNEL_UP,
+                        KeyEvent.KEYCODE_CHANNEL_DOWN -> {
+                            if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                liveTvQuickSelectorVisible = true
+                                true
+                            } else {
                                 false
                             }
                         }
@@ -932,28 +981,29 @@ fun PlayerScreen(
                 } else false
             }
     ) {
+        val compactPlayerSurface = postPlayRecommendationState.isVisible || liveTvQuickSelectorVisible
         val postPlayRecommendationPlayerWidth by animateFloatAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 0.32f else 1f,
+            targetValue = if (compactPlayerSurface) 0.32f else 1f,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerWidth"
         )
         val postPlayRecommendationPlayerPadding by animateDpAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) NuvioTheme.spacing.xxl else 0.dp,
+            targetValue = if (compactPlayerSurface) NuvioTheme.spacing.xxl else 0.dp,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerPadding"
         )
         val postPlayRecommendationPlayerCornerRadius by animateDpAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 12.dp else 0.dp,
+            targetValue = if (compactPlayerSurface) 12.dp else 0.dp,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerCornerRadius"
         )
         val postPlayRecommendationPlayerBorderAlpha by animateFloatAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 0.2f else 0f,
+            targetValue = if (compactPlayerSurface) 0.2f else 0f,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerBorderAlpha"
         )
         val playerSurfaceShape = RoundedCornerShape(postPlayRecommendationPlayerCornerRadius)
-        val playerSurfaceIsFullscreen = !postPlayRecommendationState.isVisible &&
+        val playerSurfaceIsFullscreen = !compactPlayerSurface &&
             postPlayRecommendationPlayerWidth >= 0.999f
         val playerSurfaceModifier = Modifier
             .align(Alignment.TopEnd)
@@ -970,7 +1020,7 @@ fun PlayerScreen(
                 else Modifier.background(Color.Black)
             )
             .zIndex(
-                if (postPlayRecommendationState.isVisible || postPlayRecommendationPlayerWidth < 0.999f) {
+                if (compactPlayerSurface || postPlayRecommendationPlayerWidth < 0.999f) {
                     2.2f
                 } else {
                     0f
@@ -981,9 +1031,9 @@ fun PlayerScreen(
             !postPlayRecommendationState.isTrailerPlaying &&
             (!postPlayRecommendationState.isVisible || !postPlayRecommendationState.hasAutoPlayedTrailer)
         ) {
-            LaunchedEffect(postPlayRecommendationState.isVisible) {
+            LaunchedEffect(compactPlayerSurface) {
                 val playerView = viewModel.controller.exoPlayerView
-                val vis = if (postPlayRecommendationState.isVisible) {
+                val vis = if (compactPlayerSurface) {
                     android.view.View.GONE
                 } else {
                     android.view.View.VISIBLE
@@ -1076,6 +1126,30 @@ fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(1f)
+            )
+        }
+
+        if (liveTvQuickSelectorVisible && isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+            LiveTvQuickChannelOverlay(
+                channels = liveTvSelectableChannels,
+                programs = liveTvPrograms,
+                favoriteChannelIds = liveTvFavoriteChannelIds,
+                currentChannelId = currentLiveTvChannelId,
+                timeZoneId = liveTvTimeZoneId,
+                onSelectChannel = { channel ->
+                    if (channel.id == currentLiveTvChannelId) {
+                        liveTvQuickSelectorVisible = false
+                        runCatching { containerFocusRequester.requestFocus() }
+                    } else {
+                        viewModel.stopAndRelease()
+                        onLiveTvChannelSelected(channel)
+                    }
+                },
+                onClose = {
+                    liveTvQuickSelectorVisible = false
+                    runCatching { containerFocusRequester.requestFocus() }
+                },
+                modifier = Modifier.fillMaxSize().zIndex(3f)
             )
         }
 

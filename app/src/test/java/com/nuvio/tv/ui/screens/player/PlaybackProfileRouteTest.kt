@@ -38,6 +38,21 @@ class PlaybackProfileRouteTest {
     }
 
     @Test
+    fun `player route retains live tv context for mini player channel changes`() {
+        val route = Screen.Player.createRoute(
+            streamUrl = "https://example.com/live.m3u8",
+            title = "Canal São Paulo",
+            liveTv = true,
+            liveTvChannelId = "source:canal são paulo",
+            liveTvQuickSelect = true,
+        )
+
+        assertTrue(route.contains("liveTv=true"))
+        assertTrue(route.contains("liveTvChannelId=source%3Acanal%20s%C3%A3o%20paulo"))
+        assertTrue(route.contains("liveTvQuickSelect=true"))
+    }
+
+    @Test
     fun `player navigation args parse explicit profile`() {
         val args = PlayerNavigationArgs.from(
             SavedStateHandle(

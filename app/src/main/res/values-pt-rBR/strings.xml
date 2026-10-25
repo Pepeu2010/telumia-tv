@@ -2318,6 +2318,12 @@
     <string name="live_tv_enable">Ativar</string>
     <string name="live_tv_remove">Remover</string>
     <string name="live_tv_channels">Canais (%1$d)</string>
+    <string name="live_tv_quick_switch_title">Troca rápida de canais</string>
+    <string name="live_tv_quick_switch_hint">Use ↑ e ↓ para navegar, OK para assistir e Voltar para fechar.</string>
+    <string name="live_tv_quick_switch_close">Fechar</string>
+    <string name="live_tv_quick_switch_current">Assistindo</string>
+    <string name="live_tv_quick_switch_now">Agora até %1$s · %2$s</string>
+    <string name="live_tv_quick_switch_next">A seguir às %1$s · %2$s</string>
     <string name="live_tv_empty_channels">Adicione uma fonte acima e atualize para carregar os canais.</string>
     <string name="live_tv_no_current_program">Nenhum programa atual no guia</string>
     <string name="live_tv_next">A seguir</string>

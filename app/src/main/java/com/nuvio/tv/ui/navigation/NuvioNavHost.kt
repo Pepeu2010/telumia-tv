@@ -18,7 +18,9 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -35,6 +37,7 @@ import com.nuvio.tv.ui.screens.addon.AddonManagerScreen
 import com.nuvio.tv.ui.screens.addon.CatalogOrderScreen
 import com.nuvio.tv.ui.screens.library.LibraryScreen
 import com.nuvio.tv.ui.screens.livetv.LiveTvScreen
+import com.nuvio.tv.ui.screens.livetv.LiveTvViewModel
 import com.nuvio.tv.ui.screens.player.PlayerExitReason
 import com.nuvio.tv.ui.screens.player.PlayerScreen
 import com.nuvio.tv.ui.screens.player.PostPlayRecommendation
@@ -817,9 +820,42 @@ private fun PlaybackNavHost(
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("liveTv") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("liveTvChannelId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("liveTvQuickSelect") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
+            val isLiveTv = backStackEntry.arguments?.getString("liveTv")
+                ?.toBooleanStrictOrNull() == true
+            val liveTvEntry = if (isLiveTv) {
+                remember(backStackEntry) { navController.getBackStackEntry(Screen.LiveTv.route) }
+            } else {
+                null
+            }
+            val liveTvViewModel = if (liveTvEntry != null) {
+                hiltViewModel<LiveTvViewModel>(liveTvEntry)
+            } else {
+                null
+            }
+            val liveTvState = if (liveTvViewModel != null) {
+                liveTvViewModel.state.collectAsStateWithLifecycle().value
+            } else {
+                null
+            }
+
             fun popBackToStream(): Boolean {
                 val autoPlayNavigation = backStackEntry.arguments
                     ?.getString("autoPlayNav")
@@ -1127,6 +1163,35 @@ private fun PlaybackNavHost(
                             }
                         }
                     }
+                },
+                isLiveTv = isLiveTv,
+                liveTvChannels = liveTvState?.channels.orEmpty(),
+                liveTvPrograms = liveTvState?.programs.orEmpty(),
+                liveTvFavoriteChannelIds = liveTvState?.favoriteChannelIds.orEmpty(),
+                liveTvTimeZoneId = liveTvState?.timeZoneId ?: "device",
+                currentLiveTvChannelId = backStackEntry.arguments?.getString("liveTvChannelId")
+                    ?.takeIf(String::isNotBlank),
+                liveTvQuickSelectOnStart = backStackEntry.arguments?.getString("liveTvQuickSelect")
+                    ?.toBooleanStrictOrNull() == true,
+                onLiveTvChannelSelected = { channel ->
+                    val streamUrl = channel.streamUrl?.takeIf(String::isNotBlank)
+                    if (isLiveTv && streamUrl != null) {
+                        liveTvViewModel?.recordRecent(channel.id)
+                        navController.navigate(
+                            Screen.Player.createRoute(
+                                streamUrl = streamUrl,
+                                title = channel.displayName,
+                                streamName = "Live TV",
+                                logo = channel.logoUrl,
+                                liveTv = true,
+                                liveTvChannelId = channel.id,
+                                liveTvQuickSelect = true,
+                            )
+                        ) {
+                            popUpTo(Screen.Player.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
@@ -1140,6 +1205,8 @@ private fun PlaybackNavHost(
                         title = channel.displayName,
                         streamName = "Live TV",
                         logo = channel.logoUrl,
+                        liveTv = true,
+                        liveTvChannelId = channel.id,
                     )
                 )
             })

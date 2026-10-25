@@ -25,7 +25,7 @@ data class NuvioExtendedColors(
 )
 
 val LocalNuvioColors = staticCompositionLocalOf {
-    NuvioColorScheme(ThemeColors.Ocean)
+    NuvioColorScheme(ThemeColors.Telumia)
 }
 
 val LocalNuvioExtendedColors = staticCompositionLocalOf {
@@ -34,30 +34,30 @@ val LocalNuvioExtendedColors = staticCompositionLocalOf {
         backgroundCard = Color(0xFF242424),
         textSecondary = Color(0xFFB3B3B3),
         textTertiary = Color(0xFF808080),
-        focusRing = ThemeColors.Ocean.focusRing,
-        focusBackground = ThemeColors.Ocean.focusBackground,
+        focusRing = ThemeColors.Telumia.focusRing,
+        focusBackground = ThemeColors.Telumia.focusBackground,
         rating = Color(0xFFFFD700)
     )
 }
 
 val LocalNuvioTextStyles = staticCompositionLocalOf { NuvioTextStyles }
 
-val LocalAppTheme = staticCompositionLocalOf { AppTheme.WHITE }
+val LocalAppTheme = staticCompositionLocalOf { AppTheme.TELUMIA }
 
-val LocalThemePalette = staticCompositionLocalOf { ThemeColors.White }
+val LocalThemePalette = staticCompositionLocalOf { ThemeColors.Telumia }
 
 val LocalSettingsUiStyle = staticCompositionLocalOf { SettingsUiStyle.CLASSIC }
 val LocalNavigationMotion = androidx.compose.runtime.compositionLocalOf { NavigationMotion.FULL }
 val LocalUiMotion = androidx.compose.runtime.compositionLocalOf { com.nuvio.tv.domain.model.UiMotionPolicy() }
 
 val LocalNuvioFocusRingStyle = staticCompositionLocalOf {
-    createFocusRingStyle(ThemeColors.Ocean)
+    createFocusRingStyle(ThemeColors.Telumia)
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun NuvioTheme(
-    appTheme: AppTheme = AppTheme.WHITE,
+    appTheme: AppTheme = AppTheme.TELUMIA,
     appFont: AppFont = AppFont.INTER,
     amoledMode: Boolean = false,
     amoledSurfacesMode: Boolean = false,

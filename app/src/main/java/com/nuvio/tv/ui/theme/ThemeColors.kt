@@ -91,6 +91,26 @@ object ThemeColors {
         backgroundCard = NuvioPrimitives.neutral850
     )
 
+    val Telumia = ThemeColorPalette(
+        secondary = NuvioPrimitives.telumiaAmber,
+        secondaryVariant = NuvioPrimitives.telumiaCoral,
+        onSecondary = Color(0xFF151819),
+        onSecondaryVariant = Color(0xFF151819),
+        accentGradient = listOf(NuvioPrimitives.telumiaCream, NuvioPrimitives.telumiaAmber, NuvioPrimitives.telumiaCoral),
+        focusRing = NuvioPrimitives.telumiaFocus,
+        focusRingGradient = listOf(NuvioPrimitives.telumiaCream, NuvioPrimitives.telumiaFocus, NuvioPrimitives.telumiaCoral),
+        focusBackground = NuvioPrimitives.telumiaFocusBackground,
+        background = NuvioPrimitives.telumiaBackground,
+        backgroundElevated = NuvioPrimitives.telumiaElevated,
+        backgroundCard = NuvioPrimitives.telumiaCard,
+        surface = Color(0xFF17262C),
+        surfaceVariant = Color(0xFF203238),
+        panel = NuvioPrimitives.telumiaElevated,
+        field = Color(0xFF18292F),
+        menu = Color(0xFF17262C),
+        modal = NuvioPrimitives.telumiaElevated
+    )
+
     fun getColorPalette(
         theme: AppTheme,
         customColors: CustomThemeColors = CustomThemeColors.Default
@@ -109,6 +129,7 @@ object ThemeColors {
             AppTheme.AMBER -> Amber
             AppTheme.ROSE -> Rose
             AppTheme.WHITE -> White
+            AppTheme.TELUMIA -> Telumia
         }
     }
 }

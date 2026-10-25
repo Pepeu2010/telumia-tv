@@ -50,4 +50,13 @@ object NuvioPrimitives {
     val tmdb = Color(0xFF01B4E4)
     val imdb = Color(0xFFF5C518)
     val mdblist = Color(0xFF7DD3FC)
+
+    val telumiaCream = Color(0xFFFFF0D6)
+    val telumiaAmber = Color(0xFFF3A652)
+    val telumiaCoral = Color(0xFFEC7460)
+    val telumiaFocus = Color(0xFFFFD295)
+    val telumiaFocusBackground = Color(0xFF3A2721)
+    val telumiaBackground = Color(0xFF0C1418)
+    val telumiaElevated = Color(0xFF142127)
+    val telumiaCard = Color(0xFF1A2A30)
 }

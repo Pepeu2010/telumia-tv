@@ -2,6 +2,7 @@ package com.nuvio.tv.ui.theme
 
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.AppTheme
+import androidx.compose.ui.graphics.Color
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -34,5 +35,16 @@ class ThemeBrandingTest {
         AppTheme.entries.filterNot(supporterThemes::contains).forEach { theme ->
             assertEquals(R.drawable.app_logo_wordmark, theme.brandWordmarkResource)
         }
+    }
+
+    @Test
+    fun telumiaDefaultPaletteUsesBrandColorsAndReadableFocusedContent() {
+        val palette = ThemeColors.getColorPalette(AppTheme.TELUMIA)
+
+        assertEquals(Color(0xFFF3A652), palette.secondary)
+        assertEquals(Color(0xFFEC7460), palette.secondaryVariant)
+        assertEquals(Color(0xFF151819), palette.onSecondary)
+        assertEquals(Color(0xFFFFD295), palette.focusRing)
+        assertEquals(Color(0xFF0C1418), palette.background)
     }
 }

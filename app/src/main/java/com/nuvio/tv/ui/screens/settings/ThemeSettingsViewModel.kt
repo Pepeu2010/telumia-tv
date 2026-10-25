@@ -29,7 +29,7 @@ import javax.inject.Inject
 
 data class ThemeSettingsUiState(
     val themesLoaded: Boolean = false,
-    val selectedTheme: AppTheme = AppTheme.WHITE,
+    val selectedTheme: AppTheme = AppTheme.TELUMIA,
     val customThemeColors: CustomThemeColors = CustomThemeColors.solid(CustomThemeColors.Default.second),
     val customThemeGradientEnabled: Boolean = false,
     val availableThemes: List<AppTheme> = availableAppThemes(CosmeticEntitlements.None),
@@ -105,7 +105,7 @@ class ThemeSettingsViewModel @Inject constructor(
                     _uiState.update { state ->
                         state.copy(
                             themesLoaded = true,
-                            selectedTheme = selection.theme ?: AppTheme.WHITE,
+                            selectedTheme = selection.theme ?: AppTheme.TELUMIA,
                             customThemeColors = selection.customColors,
                             customThemeGradientEnabled = gradientEnabled,
                             availableThemes = availableThemes

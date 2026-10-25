@@ -375,6 +375,7 @@
     <string name="theme_color_amber">Âmbar</string>
     <string name="theme_color_rose">Rosa</string>
     <string name="theme_color_white">Branco</string>
+    <string name="theme_color_telumia">Telumia</string>
     <string name="theme_color_custom">Personalizado</string>
     <string name="custom_theme_title">Seu degradê personalizado</string>
     <string name="custom_theme_subtitle">Escolha três cores para o seu tema. Selecione uma cor para editar.</string>

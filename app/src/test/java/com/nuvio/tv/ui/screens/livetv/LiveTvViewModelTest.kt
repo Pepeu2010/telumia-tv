@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -53,11 +54,41 @@ class LiveTvViewModelTest {
         assertEquals(listOf(source), viewModel.state.value.sources)
         assertEquals(listOf(channel), viewModel.state.value.channels)
         assertFalse(viewModel.state.value.isLoading)
+        assertFalse(viewModel.state.value.backgroundRefreshUnavailable)
         coVerify(exactly = 1) { store.add("Brasil", source.playlistUrl, null) }
         coVerify(exactly = 1) { importer.import(source) }
         coVerify(exactly = 1) { guideCache.write(source.id, LiveTvImportResult(listOf(channel)), any()) }
         coVerify(exactly = 1) { refreshScheduler.schedule() }
         coVerify(exactly = 1) { refreshScheduler.schedule() }
+    }
+
+    @Test
+    fun addingSourceStillImportsChannelsWhenBackgroundSchedulingFails() = runTest(mainDispatcher.dispatcher) {
+        val store = mockk<LiveTvSourceStore>()
+        val importer = mockk<LiveTvSourceImporter>()
+        val guideCache = mockk<LiveTvGuideCache>()
+        val channelState = mockk<LiveTvChannelStateStore>()
+        val refreshScheduler = mockk<LiveTvRefreshScheduler>()
+        val source = LiveTvSource("source-1", "Brasil", "https://example.org/list.m3u")
+        val channel = LiveTvChannel("source-1:channel", "source-1", "Canal Brasil", "https://example.org/live.m3u8")
+        coEvery { store.list() } returns emptyList()
+        coEvery { store.add("Brasil", source.playlistUrl, null) } returns source
+        coEvery { importer.import(source) } returns LiveTvImportResult(listOf(channel))
+        coEvery { guideCache.read(source.id) } returns null
+        coEvery { guideCache.write(source.id, any()) } returns true
+        coEvery { channelState.read() } returns LiveTvChannelState()
+        every { refreshScheduler.cancel() } returns Unit
+        every { refreshScheduler.schedule() } throws IllegalStateException("WorkManager unavailable")
+        val viewModel = LiveTvViewModel(store, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+
+        runCurrent()
+        viewModel.addSource("Brasil", source.playlistUrl, null)
+        runCurrent()
+
+        assertEquals(listOf(channel), viewModel.state.value.channels)
+        assertFalse(viewModel.state.value.isLoading)
+        assertTrue(viewModel.state.value.backgroundRefreshUnavailable)
+        coVerify(exactly = 1) { importer.import(source) }
     }
 
     @Test
@@ -178,3 +209,4 @@ class LiveTvViewModelTest {
         every { activeProfileId } returns MutableStateFlow(1)
     }
 }
+

@@ -104,6 +104,7 @@ internal fun LiveTvQuickChannelOverlay(
                         text = stringResource(R.string.live_tv_quick_switch_title),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
+                        color = NuvioTheme.colors.TextPrimary,
                     )
                     Text(
                         text = stringResource(R.string.live_tv_channels, channels.size),
@@ -171,7 +172,6 @@ internal fun LiveTvQuickChannelOverlay(
                                         it.title,
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = NuvioTheme.colors.TextSecondary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )
@@ -184,7 +184,6 @@ internal fun LiveTvQuickChannelOverlay(
                                         it.title,
                                     ),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = NuvioTheme.colors.TextSecondary,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                 )

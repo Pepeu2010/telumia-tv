@@ -14,6 +14,10 @@
     <string name="source_hdr_unsupported">não anunciado pela tela</string>
     <string name="source_hdr_unknown">desconhecido</string>
     <string name="scene_bookmarks_title">Momentos salvos</string>
+    <string name="scene_info_title">Informações da cena</string>
+    <string name="scene_info_close">Fechar</string>
+    <string name="scene_info_embedded_source">Capítulo lido do arquivo que está em reprodução.</string>
+    <string name="scene_info_chapter">CAPÍTULO</string>
     <string name="cd_player_chapters">Capítulos</string>
     <string name="player_chapters_title">Capítulos</string>
     <string name="player_chapter_number">Capítulo %1$d</string>

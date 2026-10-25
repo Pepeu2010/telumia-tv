@@ -14,6 +14,10 @@
     <string name="source_hdr_unsupported">not advertised</string>
     <string name="source_hdr_unknown">unknown</string>
     <string name="scene_bookmarks_title">Saved moments</string>
+    <string name="scene_info_title">Scene Info</string>
+    <string name="scene_info_close">Close</string>
+    <string name="scene_info_embedded_source">Chapter read from the file currently playing.</string>
+    <string name="scene_info_chapter">CHAPTER</string>
     <string name="cd_player_chapters">Chapters</string>
     <string name="player_chapters_title">Chapters</string>
     <string name="player_chapter_number">Chapter %1$d</string>

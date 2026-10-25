@@ -132,6 +132,9 @@ import coil3.request.ImageRequest
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import com.nuvio.tv.core.player.PlayerWindowBackdrop
+import com.nuvio.tv.core.player.metadata.TimedMetadataScope
+import com.nuvio.tv.core.player.metadata.TimedMetadataTimeline
+import com.nuvio.tv.core.player.metadata.loadTimedMetadata
 import com.nuvio.tv.ui.util.localizeEpisodeTitle
 import com.nuvio.tv.data.local.InternalPlayerEngine
 import com.nuvio.tv.data.local.LibassRenderType
@@ -196,6 +199,18 @@ fun PlayerScreen(
     onLiveTvChannelSelected: (LiveTvChannel) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentSceneInfoSource = remember(
+        uiState.currentStreamUrl,
+        uiState.currentStreamInfoHash,
+        uiState.currentStreamFileIdx,
+    ) { bookmarkSourceIdentity(uiState) }
+    val currentSceneInfoScope = remember(uiState.embeddedChapterMetadata?.scope, currentSceneInfoSource) {
+        uiState.embeddedChapterMetadata?.scope?.let { sceneInfoScopeForSource(it, currentSceneInfoSource) }
+    }
+    var sceneInfoDialogState by remember { mutableStateOf<TvSceneInfoDialogState?>(null) }
+    LaunchedEffect(currentSceneInfoScope) {
+        if (sceneInfoDialogState?.scope != currentSceneInfoScope) sceneInfoDialogState = null
+    }
     val postPlayRecommendationState by viewModel.postPlayRecommendationUiState.collectAsState()
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsState(initial = false)
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -664,6 +679,12 @@ fun PlayerScreen(
                 if (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ESCAPE ||
                     (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK && !postPlayHandlesBack)
                 ) {
+                    if (sceneInfoDialogState != null) {
+                        return@onPreviewKeyEvent when (keyEvent.nativeKeyEvent.action) {
+                            KeyEvent.ACTION_UP -> { sceneInfoDialogState = null; true }
+                            else -> true
+                        }
+                    }
                     return@onPreviewKeyEvent when (keyEvent.nativeKeyEvent.action) {
                         KeyEvent.ACTION_DOWN -> true
                         KeyEvent.ACTION_UP -> {
@@ -814,6 +835,7 @@ fun PlayerScreen(
                         uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
+                        sceneInfoDialogState != null ||
                         liveTvQuickSelectorVisible ||
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
@@ -1411,7 +1433,7 @@ fun PlayerScreen(
 
         // Controls overlay
         AnimatedVisibility(
-            visible = uiState.showControls && uiState.error == null &&
+            visible = (uiState.showControls || sceneInfoDialogState != null) && uiState.error == null &&
                 !uiState.showLoadingOverlay && !uiState.showPauseOverlay &&
                 !uiState.showStreamInfoOverlay &&
                 !uiState.showSubtitleStylePanel &&
@@ -1450,6 +1472,14 @@ fun PlayerScreen(
                 onShowSubtitleDialog = { viewModel.onEvent(PlayerEvent.OnShowSubtitleOverlay) },
                 onShowSpeedDialog = { viewModel.onEvent(PlayerEvent.OnShowSpeedDialog) },
                 onShowSceneBookmarks = { viewModel.onEvent(PlayerEvent.OnShowSceneBookmarks) },
+                onShowSceneInfo = { scope, entries -> sceneInfoDialogState = TvSceneInfoDialogState(scope, entries) },
+                onSceneInfoEntriesChanged = { scope, entries ->
+                    val open = sceneInfoDialogState
+                    if (open != null && open.scope == scope) {
+                        sceneInfoDialogState = entries.takeIf { it.isNotEmpty() }
+                            ?.let { open.copy(entries = it) }
+                    }
+                },
                 bookmarksFocusRequester = bookmarksFocusRequester,
                 onToggleAspectRatio = {
                     Log.d("PlayerScreen", "onToggleAspectRatio called - dispatching event")
@@ -1499,6 +1529,10 @@ fun PlayerScreen(
                 onBack = { exitPlayer() },
                 skipButtonVisible = skipButtonActuallyVisible
             )
+        }
+
+        sceneInfoDialogState?.let { state ->
+            SceneInfoDialog(entries = state.entries, onDismiss = { sceneInfoDialogState = null })
         }
 
         // Aspect ratio indicator (floating pill)
@@ -2266,6 +2300,8 @@ private fun PlayerControlsOverlay(
     onShowSubtitleDialog: () -> Unit,
     onShowSpeedDialog: () -> Unit,
     onShowSceneBookmarks: () -> Unit,
+    onShowSceneInfo: (TimedMetadataScope, List<TvSceneInfoEntry>) -> Unit,
+    onSceneInfoEntriesChanged: (TimedMetadataScope?, List<TvSceneInfoEntry>) -> Unit,
     bookmarksFocusRequester: FocusRequester,
     onToggleAspectRatio: () -> Unit,
     onSwitchPlayerEngine: () -> Unit,
@@ -2294,6 +2330,35 @@ private fun PlayerControlsOverlay(
     val customEpisodesPainter = rememberRawSvgPainter(R.raw.ic_player_episodes)
     val playbackTimeline by viewModel.playbackTimeline.collectAsState()
     val isLivePlayback = playbackTimeline.isLive
+    val sceneInfoSourceIdentity = remember(
+        uiState.currentStreamUrl,
+        uiState.currentStreamInfoHash,
+        uiState.currentStreamFileIdx,
+    ) { bookmarkSourceIdentity(uiState) }
+    val sceneInfoScope = remember(uiState.embeddedChapterMetadata?.scope, sceneInfoSourceIdentity) {
+        uiState.embeddedChapterMetadata?.scope?.let { sceneInfoScopeForSource(it, sceneInfoSourceIdentity) }
+    }
+    var sceneInfoTimeline by remember { mutableStateOf<TimedMetadataTimeline?>(null) }
+    LaunchedEffect(uiState.embeddedChapterMetadata, sceneInfoScope, playbackTimeline.duration) {
+        sceneInfoTimeline = null
+        val sourceTimeline = uiState.embeddedChapterMetadata ?: return@LaunchedEffect
+        val scope = sceneInfoScope ?: return@LaunchedEffect
+        if (sourceTimeline.scope != scope) return@LaunchedEffect
+        val provider = EmbeddedChapterSceneMetadataProvider(sourceTimeline, playbackTimeline.duration)
+        sceneInfoTimeline = loadTimedMetadata(
+            scope = scope,
+            providers = listOf(provider),
+            durationMs = playbackTimeline.duration,
+            trustedSceneProviderIds = setOf(provider.id),
+        ).timeline
+    }
+    val activeSceneInfo = remember(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition) {
+        sceneInfoEntriesAt(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition)
+    }
+    val currentOnSceneInfoEntriesChanged by rememberUpdatedState(onSceneInfoEntriesChanged)
+    LaunchedEffect(sceneInfoScope, activeSceneInfo) {
+        currentOnSceneInfoEntriesChanged(sceneInfoScope, activeSceneInfo)
+    }
     val progressUpTarget = if (isLivePlayback) {
         progressBarUpFocusRequester ?: playPauseFocusRequester
     } else {
@@ -2557,6 +2622,16 @@ private fun PlayerControlsOverlay(
                                     upFocusRequester = progressUpTarget,
                                     onDownKey = onHideControls,
                                     onFocused = onResetHideTimer
+                                )
+                            }
+                            if (!isLivePlayback && activeSceneInfo.isNotEmpty()) {
+                                ControlButton(
+                                    icon = Icons.Default.Info,
+                                    contentDescription = stringResource(R.string.scene_info_title),
+                                    onClick = { sceneInfoScope?.let { onShowSceneInfo(it, activeSceneInfo) } },
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer,
                                 )
                             }
                             if (!isLivePlayback && playbackTimeline.duration > 0) ControlButton(

@@ -106,8 +106,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10007
-        versionName = "1.0.2-alpha.2"
+        versionCode = 10008
+        versionName = "1.0.2-alpha.3"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -536,6 +536,9 @@ dependencies {
     add("fullImplementation", libs.crypto.js)
     // QR code + local server for addon management
     implementation(libs.nanohttpd)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.websockets)
     implementation(libs.zxing.core)
 
 

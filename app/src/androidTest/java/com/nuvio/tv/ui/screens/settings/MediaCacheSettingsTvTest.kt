@@ -131,6 +131,27 @@ class MediaCacheSettingsTvTest {
         } finally { java.nio.file.Files.delete(link.toPath()) }
     }
 
+    @Test fun runtimeMeasurementCountsPlaybackCachesAndStaleVodFolders() {
+        fun write(root: File, name: String, size: Int): File = File(root, name).apply {
+            parentFile!!.mkdirs()
+            writeBytes(ByteArray(size))
+        }
+        val cacheDirectory = context.cacheDir
+        val filesDirectory = File(cacheDirectory, "files-fixture").apply { mkdirs() }
+        write(cacheDirectory, "nuvio_vod_cache/current-span", 37)
+        write(cacheDirectory, "nuvio_vod_cache_stale_1761582000/old-span", 19)
+        write(cacheDirectory, "nuvio-engine/payload/chunk", 23)
+        write(filesDirectory, "scene-bookmarks-v1/bookmarks.json", 11)
+        write(filesDirectory, "downloads/movie.mkv", 31)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory.toPath(), filesDirectory.toPath())
+
+        assertTrue(result.complete)
+        assertEquals(79L, result.bytes)
+        assertEquals(11L, File(filesDirectory, "scene-bookmarks-v1/bookmarks.json").length())
+        assertEquals(31L, File(filesDirectory, "downloads/movie.mkv").length())
+    }
+
     @Test fun nativeDirectoryIterationStopsAtItsEntryBudget() {
         val images = File(context.cacheDir, "image_cache").apply { mkdirs() }
         repeat(20) { File(images, "$it").writeBytes(ByteArray(4)) }

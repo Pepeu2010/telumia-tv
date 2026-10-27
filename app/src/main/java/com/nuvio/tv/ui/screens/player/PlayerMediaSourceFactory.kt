@@ -29,6 +29,8 @@ import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.text.SubtitleParser
 import com.nuvio.tv.NuvioApplication
 import com.nuvio.tv.R
+import com.nuvio.tv.core.storage.TV_VOD_CACHE_DIRECTORY_NAME
+import com.nuvio.tv.core.storage.TV_VOD_CACHE_STALE_PREFIX
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -432,8 +434,6 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         private const val MIME_VIDEO_QUICK_TIME = "video/quicktime"
         private const val ENABLE_VOD_CACHE = true
         private const val VOD_CACHE_FREE_SPACE_RESERVE_BYTES = 1024L * 1024L * 1024L
-        private const val VOD_CACHE_DIR_NAME = "nuvio_vod_cache"
-        private const val VOD_CACHE_STALE_PREFIX = "nuvio_vod_cache_stale_"
         // Larger fragments mean fewer files to create, index and delete, which is the part of cache
         // upkeep that competes with playback reads on slow storage.
         private const val VOD_CACHE_FRAGMENT_BYTES = 8L * 1024L * 1024L
@@ -632,7 +632,7 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
                     return existing
                 }
 
-                val dir = File(context.applicationContext.cacheDir, VOD_CACHE_DIR_NAME)
+                val dir = File(context.applicationContext.cacheDir, TV_VOD_CACHE_DIRECTORY_NAME)
                 // Clearing the last run in place raced the first title's writes, and a resumed title shares its key.
                 val movedAside = moveStaleVodCacheAside(dir)
                 var created = createVodCache(context, dir, maxBytes)
@@ -692,7 +692,7 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
 
         private fun moveStaleVodCacheAside(dir: File): Boolean {
             if (!dir.exists()) return true
-            return dir.renameTo(File(dir.parentFile, "$VOD_CACHE_STALE_PREFIX${System.currentTimeMillis()}"))
+            return dir.renameTo(File(dir.parentFile, "$TV_VOD_CACHE_STALE_PREFIX${System.currentTimeMillis()}"))
         }
 
         // Also picks up folders an earlier run was killed before it finished deleting.
@@ -700,7 +700,7 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
             val appContext = context.applicationContext
             vodCacheMaintenanceScope.launch {
                 val folders = appContext.cacheDir.listFiles { file ->
-                    file.name.startsWith(VOD_CACHE_STALE_PREFIX)
+                    file.name.startsWith(TV_VOD_CACHE_STALE_PREFIX)
                 } ?: return@launch
                 for (folder in folders) {
                     try {

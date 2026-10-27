@@ -5,14 +5,68 @@ import android.os.StatFs
 import coil3.request.CachePolicy
 import com.nuvio.tv.core.runtime.DeviceCapabilities
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
+import java.nio.file.DirectoryIteratorException
+import java.nio.file.DirectoryStream
+import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
+
+internal const val TV_VOD_CACHE_DIRECTORY_NAME = "nuvio_vod_cache"
+internal const val TV_VOD_CACHE_STALE_PREFIX = "nuvio_vod_cache_stale_"
+internal const val TV_TORRENT_PAYLOAD_CACHE_PATH = "nuvio-engine/payload"
+private const val MAX_STALE_VOD_CACHE_ROOTS = 128
+private const val MAX_STALE_VOD_DIRECTORY_ENTRIES = 16_384
+private const val STALE_VOD_DISCOVERY_TIMEOUT_NANOS = 10_000_000L
+
+private data class DiscoveredStaleVodCaches(val roots: List<List<String>>, val complete: Boolean)
+
+private fun discoverStaleVodCacheRoots(cacheDirectory: Path): DiscoveredStaleVodCaches {
+    val names = mutableListOf<String>()
+    var complete = true
+    val startedAtNanos = System.nanoTime()
+    var visitedEntries = 0
+    try {
+        Files.newDirectoryStream(cacheDirectory, DirectoryStream.Filter { path ->
+            path.fileName?.toString()?.startsWith(TV_VOD_CACHE_STALE_PREFIX) == true
+        }).use { entries ->
+            val iterator = entries.iterator()
+            while (iterator.hasNext()) {
+                if (visitedEntries >= MAX_STALE_VOD_DIRECTORY_ENTRIES ||
+                    System.nanoTime() - startedAtNanos >= STALE_VOD_DISCOVERY_TIMEOUT_NANOS ||
+                    names.size >= MAX_STALE_VOD_CACHE_ROOTS
+                ) {
+                    complete = false
+                    break
+                }
+                visitedEntries++
+                val name = iterator.next().fileName?.toString().orEmpty()
+                if (name.length > TV_VOD_CACHE_STALE_PREFIX.length &&
+                    name != "." && name != ".." && '/' !in name && '\\' !in name
+                ) {
+                    names += name
+                }
+            }
+        }
+    } catch (_: NoSuchFileException) {
+        // A fresh installation has no cache directory yet.
+    } catch (_: IOException) {
+        complete = false
+    } catch (_: DirectoryIteratorException) {
+        complete = false
+    } catch (_: SecurityException) {
+        complete = false
+    }
+    return DiscoveredStaleVodCaches(names.sorted().map { listOf(it) }, complete)
+}
 
 fun tvMediaCache(context: Context): TvMediaCache =
     (context.applicationContext as? com.nuvio.tv.NuvioApplication)?.mediaCache ?: TvMediaCache(context.applicationContext)
 
 internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: Path): MediaCacheOccupancy {
+    val staleVodCaches = discoverStaleVodCacheRoots(cacheDirectory)
     val currentCaches = OwnedMediaCacheOccupancy.measure(
         cacheDirectory,
         listOf(
@@ -22,7 +76,8 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
             // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
             listOf("http_cache"), listOf("member_profile_avatars"),
             listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),
-        ),
+            listOf(TV_VOD_CACHE_DIRECTORY_NAME), TV_TORRENT_PAYLOAD_CACHE_PATH.split('/'),
+        ) + staleVodCaches.roots,
     )
     val legacyFilesCaches = OwnedMediaCacheOccupancy.measure(
         filesDirectory,
@@ -36,7 +91,11 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
     val visitedEntries = (currentCaches.visitedEntries.toLong() + legacyFilesCaches.visitedEntries)
         .coerceAtMost(Int.MAX_VALUE.toLong())
         .toInt()
-    return MediaCacheOccupancy(totalBytes, visitedEntries, currentCaches.complete && legacyFilesCaches.complete)
+    return MediaCacheOccupancy(
+        totalBytes,
+        visitedEntries,
+        currentCaches.complete && legacyFilesCaches.complete && staleVodCaches.complete,
+    )
 }
 
 /** Device-owned settings. Never synchronized through the account/profile transport. */

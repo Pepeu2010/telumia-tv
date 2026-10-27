@@ -88,6 +88,24 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(29L, Files.size(filesDirectory.resolve("datastore/account.preferences_pb")))
         assertEquals(11L, Files.size(filesDirectory.resolve("scene-bookmarks-v1/bookmarks.json")))
     }
+
+    @Test fun playbackStreamCachesAndStaleVodFoldersCountTowardAutoOccupancy() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(cacheDirectory, "nuvio_vod_cache/current-span", 37)
+        write(cacheDirectory, "nuvio_vod_cache_stale_1761582000/old-span", 19)
+        write(cacheDirectory, "nuvio-engine/payload/chunk", 23)
+        write(filesDirectory, "scene-bookmarks-v1/bookmarks.json", 11)
+        write(filesDirectory, "downloads/movie.mkv", 31)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(79L, result.bytes)
+        assertEquals(11L, Files.size(filesDirectory.resolve("scene-bookmarks-v1/bookmarks.json")))
+        assertEquals(31L, Files.size(filesDirectory.resolve("downloads/movie.mkv")))
+    }
+
     @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
         write(root, "member_profile_avatars/member-one-v3.webp", 17)
         write(root, "member_profile_backgrounds/member-one-v3.png", 19)

@@ -7,6 +7,7 @@ import com.nuvio.engine.NuvioEngine
 import com.nuvio.engine.NuvioEventType
 import com.nuvio.engine.NuvioStream
 import com.nuvio.tv.R
+import com.nuvio.tv.core.storage.TV_TORRENT_PAYLOAD_CACHE_PATH
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.concurrent.atomic.AtomicReference
@@ -320,7 +321,7 @@ class TorrentService @Inject constructor(
         closeEngine(engine)
         currentCoroutineContext().ensureActive()
         val stateDirectory = File(context.noBackupFilesDir, "nuvio-engine/state")
-        val cacheDirectory = File(context.cacheDir, "nuvio-engine/payload")
+        val cacheDirectory = File(context.cacheDir, TV_TORRENT_PAYLOAD_CACHE_PATH)
         check(stateDirectory.mkdirs() || stateDirectory.isDirectory) {
             "Could not create the Nuvio Engine state directory"
         }

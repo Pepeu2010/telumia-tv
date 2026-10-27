@@ -556,6 +556,7 @@
     <string name="account_error_sync_code_expired">Código expirado</string>
     <string name="account_error_invalid_sync_code">Código inválido</string>
     <string name="account_error_sync_code_not_found">Código não encontrado</string>
+    <string name="account_sync_restart_note">A sincronização não ocorre em tempo real entre dispositivos ativos. Reinicie este dispositivo após fazer login ou para aplicar alterações feitas em outro lugar.</string>
     <string name="account_error_device_already_linked">Dispositivo já vinculado</string>
     <string name="account_error_generic_retry">Erro. Tente novamente</string>
     <string name="account_error_invalid_credentials">Email ou senha incorretos</string>

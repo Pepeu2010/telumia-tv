@@ -563,6 +563,7 @@
     <string name="account_error_sync_code_expired">Sync code has expired.</string>
     <string name="account_error_invalid_sync_code">Invalid sync code.</string>
     <string name="account_error_sync_code_not_found">Sync code not found.</string>
+    <string name="account_sync_restart_note">Changes are not synced in real time across active devices. Restart this device after signing in or to apply changes made elsewhere.</string>
     <string name="account_error_device_already_linked">Device is already linked.</string>
     <string name="account_error_generic_retry">Something went wrong. Please try again.</string>
     <string name="account_error_invalid_credentials">Incorrect email or password.</string>

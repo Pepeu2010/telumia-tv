@@ -21,70 +21,62 @@ class BaselineProfileGenerator {
 
     @Test
     fun generate() {
-        val targetPackage = "com.nuvio.tv"
+        val targetPackage = BuildConfig.TARGET_APPLICATION_ID
         rule.collect(
             packageName = targetPackage,
+            // Keep collection bounded; instability is still reported by the collector.
+            maxIterations = 5,
             includeInStartupProfile = true
         ) {
             // Force English locale so onboarding labels are predictable regardless of device language.
-            val originalLocale = device.executeShellCommand("getprop persist.sys.locale").trim()
-            device.executeShellCommand("setprop persist.sys.locale en-US")
+            val originalSystemLocales = device.executeShellCommand("settings get system system_locales").trim()
             device.executeShellCommand("settings put system system_locales en-US")
 
             try {
-            pressHome()
-            startActivityAndWait()
-            device.wait(Until.hasObject(By.pkg(targetPackage)), 5_000)
-            device.waitForIdle()
+                pressHome()
+                startActivityAndWait()
+                device.wait(Until.hasObject(By.pkg(targetPackage)), 5_000)
+                device.waitForIdle()
 
-            // Step through the first-run onboarding with D-pad focus, skipping it entirely on later iterations where the app already opens on home.
-            if (device.wait(Until.hasObject(By.text(ONBOARDING_FIRST_LABEL)), 8_000) != null) {
-                device.focusAndSelect(ONBOARDING_FIRST_LABEL)
-                device.focusAndSelect("Advanced")
-                device.focusAndSelect("Continue")
-            }
-            device.waitForIdle()
-            Thread.sleep(3_000)
+                // Step through onboarding once; subsequent iterations already open on Home.
+                if (device.wait(Until.hasObject(By.text(ONBOARDING_FIRST_LABEL)), 8_000) != null) {
+                    device.focusAndSelect(ONBOARDING_FIRST_LABEL)
+                    device.focusAndSelect("Advanced")
+                    device.focusAndSelect("Continue")
+                }
+                device.waitForIdle()
+                Thread.sleep(3_000)
 
-            // Move focus off the sidebar into the content grid.
-            device.pressDPadRight()
-            device.waitForIdle()
-
-            // Scroll across the focused row to compile the row and card rendering paths.
-            repeat(6) {
+                // Move focus off the sidebar into the content grid.
                 device.pressDPadRight()
                 device.waitForIdle()
-                Thread.sleep(120)
-            }
 
-            // Scroll down through the rows to compile the vertical list and prefetch paths.
-            repeat(6) {
-                device.pressDPadDown()
-                device.waitForIdle()
-                Thread.sleep(150)
-            }
+                // Scroll across the focused row to compile the row and card rendering paths.
+                repeat(6) {
+                    device.pressDPadRight()
+                    device.waitForIdle()
+                    Thread.sleep(120)
+                }
 
-            // Move back up toward a focused title.
-            repeat(2) {
-                device.pressDPadUp()
-                device.waitForIdle()
-                Thread.sleep(120)
-            }
+                // Scroll down through the rows to compile the vertical list and prefetch paths.
+                repeat(6) {
+                    device.pressDPadDown()
+                    device.waitForIdle()
+                    Thread.sleep(150)
+                }
 
-            // Open a title to compile the detail screen render path.
-            device.pressDPadCenter()
-            device.waitForIdle()
-            Thread.sleep(2_500)
-
-            // Return to the home screen.
-            device.pressBack()
-            device.waitForIdle()
-            Thread.sleep(800)
+                // Move back up toward a focused title.
+                repeat(2) {
+                    device.pressDPadUp()
+                    device.waitForIdle()
+                    Thread.sleep(120)
+                }
             } finally {
-                // Restore original locale.
-                if (originalLocale.isNotBlank()) {
-                    device.executeShellCommand("setprop persist.sys.locale $originalLocale")
-                    device.executeShellCommand("settings put system system_locales $originalLocale")
+                // Restore the original system locale, including the unset state.
+                if (originalSystemLocales.isBlank() || originalSystemLocales == "null") {
+                    device.executeShellCommand("settings delete system system_locales")
+                } else {
+                    device.executeShellCommand("settings put system system_locales $originalSystemLocales")
                 }
             }
         }

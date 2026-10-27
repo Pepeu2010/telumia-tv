@@ -63,6 +63,28 @@ object MediaCachePolicy {
     /** Keep current cache hits readable while stopping writes after Auto shrinks below an open cache's cap. */
     fun allowsNewWrites(budget: MediaCacheBudget, category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
         openedQuotaBytes > 0 && budget.totalBytes > 0 && budget.quota(category) >= openedQuotaBytes
+
+    fun canBeginCacheWrite(
+        budget: MediaCacheBudget,
+        category: MediaCacheCategory,
+        freeStorageBytes: Long?,
+        reserveBytes: Long,
+    ): Boolean = budget.totalBytes > 0 && budget.quota(category) > 0 &&
+        freeStorageBytes?.let { it >= 0 && it > reserveBytes.coerceAtLeast(0) } == true
+
+    fun allowsCacheEntry(
+        budget: MediaCacheBudget,
+        category: MediaCacheCategory,
+        entryBytes: Long,
+        freeStorageBytes: Long?,
+        reserveBytes: Long,
+    ): Boolean {
+        if (entryBytes <= 0 || budget.totalBytes <= 0 || budget.quota(category) < entryBytes) return false
+        val free = freeStorageBytes?.takeIf { it >= 0 } ?: return false
+        val reserve = reserveBytes.coerceAtLeast(0)
+        val required = if (reserve > Long.MAX_VALUE - entryBytes) Long.MAX_VALUE else reserve + entryBytes
+        return free >= required
+    }
     fun resolve(platform: MediaCachePlatform, settings: MediaCacheSettings, device: MediaCacheDeviceSnapshot): MediaCacheBudget {
         val constraints = mutableSetOf<MediaCacheConstraint>()
         val memory = device.memoryBytes?.takeIf { it > 0 }

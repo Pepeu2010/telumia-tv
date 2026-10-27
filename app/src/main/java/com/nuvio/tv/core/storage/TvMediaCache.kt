@@ -35,13 +35,24 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
                 listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
                 listOf("http_cache_v2"), listOf("addon_http_cache"),
                 // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
-                listOf("http_cache"),
+                listOf("http_cache"), listOf("member_profile_avatars"),
             ),
         )
     }
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
     fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
         MediaCachePolicy.allowsNewWrites(activeBudget, category, openedQuotaBytes)
+
+    fun canBeginCacheWrite(category: MediaCacheCategory): Boolean = MediaCachePolicy.canBeginCacheWrite(
+        activeBudget, category, availableStorageBytes(), MediaCachePlatform.TV.reserveBytes,
+    )
+
+    fun canWriteCacheEntry(category: MediaCacheCategory, entryBytes: Long): Boolean = MediaCachePolicy.allowsCacheEntry(
+        activeBudget, category, entryBytes, availableStorageBytes(), MediaCachePlatform.TV.reserveBytes,
+    )
+
+    private fun availableStorageBytes(): Long? =
+        runCatching { StatFs(app.cacheDir.absolutePath).availableBytes }.getOrNull()
     val requestPolicy: CachePolicy get() = if (writesEnabled) CachePolicy.ENABLED else CachePolicy.READ_ONLY
 
     fun loadSettings(): MediaCacheSettings = runCatching {

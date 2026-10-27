@@ -74,6 +74,30 @@ class MediaCachePolicyTest {
         assertEquals(refreshed, monitor.current())
     }
 
+    @Test fun avatarEntryWritesRespectCategoryQuotaAndThePhysicalStorageReserve() {
+        val budget = MediaCachePolicy.resolve(
+            MediaCachePlatform.TV,
+            MediaCacheSettings(),
+            MediaCacheDeviceSnapshot(),
+        )
+        assertTrue(MediaCachePolicy.canBeginCacheWrite(
+            budget, MediaCacheCategory.AVATARS, MediaCachePlatform.TV.reserveBytes + 1, MediaCachePlatform.TV.reserveBytes,
+        ))
+        assertTrue(MediaCachePolicy.allowsCacheEntry(
+            budget, MediaCacheCategory.AVATARS, 1, MediaCachePlatform.TV.reserveBytes + 1, MediaCachePlatform.TV.reserveBytes,
+        ))
+        assertFalse(MediaCachePolicy.allowsCacheEntry(
+            budget, MediaCacheCategory.AVATARS, 2, MediaCachePlatform.TV.reserveBytes + 1, MediaCachePlatform.TV.reserveBytes,
+        ))
+        assertFalse(MediaCachePolicy.allowsCacheEntry(
+            budget, MediaCacheCategory.AVATARS, 1, null, MediaCachePlatform.TV.reserveBytes,
+        ))
+        val emptyQuota = budget.copy(totalBytes = 0)
+        assertFalse(MediaCachePolicy.canBeginCacheWrite(
+            emptyQuota, MediaCacheCategory.AVATARS, MediaCachePlatform.TV.reserveBytes + 1, MediaCachePlatform.TV.reserveBytes,
+        ))
+    }
+
     @Test fun categorySharesUseTheWholeBudgetExactlyOnce() {
         assertEquals(100, MediaCacheCategory.entries.sumOf { it.share })
         val budget = MediaCachePolicy.resolve(

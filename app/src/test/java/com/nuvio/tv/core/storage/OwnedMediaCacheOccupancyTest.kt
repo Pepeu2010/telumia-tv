@@ -49,6 +49,19 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(5L, Files.size(root.resolve("http_cache/legacy-journal")))
         assertEquals(31L, Files.size(root.resolve("downloads/movie")))
     }
+    @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
+        write(root, "member_profile_avatars/member-one-v3.webp", 17)
+        write(root, "profile-studio-v1/avatars/local-avatar.png", 29)
+        val result = OwnedMediaCacheOccupancy.measure(
+            root,
+            listOf(listOf("member_profile_avatars")),
+            maxMillis = 10_000,
+        )
+        assertTrue(result.complete)
+        assertEquals(17L, result.bytes)
+        assertEquals(29L, Files.size(root.resolve("profile-studio-v1/avatars/local-avatar.png")))
+    }
+
     @Test fun missingCachesAreAnEmptyMeasurement() = fixture { root ->
         assertEquals(MediaCacheOccupancy(0, 0, true),
             OwnedMediaCacheOccupancy.measure(root, listOf(listOf("missing")), maxMillis = 10_000))

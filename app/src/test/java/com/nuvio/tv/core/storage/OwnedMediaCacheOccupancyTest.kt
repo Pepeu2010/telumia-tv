@@ -71,7 +71,9 @@ class OwnedMediaCacheOccupancyTest {
         val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
         val filesDirectory = root.resolve("files").also(Files::createDirectories)
         write(filesDirectory, "mdblist_cache/ratings_v1.json", 37)
+        write(filesDirectory, "cw_enrichment/nextup_1.json", 17)
         write(filesDirectory, "datastore/account.preferences_pb", 29)
+        write(filesDirectory, "scene-bookmarks-v1/bookmarks.json", 11)
         val preferences = mockk<android.content.SharedPreferences>(relaxed = true)
         val context = mockk<Context>(relaxed = true)
         every { context.applicationContext } returns context
@@ -82,8 +84,9 @@ class OwnedMediaCacheOccupancyTest {
         val result = TvMediaCache(context).occupiedCache
 
         assertTrue(result.complete)
-        assertEquals(37L, result.bytes)
+        assertEquals(54L, result.bytes)
         assertEquals(29L, Files.size(filesDirectory.resolve("datastore/account.preferences_pb")))
+        assertEquals(11L, Files.size(filesDirectory.resolve("scene-bookmarks-v1/bookmarks.json")))
     }
     @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
         write(root, "member_profile_avatars/member-one-v3.webp", 17)

@@ -24,19 +24,19 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
             listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),
         ),
     )
-    val legacyMdbList = OwnedMediaCacheOccupancy.measure(
+    val legacyFilesCaches = OwnedMediaCacheOccupancy.measure(
         filesDirectory,
-        listOf(listOf("mdblist_cache")),
+        listOf(listOf("mdblist_cache"), listOf("cw_enrichment")),
     )
-    val totalBytes = if (currentCaches.bytes > Long.MAX_VALUE - legacyMdbList.bytes) {
+    val totalBytes = if (currentCaches.bytes > Long.MAX_VALUE - legacyFilesCaches.bytes) {
         Long.MAX_VALUE
     } else {
-        currentCaches.bytes + legacyMdbList.bytes
+        currentCaches.bytes + legacyFilesCaches.bytes
     }
-    val visitedEntries = (currentCaches.visitedEntries.toLong() + legacyMdbList.visitedEntries)
+    val visitedEntries = (currentCaches.visitedEntries.toLong() + legacyFilesCaches.visitedEntries)
         .coerceAtMost(Int.MAX_VALUE.toLong())
         .toInt()
-    return MediaCacheOccupancy(totalBytes, visitedEntries, currentCaches.complete && legacyMdbList.complete)
+    return MediaCacheOccupancy(totalBytes, visitedEntries, currentCaches.complete && legacyFilesCaches.complete)
 }
 
 /** Device-owned settings. Never synchronized through the account/profile transport. */

@@ -158,6 +158,27 @@ class MediaCacheSettingsTvTest {
         assertEquals(31L, File(filesDirectory, "downloads/movie.mkv").length())
     }
 
+    @Test fun runtimeMeasurementCountsManagedHttpAddonMetadataAndLegacyCacheFolders() {
+        fun write(relativePath: String, size: Int): File = File(context.cacheDir, relativePath).apply {
+            parentFile!!.mkdirs()
+            writeBytes(ByteArray(size))
+        }
+        val http = write("http_cache_v2/first-party-entry", 13)
+        val addons = write("addon_http_cache/addon-entry", 17)
+        val metadata = write("metadata/mdblist/ratings.json", 19)
+        val legacy = write("http_cache/legacy-entry", 23)
+        val filesDirectory = File(context.cacheDir, "files-fixture").apply { mkdirs() }
+
+        val result = measureTvMediaCacheOccupancy(context.cacheDir.toPath(), filesDirectory.toPath())
+
+        assertTrue(result.complete)
+        assertEquals(72L, result.bytes)
+        assertEquals(13L, http.length())
+        assertEquals(17L, addons.length())
+        assertEquals(19L, metadata.length())
+        assertEquals(23L, legacy.length())
+    }
+
     @Test fun nativeDirectoryIterationStopsAtItsEntryBudget() {
         val images = File(context.cacheDir, "image_cache").apply { mkdirs() }
         repeat(20) { File(images, "$it").writeBytes(ByteArray(4)) }

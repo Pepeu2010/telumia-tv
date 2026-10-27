@@ -51,6 +51,24 @@ class HttpCacheWritePolicyInterceptorTest {
         }
     }
 
+    @Test fun sharedAddonCacheServesCloudstreamEntriesToOtherAddonClients() = withCache { _, cache ->
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("addon-catalog").addHeader("Cache-Control", "public, max-age=3600"))
+            val networkAddonClient = client(cache) { true }
+            val cloudstreamClient = client(cache) { false }
+            val request = Request.Builder().url(server.url("/addon-catalog")).build()
+
+            networkAddonClient.newCall(request).execute().use { assertEquals("addon-catalog", it.body.string()) }
+            cloudstreamClient.newCall(request).execute().use { response ->
+                assertEquals("addon-catalog", response.body.string())
+                assertNotNull(response.cacheResponse)
+                assertNull(response.networkResponse)
+            }
+
+            assertEquals(1, server.requestCount)
+        }
+    }
+
     @Test fun readonlyPolicyDoesNotPersistNewNetworkResponses() = withCache { _, cache ->
         MockWebServer().use { server ->
             repeat(2) { server.enqueue(MockResponse().setBody("fresh").addHeader("Cache-Control", "public, max-age=3600")) }

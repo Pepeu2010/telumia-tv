@@ -4,12 +4,15 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.tvMediaCache
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
+import java.nio.charset.StandardCharsets
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -25,8 +28,12 @@ class SubtitleFileCache @Inject constructor(
     // Keep it that way: anything routed through here inherits permissive TLS.
     @param:Named("addonPermissive") private val okHttpClient: OkHttpClient
 ) {
-    private val cacheDir: File
-        get() = File(context.cacheDir, SUBTITLE_CACHE_DIR).also { it.mkdirs() }
+    private val mediaCache = tvMediaCache(context)
+    private val cache = BoundedSubtitleFileCache(
+        directory = File(context.cacheDir, SUBTITLE_CACHE_DIR),
+        quotaBytes = { mediaCache.cacheQuota(MediaCacheCategory.SUBTITLES) },
+        canWriteEntry = { mediaCache.canWriteCacheEntry(MediaCacheCategory.SUBTITLES, it) },
+    )
 
     /**
      * Downloads subtitle files and returns updated [SubtitleInput] list with
@@ -37,6 +44,7 @@ class SubtitleFileCache @Inject constructor(
      */
     suspend fun cacheSubtitles(subtitles: List<SubtitleInput>): List<SubtitleInput>? {
         if (subtitles.isEmpty()) return null
+        if (!mediaCache.canBeginCacheWrite(MediaCacheCategory.SUBTITLES)) return null
 
         // Clean old cached subtitles before downloading new ones
         clearCache()
@@ -65,7 +73,6 @@ class SubtitleFileCache @Inject constructor(
     private suspend fun downloadToCache(input: SubtitleInput): Uri? = withContext(Dispatchers.IO) {
         val extension = guessExtension(input.url)
         val filename = sanitizeFilename("${input.lang}_${input.name}.$extension")
-        val file = File(cacheDir, filename)
 
         val request = Request.Builder()
             .url(input.url)
@@ -78,31 +85,41 @@ class SubtitleFileCache @Inject constructor(
                     return@withContext null
                 }
 
-                val bodyBytes = response.body?.bytes() ?: return@withContext null
+                val body = response.body ?: return@withContext null
+                if (body.contentLength() > BoundedSubtitleFileCache.MAX_ENTRY_BYTES) return@withContext null
+                val bodyBytes = body.byteStream().use { BoundedSubtitleFileCache.readAtMost(it) }
+                    ?: return@withContext null
                 val normalizedText = SubtitleCharsetDetector.decode(bodyBytes, languageHint = input.lang)
                 val sanitizedText = com.nuvio.tv.ui.screens.player.SubtitleMojibakeSanitizer.sanitize(normalizedText).toString()
-                file.writeText(sanitizedText, Charsets.UTF_8)
+                val file = cache.put(filename, sanitizedText.toByteArray(StandardCharsets.UTF_8))
+                    ?: return@withContext null
+                return@withContext FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file,
+                )
             }
-
-            // Return content:// URI via FileProvider
-            FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
         } catch (e: Exception) {
             Log.w(TAG, "Failed to download subtitle file: ${input.url}", e)
-            file.delete()
             null
         }
     }
+
+    /** Stores normalized MPV sidecars under the same dynamic quota as external-player subtitles. */
+    fun cacheNormalizedSubtitle(id: String, extension: String, text: String): File? {
+        val normalizedExtension = extension.lowercase()
+        if (normalizedExtension !in SUPPORTED_EXTENSIONS) return null
+        return cache.put("mpv_${id.hashCode()}.$normalizedExtension", text.toByteArray(StandardCharsets.UTF_8))
+    }
+
+    fun canBeginCacheWrite(): Boolean = mediaCache.canBeginCacheWrite(MediaCacheCategory.SUBTITLES)
 
     /**
      * Removes all cached subtitle files.
      */
     fun clearCache() {
         try {
-            cacheDir.listFiles()?.forEach { it.delete() }
+            cache.clear()
         } catch (e: Exception) {
             Log.w(TAG, "Failed to clear subtitle cache", e)
         }
@@ -128,5 +145,6 @@ class SubtitleFileCache @Inject constructor(
     companion object {
         private const val TAG = "SubtitleFileCache"
         private const val SUBTITLE_CACHE_DIR = "subtitles"
+        private val SUPPORTED_EXTENSIONS = setOf("srt", "vtt", "ass", "ssa", "ttml", "dfxp")
     }
 }

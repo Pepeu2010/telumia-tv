@@ -428,16 +428,21 @@ private fun PlayerRuntimeController.executeSubtitleDownload(
         if (!response.isSuccessful) {
             error(context.getString(com.nuvio.tv.R.string.subtitle_download_failed_http, response.code))
         }
-        val bodyBytes = response.body?.bytes()
+        val responseBody = response.body
             ?: error(context.getString(com.nuvio.tv.R.string.subtitle_download_empty_content))
+        if (responseBody.contentLength() > com.nuvio.tv.core.player.BoundedSubtitleFileCache.MAX_ENTRY_BYTES) {
+            error("Subtitle response exceeds the local cache limit")
+        }
+        val bodyBytes = responseBody.byteStream().use { com.nuvio.tv.core.player.BoundedSubtitleFileCache.readAtMost(it) }
+            ?: error("Subtitle response exceeds the local cache limit or is empty")
         if (bodyBytes.isEmpty()) {
             error(context.getString(com.nuvio.tv.R.string.subtitle_download_empty_content))
         }
-        val body = SubtitleCharsetDetector.decode(bodyBytes, languageHint = languageHint)
-        if (body.isBlank()) {
+        val subtitleText = SubtitleCharsetDetector.decode(bodyBytes, languageHint = languageHint)
+        if (subtitleText.isBlank()) {
             error(context.getString(com.nuvio.tv.R.string.subtitle_download_empty_content))
         }
-        return body
+        return subtitleText
     }
 }
 

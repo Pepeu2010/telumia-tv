@@ -110,6 +110,14 @@ class MediaCachePolicyTest {
         assertTrue(budget.totalBytes - allocated < 100)
     }
 
+    @Test fun subtitlesHaveTheirOwnSmallShareOfTheConfigurableMediaBudget() {
+        assertEquals(38, MediaCacheCategory.IMAGES.share)
+        val subtitles = MediaCacheCategory.entries.singleOrNull { it.name == "SUBTITLES" }
+        assertEquals(2, subtitles?.share)
+        val budget = MediaCachePolicy.resolve(MediaCachePlatform.TV, MediaCacheSettings(), MediaCacheDeviceSnapshot())
+        assertEquals(budget.totalBytes / 100 * 2, budget.quota(subtitles!!))
+    }
+
     @Test fun coilAndProfileBackgroundCachesShareTheImagesQuota() {
         val desktop = MediaImageCachePolicy.allocate(1_000L, hasSeparateGifCache = true)
         assertEquals(800L, desktop.coilBytes)

@@ -17,6 +17,18 @@ data class MediaCacheBudget(val totalBytes: Long, val requestedBytes: Long, val 
     fun quota(category: MediaCacheCategory): Long = totalBytes / 100 * category.share
 }
 
+data class MediaImageCacheAllocation(val coilBytes: Long, val gifBytes: Long, val memberBackgroundBytes: Long)
+
+object MediaImageCachePolicy {
+    /** Keeps profile backgrounds inside IMAGES without letting separate consumers each spend the full share. */
+    fun allocate(imageQuotaBytes: Long, hasSeparateGifCache: Boolean): MediaImageCacheAllocation {
+        val imageQuota = imageQuotaBytes.coerceAtLeast(0)
+        val backgroundBytes = imageQuota / 10
+        val gifBytes = if (hasSeparateGifCache) imageQuota / 10 else 0
+        return MediaImageCacheAllocation(imageQuota - backgroundBytes - gifBytes, gifBytes, backgroundBytes)
+    }
+}
+
 /** Re-samples device telemetry on demand, with a short TTL to avoid filesystem probes per request. */
 internal class MediaCacheBudgetMonitor(
     private val platform: MediaCachePlatform,

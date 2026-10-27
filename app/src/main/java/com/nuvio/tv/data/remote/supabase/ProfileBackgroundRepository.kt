@@ -2,6 +2,9 @@ package com.nuvio.tv.data.remote.supabase
 
 import android.content.Context
 import android.util.Log
+import com.nuvio.tv.core.storage.BoundedMemberImageCache
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.TvMediaCache
 import com.nuvio.tv.data.local.MemberCatalogStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.postgrest.Postgrest
@@ -18,6 +21,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -29,6 +34,8 @@ import javax.inject.Singleton
 
 private const val ProfileBackgroundBucket = "membership-profile-backgrounds"
 private const val ProfileBackgroundTag = "ProfileBackgrounds"
+private const val MaxProfileBackgroundBytes = 8L * 1024L * 1024L
+private const val MaxProfileBackgroundFiles = 64
 
 @Serializable
 private data class StoredProfileBackgroundCatalogPayload(
@@ -47,9 +54,20 @@ class ProfileBackgroundRepository @Inject constructor(
     private val postgrest: Postgrest,
     private val storage: Storage,
     private val memberCatalogStorage: MemberCatalogStorage,
+    private val mediaCache: TvMediaCache,
     @ApplicationContext private val context: Context
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val backgroundDownloadSemaphore = Semaphore(2)
+    private val backgroundDiskCache by lazy {
+        BoundedMemberImageCache(
+            context.cacheDir.resolve("member_profile_backgrounds_v2"),
+            quotaBytes = { mediaCache.profileBackgroundQuota() },
+            canWrite = { bytes -> mediaCache.canWriteCacheEntry(MediaCacheCategory.IMAGES, bytes) },
+            maxEntryBytes = MaxProfileBackgroundBytes,
+            maxFiles = MaxProfileBackgroundFiles,
+        )
+    }
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val _catalog = MutableStateFlow<List<ProfileBackgroundCatalogItem>>(emptyList())
     val catalog: StateFlow<List<ProfileBackgroundCatalogItem>> = _catalog.asStateFlow()
@@ -157,16 +175,13 @@ class ProfileBackgroundRepository @Inject constructor(
     }
 
     private fun loadUnindexedCachedSelection(id: String) {
-        val prefix = "$id-v"
-        val imageFile = context.cacheDir.resolve("member_profile_backgrounds").listFiles()
-            ?.filter { file ->
-                file.isFile && file.length() > 0L && file.name.startsWith(prefix) && file.name.endsWith(".png")
-            }
-            ?.maxByOrNull { file ->
-                file.name.removePrefix(prefix).removeSuffix(".png").toIntOrNull() ?: Int.MIN_VALUE
-            }
+        if (!backgroundDiskCache.validKey(id, 0, "png")) return
+        val cached = backgroundDiskCache.latest(id)
+        val legacy = latestLegacyProfileBackground(id)
+        val imageFile = listOfNotNull(cached, legacy?.second).maxByOrNull { file -> profileBackgroundVersion(file, id) }
             ?: return
-        val version = imageFile.name.removePrefix(prefix).removeSuffix(".png").toIntOrNull() ?: return
+        val version = profileBackgroundVersion(imageFile, id)
+        if (version < 0) return
         _catalog.update { catalog ->
             if (catalog.any { it.id == id }) {
                 catalog
@@ -189,7 +204,7 @@ class ProfileBackgroundRepository @Inject constructor(
 
     private suspend fun loadAndPublish(item: SupabaseProfileBackgroundCatalogItem) {
         try {
-            val imageFile = cacheImage(item)
+            val imageFile = cacheImage(item) ?: return
             publishImage(item, imageFile)
         } catch (error: CancellationException) {
             throw error
@@ -210,25 +225,69 @@ class ProfileBackgroundRepository @Inject constructor(
         }
     }
 
-    private suspend fun cacheImage(item: SupabaseProfileBackgroundCatalogItem): File = withContext(Dispatchers.IO) {
-        val imageFile = profileBackgroundFile(item)
-        if (imageFile.isFile && imageFile.length() > 0L) return@withContext imageFile
+    private suspend fun cacheImage(item: SupabaseProfileBackgroundCatalogItem): File? = withContext(Dispatchers.IO) {
+        if (!backgroundDiskCache.validKey(item.id, item.assetVersion, "png")) return@withContext null
+        backgroundDiskCache.get(item.id, item.assetVersion, "png")?.let { return@withContext it }
 
-        val directory = imageFile.parentFile ?: return@withContext imageFile
-        directory.mkdirs()
-        val imageBytes = storage[ProfileBackgroundBucket].downloadAuthenticated(item.storagePath)
-        val temporaryFile = directory.resolve(".${imageFile.name}.tmp")
-        temporaryFile.writeBytes(imageBytes)
-        if (!temporaryFile.renameTo(imageFile)) {
-            temporaryFile.copyTo(imageFile, overwrite = true)
-            temporaryFile.delete()
+        legacyProfileBackgroundFile(item)?.takeIf(::isValidLegacyProfileBackground)?.let { legacy ->
+            val legacyBytes = runCatching { legacy.readBytes() }.getOrNull() ?: return@let
+            backgroundDiskCache.put(item.id, item.assetVersion, "png", legacyBytes)?.let { migrated ->
+                legacy.delete()
+                return@withContext migrated
+            }
+            return@withContext legacy
         }
-        imageFile
+
+        if (!mediaCache.canBeginCacheWrite(MediaCacheCategory.IMAGES)) return@withContext null
+        val imageBytes = backgroundDownloadSemaphore.withPermit {
+            storage[ProfileBackgroundBucket].downloadAuthenticated(item.storagePath)
+        }
+        if (imageBytes.isEmpty() || imageBytes.size.toLong() > MaxProfileBackgroundBytes) return@withContext null
+        backgroundDiskCache.put(item.id, item.assetVersion, "png", imageBytes)
     }
 
-    private fun cachedImageFile(item: SupabaseProfileBackgroundCatalogItem): File? =
-        profileBackgroundFile(item).takeIf { it.isFile && it.length() > 0L }
+    private fun cachedImageFile(item: SupabaseProfileBackgroundCatalogItem): File? {
+        if (!backgroundDiskCache.validKey(item.id, item.assetVersion, "png")) return null
+        backgroundDiskCache.get(item.id, item.assetVersion, "png")?.let { return it }
+        return legacyProfileBackgroundFile(item)?.takeIf(::isValidLegacyProfileBackground)
+    }
 
-    private fun profileBackgroundFile(item: SupabaseProfileBackgroundCatalogItem): File =
-        context.cacheDir.resolve("member_profile_backgrounds/${item.id}-v${item.assetVersion}.png")
+    private fun legacyProfileBackgroundFile(item: SupabaseProfileBackgroundCatalogItem): File? {
+        if (!backgroundDiskCache.validKey(item.id, item.assetVersion, "png")) return null
+        return context.cacheDir.resolve("member_profile_backgrounds/${item.id}-v${item.assetVersion}.png")
+    }
+
+    private fun isValidLegacyProfileBackground(file: File): Boolean = runCatching {
+        val directory = context.cacheDir.resolve("member_profile_backgrounds").toPath()
+        val path = file.toPath()
+        !java.nio.file.Files.isSymbolicLink(directory) &&
+            java.nio.file.Files.isDirectory(directory, java.nio.file.LinkOption.NOFOLLOW_LINKS) &&
+            java.nio.file.Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS) &&
+            java.nio.file.Files.size(path) in 1..MaxProfileBackgroundBytes &&
+            path.toRealPath().startsWith(directory.toRealPath())
+    }.getOrDefault(false)
+
+    private fun latestLegacyProfileBackground(id: String): Pair<Int, File>? {
+        if (!backgroundDiskCache.validKey(id, 0, "png")) return null
+        val versionPattern = Regex("${Regex.escape(id)}-v([0-9]{1,10})\\.png")
+        val directory = context.cacheDir.resolve("member_profile_backgrounds").toPath()
+        if (java.nio.file.Files.isSymbolicLink(directory) ||
+            !java.nio.file.Files.isDirectory(directory, java.nio.file.LinkOption.NOFOLLOW_LINKS)
+        ) return null
+        return runCatching {
+            java.nio.file.Files.newDirectoryStream(directory).use { entries ->
+                entries.asSequence().take(MaxProfileBackgroundFiles * 8).mapNotNull { path ->
+                    val file = path.toFile()
+                    val version = versionPattern.matchEntire(file.name)?.groupValues?.getOrNull(1)?.toIntOrNull()
+                        ?: return@mapNotNull null
+                    if (isValidLegacyProfileBackground(file)) version to file else null
+                }.maxByOrNull { it.first }
+            }
+        }.getOrNull()
+    }
+
+    private fun profileBackgroundVersion(file: File, id: String): Int {
+        val pattern = Regex("${Regex.escape(id)}-v([0-9]{1,10})\\.png")
+        return pattern.matchEntire(file.name)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: -1
+    }
 }

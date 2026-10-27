@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import com.nuvio.tv.data.local.MemberCatalogStorage
+import com.nuvio.tv.core.storage.BoundedAvatarImageCache
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.TvMediaCache
 import com.nuvio.tv.domain.model.ServerConfiguration
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.postgrest.Postgrest
@@ -18,6 +21,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -60,9 +65,18 @@ class AvatarRepository @Inject constructor(
     private val storage: Storage,
     private val serverConfiguration: ServerConfiguration,
     private val memberCatalogStorage: MemberCatalogStorage,
+    private val mediaCache: TvMediaCache,
     @ApplicationContext private val context: Context
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val memberAvatarDownloadSemaphore = Semaphore(2)
+    private val memberAvatarDiskCache by lazy {
+        BoundedAvatarImageCache(
+            context.cacheDir.resolve("member_profile_avatars"),
+            quotaBytes = { mediaCache.activeBudget.quota(MediaCacheCategory.AVATARS) },
+            canWrite = { bytes -> mediaCache.canWriteCacheEntry(MediaCacheCategory.AVATARS, bytes) },
+        )
+    }
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
     private val storedCatalog = loadStoredCatalog()
     private var standardMetadata = storedCatalog?.standardItems.orEmpty()
@@ -135,7 +149,9 @@ class AvatarRepository @Inject constructor(
             remote.map { item ->
                 async {
                     try {
-                        toMemberCatalogItem(item, cacheMemberAvatar(item))
+                        val imageFile = memberAvatarDownloadSemaphore.withPermit { cacheMemberAvatar(item) }
+                            ?: return@async null
+                        toMemberCatalogItem(item, imageFile)
                     } catch (error: CancellationException) {
                         throw error
                     } catch (error: Exception) {
@@ -227,7 +243,7 @@ class AvatarRepository @Inject constructor(
         )
 
     private fun loadCachedMemberAvatar(item: SupabaseMemberAvatarCatalogItem): AvatarCatalogItem? {
-        val imageFile = memberAvatarFile(item).takeIf { it.isFile && it.length() > 0L } ?: return null
+        val imageFile = memberAvatarDiskCache.get(item.id, item.assetVersion, avatarExtension(item)) ?: return null
         return toMemberCatalogItem(item, imageFile)
     }
 
@@ -248,35 +264,22 @@ class AvatarRepository @Inject constructor(
         return if (baseUrl.isNotEmpty()) "$baseUrl/$storagePath" else storagePath
     }
 
-    private suspend fun cacheMemberAvatar(item: SupabaseMemberAvatarCatalogItem): File = withContext(Dispatchers.IO) {
-        val imageFile = memberAvatarFile(item)
-        if (imageFile.isFile && imageFile.length() > 0L) return@withContext imageFile
+    private suspend fun cacheMemberAvatar(item: SupabaseMemberAvatarCatalogItem): File? = withContext(Dispatchers.IO) {
+        val extension = avatarExtension(item)
+        if (!memberAvatarDiskCache.validKey(item.id, item.assetVersion, extension)) return@withContext null
+        memberAvatarDiskCache.get(item.id, item.assetVersion, extension)?.let { return@withContext it }
+        if (!mediaCache.canBeginCacheWrite(MediaCacheCategory.AVATARS)) return@withContext null
 
-        val directory = imageFile.parentFile ?: return@withContext imageFile
-        directory.mkdirs()
+        // The existing Supabase API returns a byte array; reject oversized assets before they reach disk.
         val imageBytes = storage[MemberAvatarBucket].downloadAuthenticated(item.storagePath)
-        val temporaryFile = directory.resolve(".${imageFile.name}.tmp")
-        temporaryFile.writeBytes(imageBytes)
-        if (!temporaryFile.renameTo(imageFile)) {
-            temporaryFile.copyTo(imageFile, overwrite = true)
-            temporaryFile.delete()
-        }
-        imageFile
+        if (imageBytes.size.toLong() > BoundedAvatarImageCache.DEFAULT_MAX_ENTRY_BYTES) return@withContext null
+        memberAvatarDiskCache.put(item.id, item.assetVersion, extension, imageBytes)
     }
 
-    private fun memberAvatarFile(item: SupabaseMemberAvatarCatalogItem): File {
-        val extension = item.storagePath.substringAfterLast('.', "img")
-            .takeIf { it.length in 2..5 && it.all(Char::isLetterOrDigit) }
+    private fun avatarExtension(item: SupabaseMemberAvatarCatalogItem): String =
+        item.storagePath.substringAfterLast('.', "img").lowercase()
+            .takeIf { it.matches(Regex("(?:png|jpe?g|webp|gif)")) }
             ?: "img"
-        return context.cacheDir.resolve("member_profile_avatars/${item.id}-v${item.assetVersion}.$extension")
-    }
 
-    private fun latestCachedMemberAvatar(avatarId: String): File? {
-        val prefix = "$avatarId-v"
-        return context.cacheDir.resolve("member_profile_avatars").listFiles()
-            ?.filter { file -> file.isFile && file.length() > 0L && file.name.startsWith(prefix) }
-            ?.maxByOrNull { file ->
-                file.name.removePrefix(prefix).substringBefore('.').toIntOrNull() ?: Int.MIN_VALUE
-            }
-    }
+    private fun latestCachedMemberAvatar(avatarId: String): File? = memberAvatarDiskCache.latest(avatarId)
 }

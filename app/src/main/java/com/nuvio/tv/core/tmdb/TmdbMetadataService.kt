@@ -1,7 +1,11 @@
 package com.nuvio.tv.core.tmdb
 
+import android.content.Context
 import android.util.Log
 import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.core.runtime.DeviceCapabilities
+import com.nuvio.tv.core.runtime.DeviceResourceTier
+import com.nuvio.tv.core.storage.BoundedLruCache
 import com.nuvio.tv.data.remote.api.TmdbAggregateCreditsResponse
 import com.nuvio.tv.data.remote.api.TmdbApi
 import com.nuvio.tv.data.remote.api.TmdbCastMember
@@ -23,6 +27,7 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.MetaTrailer
 import com.nuvio.tv.domain.model.PersonDetail
 import com.nuvio.tv.domain.model.PosterShape
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
@@ -46,23 +51,40 @@ private const val TMDB_SEASON_REQUEST_CONCURRENCY = 4
 private val YOUTUBE_VIDEO_ID_REGEX = Regex("^[a-zA-Z0-9_-]{11}$")
 
 @Singleton
-class TmdbMetadataService(
+class TmdbMetadataService internal constructor(
     private val tmdbApi: TmdbApi,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    cacheLimits: TmdbMetadataCacheLimits,
 ) {
     @Inject
-    constructor(tmdbApi: TmdbApi) : this(tmdbApi, Dispatchers.IO)
+    constructor(@ApplicationContext context: Context, tmdbApi: TmdbApi) : this(
+        tmdbApi,
+        Dispatchers.IO,
+        TmdbMetadataCacheLimits.forTier(DeviceCapabilities.resourceTier(DeviceCapabilities.memory(context))),
+    )
+
+    constructor(tmdbApi: TmdbApi) : this(
+        tmdbApi,
+        Dispatchers.IO,
+        TmdbMetadataCacheLimits.forTier(DeviceResourceTier.UNKNOWN),
+    )
+
+    constructor(tmdbApi: TmdbApi, ioDispatcher: CoroutineDispatcher) : this(
+        tmdbApi,
+        ioDispatcher,
+        TmdbMetadataCacheLimits.forTier(DeviceResourceTier.UNKNOWN),
+    )
 
     // In-memory caches
-    private val enrichmentCache = ConcurrentHashMap<String, TmdbEnrichment>()
-    private val episodeCache = ConcurrentHashMap<String, Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>()
+    private val enrichmentCache = BoundedLruCache<String, TmdbEnrichment>(cacheLimits.enrichment)
+    private val episodeCache = BoundedLruCache<String, Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>(cacheLimits.episodes)
     private val enrichmentInFlight = ConcurrentHashMap<String, CompletableDeferred<TmdbEnrichment?>>()
     private val episodeInFlight = ConcurrentHashMap<String, CompletableDeferred<Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>>()
-    private val personCache = ConcurrentHashMap<String, PersonDetail>()
-    private val moreLikeThisCache = ConcurrentHashMap<String, List<MetaPreview>>()
-    private val entityHeaderCache = ConcurrentHashMap<String, TmdbEntityHeader>()
-    private val entityRailCache = ConcurrentHashMap<String, List<MetaPreview>>()
-    private val entityBrowseCache = ConcurrentHashMap<String, TmdbEntityBrowseData>()
+    private val personCache = BoundedLruCache<String, PersonDetail>(cacheLimits.people)
+    private val moreLikeThisCache = BoundedLruCache<String, List<MetaPreview>>(cacheLimits.recommendations)
+    private val entityHeaderCache = BoundedLruCache<String, TmdbEntityHeader>(cacheLimits.entityHeaders)
+    private val entityRailCache = BoundedLruCache<String, List<MetaPreview>>(cacheLimits.entityRails)
+    private val entityBrowseCache = BoundedLruCache<String, TmdbEntityBrowseData>(cacheLimits.entityBrowse)
 
     suspend fun fetchEnrichment(
         tmdbId: String,

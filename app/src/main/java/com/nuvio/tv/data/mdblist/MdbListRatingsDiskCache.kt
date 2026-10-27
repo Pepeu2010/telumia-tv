@@ -48,24 +48,29 @@ internal class MdbListRatingsDiskCache(
             val cutoff = currentTime - TTL_MS
             val currentFile = cacheFile()
             val oldFile = legacyFile()
+            val currentEntries = if (currentFile.isFile) readEntries(currentFile, cutoff) else null
             val source = when {
-                currentFile.isFile -> currentFile
+                currentEntries != null -> currentFile
                 oldFile.isFile -> oldFile
+                currentFile.isFile -> currentFile
                 else -> null
             }
-            val parsed = source?.let { readEntries(it, cutoff) }
+            val parsed = when (source) {
+                currentFile -> currentEntries
+                oldFile -> readEntries(oldFile, cutoff)
+                else -> null
+            }
             synchronized(stateLock) {
                 entries = parsed.orEmpty().toMutableMap()
                 loaded = true
                 revision++
             }
-            if (source == oldFile || (source == currentFile && parsed != null)) {
-                // Ratings are regenerable metadata. Keep the old payload only until it has been read.
-                oldFile.delete()
-                oldFile.parentFile?.delete()
-            }
+            if (source == currentFile && parsed != null) deleteLegacyFile()
             if (source == currentFile && parsed.isNullOrEmpty()) currentFile.delete()
-            if (source == oldFile && !parsed.isNullOrEmpty()) scheduleSave()
+            if (source == oldFile) {
+                if (parsed.isNullOrEmpty()) deleteLegacyFile()
+                else scheduleSave()
+            }
         }
     }
 
@@ -118,15 +123,17 @@ internal class MdbListRatingsDiskCache(
             val snapshot = synchronized(stateLock) {
                 Snapshot(entries.toMap(), revision)
             }
-            val encoded = encodeWithinQuota(snapshot.entries, quota, now() - TTL_MS)
+            val cutoff = now() - TTL_MS
+            val encoded = encodeWithinQuota(snapshot.entries, quota, cutoff)
             val target = cacheFile()
             if (encoded == null) {
-                target.delete()
-                legacyFile().delete()
-                legacyFile().parentFile?.delete()
-                synchronized(stateLock) {
-                    if (revision == snapshot.revision) dirty = false
-                    else shouldRetry = dirty
+                if (snapshot.entries.values.none { it.storedAtMs >= cutoff }) {
+                    target.delete()
+                    deleteLegacyFile()
+                    synchronized(stateLock) {
+                        if (revision == snapshot.revision) dirty = false
+                        else shouldRetry = dirty
+                    }
                 }
                 return@withLock
             }
@@ -140,8 +147,7 @@ internal class MdbListRatingsDiskCache(
                     // Same-directory copy remains a last-resort fallback for filesystems without replace rename.
                     temporary.copyTo(target, overwrite = true)
                 }
-                legacyFile().delete()
-                legacyFile().parentFile?.delete()
+                deleteLegacyFile()
                 synchronized(stateLock) {
                     if (revision == snapshot.revision) dirty = false
                     else shouldRetry = dirty
@@ -153,6 +159,11 @@ internal class MdbListRatingsDiskCache(
             }
         }
         if (shouldRetry) scheduleSave()
+    }
+
+    private fun deleteLegacyFile() {
+        legacyFile().delete()
+        legacyFile().parentFile?.delete()
     }
 
     private fun readEntries(file: File, cutoff: Long): Map<String, Entry>? {

@@ -5,11 +5,39 @@ import android.os.StatFs
 import coil3.request.CachePolicy
 import com.nuvio.tv.core.runtime.DeviceCapabilities
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.nio.file.Path
 import javax.inject.Inject
 import javax.inject.Singleton
 
 fun tvMediaCache(context: Context): TvMediaCache =
     (context.applicationContext as? com.nuvio.tv.NuvioApplication)?.mediaCache ?: TvMediaCache(context.applicationContext)
+
+internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: Path): MediaCacheOccupancy {
+    val currentCaches = OwnedMediaCacheOccupancy.measure(
+        cacheDirectory,
+        listOf(
+            listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
+            listOf("media-cache-v1", "previews"),
+            listOf("http_cache_v2"), listOf("addon_http_cache"),
+            // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
+            listOf("http_cache"), listOf("member_profile_avatars"),
+            listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),
+        ),
+    )
+    val legacyMdbList = OwnedMediaCacheOccupancy.measure(
+        filesDirectory,
+        listOf(listOf("mdblist_cache")),
+    )
+    val totalBytes = if (currentCaches.bytes > Long.MAX_VALUE - legacyMdbList.bytes) {
+        Long.MAX_VALUE
+    } else {
+        currentCaches.bytes + legacyMdbList.bytes
+    }
+    val visitedEntries = (currentCaches.visitedEntries.toLong() + legacyMdbList.visitedEntries)
+        .coerceAtMost(Int.MAX_VALUE.toLong())
+        .toInt()
+    return MediaCacheOccupancy(totalBytes, visitedEntries, currentCaches.complete && legacyMdbList.complete)
+}
 
 /** Device-owned settings. Never synchronized through the account/profile transport. */
 @Singleton
@@ -29,17 +57,7 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
         return MediaCacheDeviceSnapshot(memory, free, occupiedCache.bytes)
     }
     internal val occupiedCache: MediaCacheOccupancy by lazy {
-        OwnedMediaCacheOccupancy.measure(
-            app.cacheDir.toPath(),
-            listOf(
-                listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
-                listOf("media-cache-v1", "previews"),
-                listOf("http_cache_v2"), listOf("addon_http_cache"),
-                // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
-                listOf("http_cache"), listOf("member_profile_avatars"),
-                listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),
-            ),
-        )
+        measureTvMediaCacheOccupancy(app.cacheDir.toPath(), app.filesDir.toPath())
     }
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
     fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =

@@ -64,7 +64,102 @@ class MdbListRatingsDiskCacheTest {
         val cache = MdbListRatingsDiskCache(context, scope = backgroundScope, now = { currentTime },
             quotaBytes = { 500L }, writesEnabled = { true }, ioDispatcher = StandardTestDispatcher(testScheduler))
         assertEquals(MDBListRatings(imdb = 7.7, tomatoesCertified = true), cache.get("imdb:movie:tt123"))
+        assertTrue("Legacy data remains until the bounded copy is committed", legacy.exists())
+
+        advanceTimeBy(2_000L)
+        runCurrent()
+
+        assertTrue(File(context.cacheDir, "metadata/mdblist/ratings_v1.json").isFile)
         assertFalse("The old cache must no longer occupy durable app data", legacy.exists())
+    }
+
+    @Test
+    fun readOnlyModeKeepsLegacyMetadataAvailableAcrossRestart() = runTest {
+        val context = context()
+        val legacy = File(context.filesDir, "mdblist_cache/ratings_v1.json").apply {
+            parentFile?.mkdirs()
+            writeText(JSONObject().put("imdb:movie:tt456", JSONObject().apply {
+                put("t", currentTime)
+                put("imdb", 6.9)
+            }).toString())
+        }
+        val readOnly = MdbListRatingsDiskCache(
+            context,
+            scope = backgroundScope,
+            now = { currentTime },
+            quotaBytes = { 500L },
+            writesEnabled = { false },
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+        )
+
+        assertEquals(6.9, requireNotNull(readOnly.get("imdb:movie:tt456")).imdb!!, 0.0)
+        assertTrue("Read-only mode must not delete the only persisted copy", legacy.exists())
+        advanceTimeBy(2_000L)
+        runCurrent()
+        assertTrue(legacy.exists())
+
+        val afterRestart = MdbListRatingsDiskCache(
+            context,
+            scope = backgroundScope,
+            now = { currentTime },
+            quotaBytes = { 500L },
+            writesEnabled = { false },
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+        )
+        assertEquals(6.9, requireNotNull(afterRestart.get("imdb:movie:tt456")).imdb!!, 0.0)
+    }
+
+    @Test
+    fun malformedBoundedCopyFallsBackToIntactLegacyMetadata() = runTest {
+        val context = context()
+        val legacy = File(context.filesDir, "mdblist_cache/ratings_v1.json").apply {
+            parentFile?.mkdirs()
+            writeText(JSONObject().put("imdb:movie:tt789", JSONObject().apply {
+                put("t", currentTime)
+                put("imdb", 8.2)
+            }).toString())
+        }
+        val current = File(context.cacheDir, "metadata/mdblist/ratings_v1.json").apply {
+            parentFile?.mkdirs()
+            writeText("partial")
+        }
+        val readOnly = MdbListRatingsDiskCache(
+            context,
+            scope = backgroundScope,
+            now = { currentTime },
+            quotaBytes = { 500L },
+            writesEnabled = { false },
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+        )
+
+        assertEquals(8.2, requireNotNull(readOnly.get("imdb:movie:tt789")).imdb!!, 0.0)
+        assertTrue("The invalid partial file is left untouched in read-only mode", current.exists())
+        assertTrue(legacy.exists())
+    }
+
+    @Test
+    fun legacyMetadataRemainsWhenQuotaCannotFitTheMigratedEntry() = runTest {
+        val context = context()
+        val legacy = File(context.filesDir, "mdblist_cache/ratings_v1.json").apply {
+            parentFile?.mkdirs()
+            writeText(JSONObject().put("imdb:movie:tt987", JSONObject().apply {
+                put("t", currentTime)
+                put("imdb", 7.8)
+            }).toString())
+        }
+        val cache = MdbListRatingsDiskCache(
+            context,
+            scope = backgroundScope,
+            now = { currentTime },
+            quotaBytes = { 1L },
+            writesEnabled = { true },
+            ioDispatcher = StandardTestDispatcher(testScheduler),
+        )
+
+        assertEquals(7.8, requireNotNull(cache.get("imdb:movie:tt987")).imdb!!, 0.0)
+        advanceTimeBy(2_000L)
+        runCurrent()
+        assertTrue("The only copy must survive a quota too small to migrate it", legacy.exists())
     }
 
     @Test

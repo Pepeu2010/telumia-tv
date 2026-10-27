@@ -1,5 +1,9 @@
 package com.nuvio.tv.core.storage
 
+import android.content.Context
+import io.mockk.every
+import io.mockk.mockk
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Comparator
@@ -61,6 +65,25 @@ class OwnedMediaCacheOccupancyTest {
         assertTrue(result.complete)
         assertEquals(47L, result.bytes)
         assertEquals(31L, Files.size(root.resolve("media-cache-v1/images/coil/poster.webp")))
+    }
+
+    @Test fun legacyMdbListCacheInFilesDirectoryCountsWithoutIncludingDurableData() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(filesDirectory, "mdblist_cache/ratings_v1.json", 37)
+        write(filesDirectory, "datastore/account.preferences_pb", 29)
+        val preferences = mockk<android.content.SharedPreferences>(relaxed = true)
+        val context = mockk<Context>(relaxed = true)
+        every { context.applicationContext } returns context
+        every { context.cacheDir } returns cacheDirectory.toFile()
+        every { context.filesDir } returns filesDirectory.toFile()
+        every { context.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE) } returns preferences
+
+        val result = TvMediaCache(context).occupiedCache
+
+        assertTrue(result.complete)
+        assertEquals(37L, result.bytes)
+        assertEquals(29L, Files.size(filesDirectory.resolve("datastore/account.preferences_pb")))
     }
     @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
         write(root, "member_profile_avatars/member-one-v3.webp", 17)

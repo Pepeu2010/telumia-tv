@@ -51,14 +51,20 @@ class OwnedMediaCacheOccupancyTest {
     }
     @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
         write(root, "member_profile_avatars/member-one-v3.webp", 17)
+        write(root, "member_profile_backgrounds/member-one-v3.png", 19)
+        write(root, "member_profile_backgrounds_v2/member-one-v3.png", 23)
         write(root, "profile-studio-v1/avatars/local-avatar.png", 29)
         val result = OwnedMediaCacheOccupancy.measure(
             root,
-            listOf(listOf("member_profile_avatars")),
+            listOf(
+                listOf("member_profile_avatars"),
+                listOf("member_profile_backgrounds"),
+                listOf("member_profile_backgrounds_v2"),
+            ),
             maxMillis = 10_000,
         )
         assertTrue(result.complete)
-        assertEquals(17L, result.bytes)
+        assertEquals(59L, result.bytes)
         assertEquals(29L, Files.size(root.resolve("profile-studio-v1/avatars/local-avatar.png")))
     }
 

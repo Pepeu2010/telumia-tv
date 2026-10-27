@@ -4,7 +4,7 @@ import android.content.Context
 import android.os.SystemClock
 import android.util.Log
 import com.nuvio.tv.data.local.MemberCatalogStorage
-import com.nuvio.tv.core.storage.BoundedAvatarImageCache
+import com.nuvio.tv.core.storage.BoundedMemberImageCache
 import com.nuvio.tv.core.storage.MediaCacheCategory
 import com.nuvio.tv.core.storage.TvMediaCache
 import com.nuvio.tv.domain.model.ServerConfiguration
@@ -71,7 +71,7 @@ class AvatarRepository @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val memberAvatarDownloadSemaphore = Semaphore(2)
     private val memberAvatarDiskCache by lazy {
-        BoundedAvatarImageCache(
+        BoundedMemberImageCache(
             context.cacheDir.resolve("member_profile_avatars"),
             quotaBytes = { mediaCache.activeBudget.quota(MediaCacheCategory.AVATARS) },
             canWrite = { bytes -> mediaCache.canWriteCacheEntry(MediaCacheCategory.AVATARS, bytes) },
@@ -272,7 +272,7 @@ class AvatarRepository @Inject constructor(
 
         // The existing Supabase API returns a byte array; reject oversized assets before they reach disk.
         val imageBytes = storage[MemberAvatarBucket].downloadAuthenticated(item.storagePath)
-        if (imageBytes.size.toLong() > BoundedAvatarImageCache.DEFAULT_MAX_ENTRY_BYTES) return@withContext null
+        if (imageBytes.size.toLong() > BoundedMemberImageCache.DEFAULT_MAX_ENTRY_BYTES) return@withContext null
         memberAvatarDiskCache.put(item.id, item.assetVersion, extension, imageBytes)
     }
 

@@ -36,6 +36,7 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
                 listOf("http_cache_v2"), listOf("addon_http_cache"),
                 // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
                 listOf("http_cache"), listOf("member_profile_avatars"),
+                listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"),
             ),
         )
     }
@@ -77,5 +78,10 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
         return budget.quota(category)
     }
 
-    fun coilQuota(category: MediaCacheCategory): Long = cacheQuota(category)
+    private fun imageCacheAllocation() = MediaImageCachePolicy.allocate(
+        cacheQuota(MediaCacheCategory.IMAGES), hasSeparateGifCache = false,
+    )
+    fun coilQuota(category: MediaCacheCategory): Long =
+        if (category == MediaCacheCategory.IMAGES) imageCacheAllocation().coilBytes else cacheQuota(category)
+    fun profileBackgroundQuota(): Long = imageCacheAllocation().memberBackgroundBytes
 }

@@ -8,8 +8,8 @@ import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.FileTime
 import java.util.Locale
 
-/** Bounded, allowlisted cache for remote profile avatar files. Existing files remain readable in read-only mode. */
-internal class BoundedAvatarImageCache(
+/** Bounded, allowlisted cache for remote member image files. Existing files remain readable in read-only mode. */
+internal class BoundedMemberImageCache(
     directory: File,
     private val quotaBytes: () -> Long,
     private val canWrite: (Long) -> Boolean,
@@ -59,7 +59,7 @@ internal class BoundedAvatarImageCache(
                 null
             } else {
                 val root = directory.toRealPath()
-                val pending = Files.createTempFile(directory, "avatar-pending-", ".part")
+                val pending = Files.createTempFile(directory, "member-image-pending-", ".part")
                 try {
                     Files.write(pending, bytes)
                     runCatching {

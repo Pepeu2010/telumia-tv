@@ -73,6 +73,7 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.ui.theme.NuvioTheme
 import coil3.compose.AsyncImage
+import coil3.SingletonImageLoader
 import coil3.request.ImageRequest
 import coil3.request.CachePolicy
 import coil3.request.crossfade
@@ -239,6 +240,14 @@ fun ContentCard(
             .recompositionHighlighter()
     ) {
         val context = LocalContext.current
+        val mainImageLoader = remember(context.applicationContext) { SingletonImageLoader.get(context.applicationContext) }
+        val previewImageLoader = remember(context.applicationContext) {
+            lazy {
+                (context.applicationContext as? com.nuvio.tv.NuvioApplication)?.previewImageLoader()
+                    ?: mainImageLoader
+            }
+        }
+        val artworkImageLoader = if (isBackdropExpanded) previewImageLoader.value else mainImageLoader
         val density = LocalDensity.current
         // Keep decode size stable during width animation to avoid recreating requests/painters every frame.
         val maxRequestCardWidth = if (effectiveExpandEnabled) {
@@ -270,11 +279,12 @@ fun ContentCard(
             item.poster
         }
         val revalidationKey = com.nuvio.tv.core.image.rememberImageRevalidationKey(imageUrl)
-        val imageModel = remember(imageUrl, requestWidthPx, requestHeightPx, revalidationKey) {
+        val imageModel = remember(imageUrl, requestWidthPx, requestHeightPx, revalidationKey, isBackdropExpanded) {
             val builder = ImageRequest.Builder(context)
                 .data(imageUrl)
                 .crossfade(true)
                 .memoryCacheKey("${imageUrl}_${requestWidthPx}x${requestHeightPx}_v$revalidationKey")
+                .memoryCachePolicy(if (isBackdropExpanded) CachePolicy.DISABLED else CachePolicy.ENABLED)
                 .size(width = requestWidthPx, height = requestHeightPx)
             if (revalidationKey > 0) {
                 builder.placeholderMemoryCacheKey("${imageUrl}_${requestWidthPx}x${requestHeightPx}_v${revalidationKey - 1}")
@@ -295,6 +305,7 @@ fun ContentCard(
                 ImageRequest.Builder(context)
                     .data(logoUrl)
                     .crossfade(false)
+                    .memoryCachePolicy(CachePolicy.DISABLED)
                     .memoryCacheKey("${logoUrl}_${requestWidthPx}x${logoRequestHeightPx}")
                     .size(width = requestWidthPx, height = logoRequestHeightPx)
                     .build()
@@ -424,6 +435,7 @@ fun ContentCard(
                 } else if (!imageUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = imageModel,
+                        imageLoader = artworkImageLoader,
                         contentDescription = item.name,
                         modifier = Modifier.fillMaxSize(),
                         placeholder = backgroundPainter,
@@ -493,6 +505,7 @@ fun ContentCard(
                 if (shouldPlayTrailerPreview && !imageUrl.isNullOrBlank()) {
                     AsyncImage(
                         model = imageModel,
+                        imageLoader = artworkImageLoader,
                         contentDescription = null,
                         modifier = Modifier
                             .fillMaxSize()
@@ -532,6 +545,7 @@ fun ContentCard(
                         if (showExpandedLogo) {
                             AsyncImage(
                                 model = logoModel,
+                                imageLoader = artworkImageLoader,
                                 contentDescription = item.name,
                                 onError = { logoLoadFailed = true },
                                 modifier = Modifier
@@ -577,6 +591,7 @@ fun ContentCard(
                     )
                     AsyncImage(
                         model = logoModel,
+                        imageLoader = artworkImageLoader,
                         contentDescription = item.name,
                         onError = { logoLoadFailed = true },
                         modifier = Modifier

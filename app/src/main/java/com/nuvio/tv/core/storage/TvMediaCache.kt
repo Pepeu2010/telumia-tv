@@ -33,6 +33,7 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
             app.cacheDir.toPath(),
             listOf(
                 listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
+                listOf("media-cache-v1", "previews"),
                 listOf("http_cache_v2"), listOf("addon_http_cache"),
                 // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
                 listOf("http_cache"), listOf("member_profile_avatars"),

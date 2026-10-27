@@ -49,6 +49,19 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(5L, Files.size(root.resolve("http_cache/legacy-journal")))
         assertEquals(31L, Files.size(root.resolve("downloads/movie")))
     }
+
+    @Test fun previewImageCacheIsMeasuredFromItsDedicatedCategoryDirectory() = fixture { root ->
+        write(root, "media-cache-v1/previews/coil/preview.webp", 47)
+        write(root, "media-cache-v1/images/coil/poster.webp", 31)
+        val result = OwnedMediaCacheOccupancy.measure(
+            root,
+            listOf(listOf("media-cache-v1", "previews")),
+            maxMillis = 10_000,
+        )
+        assertTrue(result.complete)
+        assertEquals(47L, result.bytes)
+        assertEquals(31L, Files.size(root.resolve("media-cache-v1/images/coil/poster.webp")))
+    }
     @Test fun memberAvatarDiskCacheIsCountedWithoutIncludingDurableProfileAvatarData() = fixture { root ->
         write(root, "member_profile_avatars/member-one-v3.webp", 17)
         write(root, "member_profile_backgrounds/member-one-v3.png", 19)

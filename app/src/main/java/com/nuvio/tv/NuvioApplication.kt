@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.StrictMode
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.annotation.ExperimentalCoilApi
 import com.nuvio.tv.core.image.CustomPosterFallbackInterceptor
 import coil3.disk.DiskCache
 import com.nuvio.tv.core.storage.TvMediaCache
@@ -35,6 +36,7 @@ import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -46,6 +48,33 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     @Inject lateinit var sentrySettingsDataStore: SentrySettingsDataStore
     @Inject lateinit var imagePerformancePreferences: ImagePerformancePreferences
     @Inject lateinit var simklAnimeIdPreferenceHolder: SimklAnimeIdPreferenceHolder
+
+    @Volatile private var previewLoader: ImageLoader? = null
+    private val imageOkHttpClient by lazy {
+        val profile = TvPerformanceProfile.detect(this)
+        val imageDispatcher = okhttp3.Dispatcher().apply {
+            maxRequests = profile.imageRequests
+            maxRequestsPerHost = profile.imageRequestsPerHost
+        }
+        OkHttpClient.Builder()
+            .dispatcher(imageDispatcher)
+            .dns(IPv4FirstDns())
+            .connectTimeout(4, TimeUnit.SECONDS)
+            .readTimeout(5, TimeUnit.SECONDS)
+            .callTimeout(12, TimeUnit.SECONDS)
+            .addInterceptor { chain ->
+                try {
+                    chain.proceed(chain.request())
+                } catch (e: java.net.SocketTimeoutException) {
+                    chain.withConnectTimeout(3, TimeUnit.SECONDS)
+                        .withReadTimeout(4, TimeUnit.SECONDS)
+                        .proceed(chain.request())
+                }
+            }
+            .followRedirects(true)
+            .followSslRedirects(true)
+            .build()
+    }
 
     companion object {
         /**
@@ -90,36 +119,28 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     }
 
     override fun newImageLoader(context: android.content.Context): ImageLoader {
-        val performanceProfile = TvPerformanceProfile.detect(this)
+        return buildMediaImageLoader(context, MediaCacheCategory.IMAGES)
+    }
 
-        val imageOkHttpClient by lazy {
-            val imageDispatcher = okhttp3.Dispatcher().apply {
-                maxRequests = performanceProfile.imageRequests
-                maxRequestsPerHost = performanceProfile.imageRequestsPerHost
-            }
-            OkHttpClient.Builder()
-                .dispatcher(imageDispatcher)
-                .dns(IPv4FirstDns())
-                .connectTimeout(4, TimeUnit.SECONDS)
-                .readTimeout(5, TimeUnit.SECONDS)
-                .callTimeout(12, TimeUnit.SECONDS)
-                .addInterceptor { chain ->
-                    try {
-                        chain.proceed(chain.request())
-                    } catch (e: java.net.SocketTimeoutException) {
-                        chain.withConnectTimeout(3, TimeUnit.SECONDS)
-                            .withReadTimeout(4, TimeUnit.SECONDS)
-                            .proceed(chain.request())
-                    }
-                }
-                .followRedirects(true)
-                .followSslRedirects(true)
-                .build()
+    @Synchronized
+    fun previewImageLoader(): ImageLoader = previewLoader ?: buildMediaImageLoader(this, MediaCacheCategory.PREVIEWS)
+        .also { previewLoader = it }
+
+    @OptIn(ExperimentalCoilApi::class)
+    private fun buildMediaImageLoader(
+        context: android.content.Context,
+        cacheCategory: MediaCacheCategory,
+    ): ImageLoader {
+        val performanceProfile = TvPerformanceProfile.detect(this)
+        val imageLoaderReference = AtomicReference<ImageLoader?>()
+        val imageLoaderRef: () -> ImageLoader = { imageLoaderReference.get() ?: SingletonImageLoader.get(this) }
+        val diskCacheDirectory = if (cacheCategory == MediaCacheCategory.IMAGES) {
+            cacheDir.resolve("image_cache")
+        } else {
+            cacheDir.resolve("media-cache-v1/${cacheCategory.directoryName}/coil")
         }
 
-        val imageLoaderRef: () -> ImageLoader = { SingletonImageLoader.get(this) }
-
-        return ImageLoader.Builder(this)
+        val imageLoader = ImageLoader.Builder(this)
             .components {
                 add(CustomPosterFallbackInterceptor())
                 if (Build.VERSION.SDK_INT >= 28) {
@@ -148,8 +169,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             }
             .diskCache {
                 DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache").toOkioPath())
-                    .maxSizeBytes(mediaCache.coilQuota(MediaCacheCategory.IMAGES))
+                    .directory(diskCacheDirectory.toOkioPath())
+                    .maxSizeBytes(mediaCache.coilQuota(cacheCategory))
                     .build()
             }
             .diskCachePolicy(mediaCache.requestPolicy)
@@ -159,5 +180,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .allowRgb565(imagePerformancePreferences.rgb565Enabled)
             .bitmapFactoryMaxParallelism(performanceProfile.parallelImageDecodes)
             .build()
+        imageLoaderReference.set(imageLoader)
+        return imageLoader
     }
 }

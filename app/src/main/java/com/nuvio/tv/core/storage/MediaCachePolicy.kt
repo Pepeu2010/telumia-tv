@@ -17,9 +17,52 @@ data class MediaCacheBudget(val totalBytes: Long, val requestedBytes: Long, val 
     fun quota(category: MediaCacheCategory): Long = totalBytes / 100 * category.share
 }
 
+/** Re-samples device telemetry on demand, with a short TTL to avoid filesystem probes per request. */
+internal class MediaCacheBudgetMonitor(
+    private val platform: MediaCachePlatform,
+    private val settings: () -> MediaCacheSettings,
+    private val sampleDevice: () -> MediaCacheDeviceSnapshot,
+    private val clockMillis: () -> Long = { System.nanoTime() / 1_000_000L },
+    private val refreshIntervalMillis: Long = 15_000L,
+) {
+    data class Snapshot(
+        val device: MediaCacheDeviceSnapshot,
+        val budget: MediaCacheBudget,
+        val sampledAtMillis: Long,
+    )
+
+    @Volatile private var cached: Snapshot? = null
+
+    init { require(refreshIntervalMillis > 0) }
+
+    fun current(forceRefresh: Boolean = false): Snapshot {
+        val initial = cached
+        if (!forceRefresh && initial != null && isFresh(initial, clockMillis())) return initial
+        return synchronized(this) {
+            val latest = cached
+            if (!forceRefresh && latest != null && isFresh(latest, clockMillis())) latest
+            else {
+                val sampledAt = clockMillis()
+                val device = runCatching(sampleDevice).getOrElse {
+                    latest?.device ?: MediaCacheDeviceSnapshot()
+                }
+                Snapshot(device, MediaCachePolicy.resolve(platform, settings(), device), sampledAt)
+                    .also { cached = it }
+            }
+        }
+    }
+
+    private fun isFresh(snapshot: Snapshot, nowMillis: Long): Boolean =
+        nowMillis >= snapshot.sampledAtMillis && nowMillis - snapshot.sampledAtMillis < refreshIntervalMillis
+}
+
 /** Defaults are initial estimates, not permanent device ceilings. Durable user data is outside this policy. */
 object MediaCachePolicy {
     const val MAX_CONFIGURED_BYTES: Long = 64L * 1024L * MIB
+
+    /** Keep current cache hits readable while stopping writes after Auto shrinks below an open cache's cap. */
+    fun allowsNewWrites(budget: MediaCacheBudget, category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
+        openedQuotaBytes > 0 && budget.totalBytes > 0 && budget.quota(category) >= openedQuotaBytes
     fun resolve(platform: MediaCachePlatform, settings: MediaCacheSettings, device: MediaCacheDeviceSnapshot): MediaCacheBudget {
         val constraints = mutableSetOf<MediaCacheConstraint>()
         val memory = device.memoryBytes?.takeIf { it > 0 }

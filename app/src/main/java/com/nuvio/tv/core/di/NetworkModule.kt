@@ -107,10 +107,12 @@ object NetworkModule {
         @ApplicationContext context: Context,
         mediaCache: TvMediaCache,
     ): OkHttpClient {
+        val openedHttpQuota = mediaCache.cacheQuota(MediaCacheCategory.HTTP)
+        val httpCache = Cache(File(context.cacheDir, "http_cache_v2"), openedHttpQuota)
         return OkHttpClient.Builder()
             .dns(IPv4FirstDns())
             // Keep separate from the old trust-all cache. Cached responses bypass a new TLS handshake.
-            .cache(Cache(File(context.cacheDir, "http_cache_v2"), mediaCache.cacheQuota(MediaCacheCategory.HTTP)))
+            .cache(httpCache)
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
@@ -122,7 +124,9 @@ object NetworkModule {
                 chain.proceed(request)
             }
             .addInterceptor(SentryNetworkBreadcrumbInterceptor())
-            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor { mediaCache.writesEnabled })
+            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor {
+                mediaCache.cacheWritesAllowed(MediaCacheCategory.HTTP, openedHttpQuota)
+            })
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
                         else HttpLoggingInterceptor.Level.NONE
@@ -164,8 +168,12 @@ object NetworkModule {
         val sslContext = SSLContext.getInstance("TLS").apply {
             init(null, arrayOf<TrustManager>(trustAllManager), SecureRandom())
         }
+        val openedAddonQuota = mediaCache.cacheQuota(MediaCacheCategory.ADDONS)
         return okHttpClient.newBuilder()
-            .cache(Cache(File(context.cacheDir, "addon_http_cache"), mediaCache.cacheQuota(MediaCacheCategory.ADDONS)))
+            .cache(Cache(File(context.cacheDir, "addon_http_cache"), openedAddonQuota))
+            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor {
+                mediaCache.cacheWritesAllowed(MediaCacheCategory.ADDONS, openedAddonQuota)
+            })
             .sslSocketFactory(sslContext.socketFactory, trustAllManager)
             .hostnameVerifier { _, _ -> true }
             .build()

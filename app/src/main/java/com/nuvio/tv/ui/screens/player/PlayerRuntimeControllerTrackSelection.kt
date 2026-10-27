@@ -456,14 +456,14 @@ internal fun PlayerRuntimeController.selectAddonSubtitle(subtitle: Subtitle) {
         val normalizedLang = PlayerSubtitleUtils.normalizeLanguageCode(subtitle.lang)
         val trackTitle = buildAddonSubtitleTrackId(subtitle)
         scope.launch {
-            val localPath = try {
+            val localPath = if (!subtitleFileCache.canBeginCacheWrite()) {
+                subtitle.url
+            } else try {
                 val decodedBody = downloadSubtitleBody(subtitle.url, subtitle.lang, subtitle.headers)
                 val sanitized = SubtitleMojibakeSanitizer.sanitize(decodedBody).toString()
-                val cacheDir = java.io.File(context.cacheDir, "subtitles").also { it.mkdirs() }
                 val ext = if (subtitle.url.contains(".vtt", ignoreCase = true)) "vtt" else "srt"
-                val file = java.io.File(cacheDir, "mpv_${subtitle.id.hashCode()}.$ext")
-                file.writeText(sanitized, Charsets.UTF_8)
-                file.absolutePath
+                subtitleFileCache.cacheNormalizedSubtitle(subtitle.id, ext, sanitized)?.absolutePath
+                    ?: subtitle.url
             } catch (e: Exception) {
                 Log.w(PlayerRuntimeController.TAG, "Failed to cache normalized subtitle for MPV, falling back to URL", e)
                 subtitle.url

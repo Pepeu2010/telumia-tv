@@ -33,18 +33,20 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(31L, Files.size(root.resolve("downloads/movie")))
     }
 
-    @Test fun countsFirstPartyAddonAndMetadataHttpCacheFilesButIgnoresOtherData() = fixture { root ->
+    @Test fun countsCurrentAndLegacyHttpCacheFilesButIgnoresOtherData() = fixture { root ->
         write(root, "http_cache_v2/journal", 7)
         write(root, "addon_http_cache/journal", 11)
+        write(root, "http_cache/legacy-journal", 5)
         write(root, "metadata/ratings.json", 13)
         write(root, "downloads/movie", 31)
         val result = OwnedMediaCacheOccupancy.measure(
             root,
-            listOf(listOf("http_cache_v2"), listOf("addon_http_cache"), listOf("metadata")),
+            listOf(listOf("http_cache_v2"), listOf("addon_http_cache"), listOf("http_cache"), listOf("metadata")),
             maxMillis = 10_000,
         )
         assertTrue(result.complete)
-        assertEquals(31L, result.bytes)
+        assertEquals(36L, result.bytes)
+        assertEquals(5L, Files.size(root.resolve("http_cache/legacy-journal")))
         assertEquals(31L, Files.size(root.resolve("downloads/movie")))
     }
     @Test fun missingCachesAreAnEmptyMeasurement() = fixture { root ->

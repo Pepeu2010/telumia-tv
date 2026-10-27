@@ -83,6 +83,36 @@ class TmdbMetadataServiceTest {
     }
 
     @Test
+    fun `fetchEnrichment reloads an entry evicted by the bounded device cache`() = runTest {
+        val api = mockk<TmdbApi>()
+        coEvery { api.getMovieDetails(any(), any(), any()) } answers {
+            Response.success(TmdbDetailsResponse(id = firstArg()))
+        }
+        coEvery { api.getMovieCredits(any(), any(), any()) } returns Response.success(TmdbCreditsResponse())
+        coEvery { api.getMovieImages(any(), any(), any()) } returns Response.success(TmdbImagesResponse())
+        coEvery { api.getMovieReleaseDates(any(), any()) } returns Response.success(TmdbMovieReleaseDatesResponse())
+        coEvery { api.getMovieVideos(any(), any(), any()) } answers {
+            Response.success(TmdbVideosResponse(id = firstArg()))
+        }
+        val limits = TmdbMetadataCacheLimits(
+            enrichment = 1,
+            episodes = 1,
+            people = 1,
+            recommendations = 1,
+            entityHeaders = 1,
+            entityRails = 1,
+            entityBrowse = 1,
+        )
+        val service = TmdbMetadataService(api, Dispatchers.Unconfined, limits)
+
+        service.fetchEnrichment("10", ContentType.MOVIE)
+        service.fetchEnrichment("20", ContentType.MOVIE)
+        service.fetchEnrichment("10", ContentType.MOVIE)
+
+        coVerify(exactly = 2) { api.getMovieDetails(10, any(), any()) }
+    }
+
+    @Test
     fun `fetchEnrichment formats ongoing tv release range`() = runTest {
         val api = mockk<TmdbApi>()
         coEvery { api.getTvDetails(any(), any(), any()) } returns Response.success(

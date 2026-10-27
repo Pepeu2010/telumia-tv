@@ -74,6 +74,23 @@ class MediaCachePolicyTest {
         assertEquals(refreshed, monitor.current())
     }
 
+    @Test fun occupancyUpdatesCanInvalidateTheBudgetBeforeItsRegularTtlExpires() {
+        var samples = 0
+        val monitor = MediaCacheBudgetMonitor(
+            platform = MediaCachePlatform.TV,
+            settings = { MediaCacheSettings() },
+            sampleDevice = { samples++; MediaCacheDeviceSnapshot(usableStorageBytes = 20_000L * MIB) },
+            clockMillis = { 1L },
+            refreshIntervalMillis = 15_000L,
+        )
+
+        monitor.current()
+        assertEquals(1, samples)
+        monitor.invalidate()
+        monitor.current()
+        assertEquals(2, samples)
+    }
+
     @Test fun avatarEntryWritesRespectCategoryQuotaAndThePhysicalStorageReserve() {
         val budget = MediaCachePolicy.resolve(
             MediaCachePlatform.TV,

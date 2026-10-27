@@ -122,8 +122,14 @@ class MediaCacheSettingsTvTest {
         Os.symlink(avatar.parentFile!!.absolutePath, link.absolutePath)
         try {
             val cache = TvMediaCache(context)
-            assertTrue(cache.occupiedCache.complete)
-            assertEquals(141L, cache.occupiedCache.bytes)
+            val deadlineNanos = System.nanoTime() + 5_000_000_000L
+            var occupancy = cache.occupiedCache
+            while ((!occupancy.complete || occupancy.bytes != 141L) && System.nanoTime() < deadlineNanos) {
+                Thread.sleep(10L)
+                occupancy = cache.occupiedCache
+            }
+            assertTrue(occupancy.complete)
+            assertEquals(141L, occupancy.bytes)
             assertEquals(211L, avatar.length())
             assertEquals(307L, download.length())
             assertEquals(141L, cache.deviceSnapshot.occupiedCacheBytes)

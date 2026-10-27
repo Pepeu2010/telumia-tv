@@ -11,6 +11,7 @@ import java.nio.file.DirectoryStream
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -103,10 +104,27 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
 class TvMediaCache @Inject constructor(@param:ApplicationContext context: Context) {
     private val app = context.applicationContext
     private val preferences = app.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE)
-    val activeSettings: MediaCacheSettings by lazy { loadSettings() }
-    private val budgetMonitor by lazy {
-        MediaCacheBudgetMonitor(MediaCachePlatform.TV, { activeSettings }, ::sampleDeviceSnapshot)
+    private val occupancyExecutor by lazy {
+        Executors.newSingleThreadExecutor { task ->
+            Thread(task, "telumia-media-cache-scan").apply {
+                isDaemon = true
+                priority = Thread.NORM_PRIORITY - 1
+            }
+        }
     }
+    private val occupancyMonitor by lazy {
+        MediaCacheOccupancyMonitor(
+            scan = { measureTvMediaCacheOccupancy(app.cacheDir.toPath(), app.filesDir.toPath()) },
+            executor = occupancyExecutor,
+            onSnapshotUpdated = budgetMonitor::invalidate,
+        )
+    }
+    val activeSettings: MediaCacheSettings by lazy { loadSettings() }
+    private val budgetMonitor = MediaCacheBudgetMonitor(
+        MediaCachePlatform.TV,
+        { activeSettings },
+        ::sampleDeviceSnapshot,
+    )
     internal val deviceSnapshot: MediaCacheDeviceSnapshot get() = budgetMonitor.current().device
     val activeBudget: MediaCacheBudget get() = budgetMonitor.current().budget
 
@@ -115,9 +133,7 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
         val free = runCatching { StatFs(app.cacheDir.absolutePath).availableBytes }.getOrNull()
         return MediaCacheDeviceSnapshot(memory, free, occupiedCache.bytes)
     }
-    internal val occupiedCache: MediaCacheOccupancy by lazy {
-        measureTvMediaCacheOccupancy(app.cacheDir.toPath(), app.filesDir.toPath())
-    }
+    internal val occupiedCache: MediaCacheOccupancy get() = occupancyMonitor.current()
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
     fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
         MediaCachePolicy.allowsNewWrites(activeBudget, category, openedQuotaBytes)

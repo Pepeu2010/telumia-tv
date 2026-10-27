@@ -106,7 +106,10 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     private val preferences = app.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE)
     private val occupancyExecutor by lazy {
         Executors.newSingleThreadExecutor { task ->
-            Thread(task, "telumia-media-cache-scan").apply { isDaemon = true }
+            Thread(task, "telumia-media-cache-scan").apply {
+                isDaemon = true
+                priority = Thread.NORM_PRIORITY - 1
+            }
         }
     }
     private val occupancyMonitor by lazy {

@@ -18,6 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.MotionDurationScale
 import com.nuvio.tv.domain.model.NavigationMotion
 
+private const val REDUCED_MOTION_DURATION_FACTOR = 0.5f
+
 /** Observable state lets suspended infinite transitions resume when motion is enabled again. */
 @Stable
 internal class UiAnimationDurationScale(
@@ -29,7 +31,12 @@ internal class UiAnimationDurationScale(
     val effectiveSystemScale: Float
         get() = systemScale.takeIf { it.isFinite() && it >= 0f } ?: 1f
     override val scaleFactor: Float
-        get() = if (mode == NavigationMotion.OFF) 0f else effectiveSystemScale
+        get() = when (mode) {
+            NavigationMotion.FULL -> effectiveSystemScale
+            // Fallback for duration-based Compose animations not yet mapped to motion tokens.
+            NavigationMotion.REDUCED -> effectiveSystemScale * REDUCED_MOTION_DURATION_FACTOR
+            NavigationMotion.OFF -> 0f
+        }
 }
 
 @Immutable

@@ -7,13 +7,15 @@ import io.sentry.Sentry
 import io.sentry.SentryEvent
 import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 object SentryInitializer {
     private val droppedIssueText = listOf(
@@ -27,15 +29,11 @@ object SentryInitializer {
     fun start(application: Application, settings: SentrySettingsDataStore) {
         if (started) return
         started = true
-        val initialEnabled = runBlocking(Dispatchers.IO) {
-            settings.enabled.first()
-        }
-        applyEnabled(application, initialEnabled)
-        scope.launch {
-            settings.enabled.distinctUntilChanged().collect { enabled ->
-                applyEnabled(application, enabled)
-            }
-        }
+        observeSentryEnabled(
+            scope = scope,
+            enabled = settings.enabled,
+            onEnabledChanged = { enabled -> applyEnabled(application, enabled) },
+        )
     }
 
     private fun applyEnabled(application: Application, enabled: Boolean) {
@@ -120,5 +118,20 @@ object SentryInitializer {
             exception.value?.let(values::add)
         }
         return values
+    }
+}
+
+/** Reads persisted consent off the startup thread and applies SDK changes on Android's main thread. */
+internal fun observeSentryEnabled(
+    scope: CoroutineScope,
+    enabled: Flow<Boolean>,
+    ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    mainDispatcher: CoroutineDispatcher = Dispatchers.Main.immediate,
+    onEnabledChanged: (Boolean) -> Unit,
+): Job = scope.launch(ioDispatcher) {
+    enabled.distinctUntilChanged().collect { value ->
+        withContext(mainDispatcher) {
+            onEnabledChanged(value)
+        }
     }
 }

@@ -17,12 +17,17 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     private val app = context.applicationContext
     private val preferences = app.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE)
     val activeSettings: MediaCacheSettings by lazy { loadSettings() }
-    internal val deviceSnapshot: MediaCacheDeviceSnapshot by lazy {
+    private val budgetMonitor by lazy {
+        MediaCacheBudgetMonitor(MediaCachePlatform.TV, { activeSettings }, ::sampleDeviceSnapshot)
+    }
+    internal val deviceSnapshot: MediaCacheDeviceSnapshot get() = budgetMonitor.current().device
+    val activeBudget: MediaCacheBudget get() = budgetMonitor.current().budget
+
+    private fun sampleDeviceSnapshot(): MediaCacheDeviceSnapshot {
         val memory = DeviceCapabilities.memory(app).totalMemoryBytes
         val free = runCatching { StatFs(app.cacheDir.absolutePath).availableBytes }.getOrNull()
-        MediaCacheDeviceSnapshot(memory, free, occupiedCache.bytes)
+        return MediaCacheDeviceSnapshot(memory, free, occupiedCache.bytes)
     }
-    val activeBudget: MediaCacheBudget by lazy { MediaCachePolicy.resolve(MediaCachePlatform.TV, activeSettings, deviceSnapshot) }
     internal val occupiedCache: MediaCacheOccupancy by lazy {
         OwnedMediaCacheOccupancy.measure(
             app.cacheDir.toPath(),
@@ -35,6 +40,8 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
         )
     }
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
+    fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
+        MediaCachePolicy.allowsNewWrites(activeBudget, category, openedQuotaBytes)
     val requestPolicy: CachePolicy get() = if (writesEnabled) CachePolicy.ENABLED else CachePolicy.READ_ONLY
 
     fun loadSettings(): MediaCacheSettings = runCatching {

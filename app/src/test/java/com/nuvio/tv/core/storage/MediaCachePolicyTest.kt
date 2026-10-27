@@ -2,6 +2,7 @@ package com.nuvio.tv.core.storage
 
 import org.junit.Test
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 
 class MediaCachePolicyTest {
@@ -46,6 +47,31 @@ class MediaCachePolicyTest {
         assertEquals(MediaCachePolicy.MAX_CONFIGURED_BYTES, budget.totalBytes)
         assertTrue(MediaCacheCategory.entries.sumOf { budget.quota(it) } <= budget.totalBytes)
         assertEquals(32L * MIB, MediaCachePolicy.resolve(MediaCachePlatform.TV, MediaCacheSettings(MediaCacheMode.MANUAL, -1), MediaCacheDeviceSnapshot()).totalBytes)
+    }
+
+    @Test fun autoBudgetRefreshesStorageDuringTheSessionAndPausesWritesBelowAnOpenCacheQuota() {
+        var now = 10L
+        var freeBytes = 20_000L * MIB
+        var samples = 0
+        val monitor = MediaCacheBudgetMonitor(
+            platform = MediaCachePlatform.TV,
+            settings = { MediaCacheSettings() },
+            sampleDevice = { samples++; MediaCacheDeviceSnapshot(usableStorageBytes = freeBytes) },
+            clockMillis = { now },
+            refreshIntervalMillis = 15_000L,
+        )
+        val opened = monitor.current()
+        val openedQuota = opened.budget.quota(MediaCacheCategory.HTTP)
+        assertTrue(MediaCachePolicy.allowsNewWrites(opened.budget, MediaCacheCategory.HTTP, openedQuota))
+
+        freeBytes = 300L * MIB
+        now += 15_000L
+        val refreshed = monitor.current()
+        assertEquals(2, samples)
+        assertEquals(freeBytes, refreshed.device.usableStorageBytes)
+        assertTrue(refreshed.budget.totalBytes > 0 && refreshed.budget.totalBytes < opened.budget.totalBytes)
+        assertFalse(MediaCachePolicy.allowsNewWrites(refreshed.budget, MediaCacheCategory.HTTP, openedQuota))
+        assertEquals(refreshed, monitor.current())
     }
 
     @Test fun categorySharesUseTheWholeBudgetExactlyOnce() {

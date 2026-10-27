@@ -1,9 +1,5 @@
 package com.nuvio.tv.core.storage
 
-import android.content.Context
-import io.mockk.every
-import io.mockk.mockk
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Comparator
@@ -74,14 +70,7 @@ class OwnedMediaCacheOccupancyTest {
         write(filesDirectory, "cw_enrichment/nextup_1.json", 17)
         write(filesDirectory, "datastore/account.preferences_pb", 29)
         write(filesDirectory, "scene-bookmarks-v1/bookmarks.json", 11)
-        val preferences = mockk<android.content.SharedPreferences>(relaxed = true)
-        val context = mockk<Context>(relaxed = true)
-        every { context.applicationContext } returns context
-        every { context.cacheDir } returns cacheDirectory.toFile()
-        every { context.filesDir } returns filesDirectory.toFile()
-        every { context.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE) } returns preferences
-
-        val result = TvMediaCache(context).occupiedCache
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
 
         assertTrue(result.complete)
         assertEquals(54L, result.bytes)

@@ -64,6 +64,9 @@ internal class MediaCacheBudgetMonitor(
         }
     }
 
+    /** Forces the next reader to resample device telemetry after asynchronous occupancy changes. */
+    fun invalidate() { cached = null }
+
     private fun isFresh(snapshot: Snapshot, nowMillis: Long): Boolean =
         nowMillis >= snapshot.sampledAtMillis && nowMillis - snapshot.sampledAtMillis < refreshIntervalMillis
 }

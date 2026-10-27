@@ -47,4 +47,16 @@ class MediaCachePolicyTest {
         assertTrue(MediaCacheCategory.entries.sumOf { budget.quota(it) } <= budget.totalBytes)
         assertEquals(32L * MIB, MediaCachePolicy.resolve(MediaCachePlatform.TV, MediaCacheSettings(MediaCacheMode.MANUAL, -1), MediaCacheDeviceSnapshot()).totalBytes)
     }
+
+    @Test fun categorySharesUseTheWholeBudgetExactlyOnce() {
+        assertEquals(100, MediaCacheCategory.entries.sumOf { it.share })
+        val budget = MediaCachePolicy.resolve(
+            MediaCachePlatform.TV,
+            MediaCacheSettings(),
+            MediaCacheDeviceSnapshot(),
+        )
+        val allocated = MediaCacheCategory.entries.sumOf { budget.quota(it) }
+        assertTrue(allocated <= budget.totalBytes)
+        assertTrue(budget.totalBytes - allocated < 100)
+    }
 }

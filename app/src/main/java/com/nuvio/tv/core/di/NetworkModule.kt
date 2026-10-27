@@ -42,7 +42,10 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import com.nuvio.tv.core.network.IPv4FirstDns
+import com.nuvio.tv.core.network.HttpCacheWritePolicyInterceptor
 import com.nuvio.tv.core.diagnostics.SentryNetworkBreadcrumbInterceptor
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.TvMediaCache
 import java.io.File
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -100,11 +103,14 @@ object NetworkModule {
     /** Validating client for fixed first-party endpoints. Addon URLs use `addonPermissive`. */
     @Provides
     @Singleton
-    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+    fun provideOkHttpClient(
+        @ApplicationContext context: Context,
+        mediaCache: TvMediaCache,
+    ): OkHttpClient {
         return OkHttpClient.Builder()
             .dns(IPv4FirstDns())
             // Keep separate from the old trust-all cache. Cached responses bypass a new TLS handshake.
-            .cache(Cache(File(context.cacheDir, "http_cache_v2"), 50L * 1024 * 1024)) // 50 MB disk cache
+            .cache(Cache(File(context.cacheDir, "http_cache_v2"), mediaCache.cacheQuota(MediaCacheCategory.HTTP)))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .addInterceptor { chain ->
@@ -116,17 +122,7 @@ object NetworkModule {
                 chain.proceed(request)
             }
             .addInterceptor(SentryNetworkBreadcrumbInterceptor())
-            // Prevent OkHttp from caching error responses (4xx/5xx).
-            .addNetworkInterceptor { chain ->
-                val response = chain.proceed(chain.request())
-                if (response.code in 400..599) {
-                    response.newBuilder()
-                        .header("Cache-Control", "no-store")
-                        .build()
-                } else {
-                    response
-                }
-            }
+            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor { mediaCache.writesEnabled })
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC
                         else HttpLoggingInterceptor.Level.NONE
@@ -157,7 +153,8 @@ object NetworkModule {
     @Named("addonPermissive")
     fun provideAddonPermissiveOkHttpClient(
         @ApplicationContext context: Context,
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        mediaCache: TvMediaCache,
     ): OkHttpClient {
         val trustAllManager = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) = Unit
@@ -168,7 +165,7 @@ object NetworkModule {
             init(null, arrayOf<TrustManager>(trustAllManager), SecureRandom())
         }
         return okHttpClient.newBuilder()
-            .cache(Cache(File(context.cacheDir, "addon_http_cache"), 50L * 1024 * 1024))
+            .cache(Cache(File(context.cacheDir, "addon_http_cache"), mediaCache.cacheQuota(MediaCacheCategory.ADDONS)))
             .sslSocketFactory(sslContext.socketFactory, trustAllManager)
             .hostnameVerifier { _, _ -> true }
             .build()

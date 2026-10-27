@@ -5,8 +5,9 @@ enum class MediaCachePlatform(val initialBytes: Long, val reserveBytes: Long) {
 }
 enum class MediaCacheMode { AUTO, MANUAL }
 enum class MediaCacheCategory(val directoryName: String, val share: Int) {
-    IMAGES("images", 50), BADGES("badges", 4), AVATARS("avatars", 6), PREVIEWS("previews", 10),
-    THUMBNAILS("thumbnails", 8), FILMSTRIP("filmstrip", 4), METADATA("metadata", 10), EPG("epg", 5), SCENE_INFO("scene-info", 3)
+    IMAGES("images", 40), BADGES("badges", 4), AVATARS("avatars", 6), PREVIEWS("previews", 10),
+    THUMBNAILS("thumbnails", 8), FILMSTRIP("filmstrip", 4), METADATA("metadata", 10), HTTP("http", 5),
+    ADDONS("addons", 5), EPG("epg", 5), SCENE_INFO("scene-info", 3)
 }
 const val MIB: Long = 1024L * 1024L
 data class MediaCacheSettings(val mode: MediaCacheMode = MediaCacheMode.AUTO, val manualBytes: Long? = null)

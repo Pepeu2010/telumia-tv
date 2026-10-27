@@ -26,7 +26,10 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     internal val occupiedCache: MediaCacheOccupancy by lazy {
         OwnedMediaCacheOccupancy.measure(
             app.cacheDir.toPath(),
-            listOf(listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata")),
+            listOf(
+                listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
+                listOf("http_cache_v2"), listOf("addon_http_cache"),
+            ),
         )
     }
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
@@ -49,8 +52,10 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     }
 
     /** Read-only opening retains offline entries when storage drops below the reserve. */
-    fun coilQuota(category: MediaCacheCategory): Long {
+    fun cacheQuota(category: MediaCacheCategory): Long {
         val budget = if (writesEnabled) activeBudget else activeBudget.copy(totalBytes = activeBudget.requestedBytes)
         return budget.quota(category)
     }
+
+    fun coilQuota(category: MediaCacheCategory): Long = cacheQuota(category)
 }

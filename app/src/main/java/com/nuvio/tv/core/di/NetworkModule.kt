@@ -156,7 +156,6 @@ object NetworkModule {
     @Singleton
     @Named("addonPermissive")
     fun provideAddonPermissiveOkHttpClient(
-        @ApplicationContext context: Context,
         okHttpClient: OkHttpClient,
         mediaCache: TvMediaCache,
     ): OkHttpClient {
@@ -168,12 +167,9 @@ object NetworkModule {
         val sslContext = SSLContext.getInstance("TLS").apply {
             init(null, arrayOf<TrustManager>(trustAllManager), SecureRandom())
         }
-        val openedAddonQuota = mediaCache.cacheQuota(MediaCacheCategory.ADDONS)
         return okHttpClient.newBuilder()
-            .cache(Cache(File(context.cacheDir, "addon_http_cache"), openedAddonQuota))
-            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor {
-                mediaCache.cacheWritesAllowed(MediaCacheCategory.ADDONS, openedAddonQuota)
-            })
+            .cache(mediaCache.addonHttpCache())
+            .addNetworkInterceptor(HttpCacheWritePolicyInterceptor(mediaCache::addonHttpCacheWritesAllowed))
             .sslSocketFactory(sslContext.socketFactory, trustAllManager)
             .hostnameVerifier { _, _ -> true }
             .build()

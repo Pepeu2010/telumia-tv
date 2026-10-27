@@ -8,10 +8,9 @@ import com.lagradost.cloudstream3.AcraApplication
 import com.lagradost.cloudstream3.app
 import com.lagradost.nicehttp.ignoreAllSSLErrors
 import com.nuvio.tv.NuvioApplication
-import okhttp3.Cache
+import com.nuvio.tv.core.network.HttpCacheWritePolicyInterceptor
 import okhttp3.OkHttpClient
 import org.conscrypt.Conscrypt
-import java.io.File
 import java.security.Security
 
 object PluginRuntimeHooks {
@@ -49,17 +48,17 @@ object PluginRuntimeHooks {
             }
 
             try {
-                app.baseClient = OkHttpClient.Builder()
+                val builder = OkHttpClient.Builder()
                     .dns(com.nuvio.tv.core.network.IPv4FirstDns())
                     .cookieJar(NuvioApplication.extensionCookieJar)
                     .followRedirects(true)
                     .followSslRedirects(true)
                     .ignoreAllSSLErrors()
-                    .cache(Cache(
-                        directory = File(currentApp.cacheDir, "http_cache"),
-                        maxSize = 50L * 1024L * 1024L
-                    ))
-                    .build()
+                (currentApp as? NuvioApplication)?.mediaCache?.let { mediaCache ->
+                    builder.cache(mediaCache.addonHttpCache())
+                        .addNetworkInterceptor(HttpCacheWritePolicyInterceptor(mediaCache::addonHttpCacheWritesAllowed))
+                }
+                app.baseClient = builder.build()
             } catch (e: Throwable) {
                 Log.w("NuvioApplication", "Failed to initialize NiceHttp client (API ${Build.VERSION.SDK_INT}): ${e.message}")
             }

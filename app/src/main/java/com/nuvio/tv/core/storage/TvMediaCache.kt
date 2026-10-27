@@ -5,6 +5,8 @@ import android.os.StatFs
 import coil3.request.CachePolicy
 import com.nuvio.tv.core.runtime.DeviceCapabilities
 import dagger.hilt.android.qualifiers.ApplicationContext
+import okhttp3.Cache
+import java.io.File
 import java.io.IOException
 import java.nio.file.DirectoryIteratorException
 import java.nio.file.DirectoryStream
@@ -104,6 +106,10 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
 class TvMediaCache @Inject constructor(@param:ApplicationContext context: Context) {
     private val app = context.applicationContext
     private val preferences = app.getSharedPreferences("telumia_media_cache_v1", Context.MODE_PRIVATE)
+    private val addonHttpCacheState by lazy {
+        val openedQuotaBytes = cacheQuota(MediaCacheCategory.ADDONS)
+        Cache(File(app.cacheDir, "addon_http_cache"), openedQuotaBytes) to openedQuotaBytes
+    }
     private val occupancyExecutor by lazy {
         Executors.newSingleThreadExecutor { task ->
             Thread(task, "telumia-media-cache-scan").apply {
@@ -171,6 +177,13 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
         val budget = if (writesEnabled) activeBudget else activeBudget.copy(totalBytes = activeBudget.requestedBytes)
         return budget.quota(category)
     }
+
+    /** One shared OkHttp disk cache for every addon transport on this device. */
+    fun addonHttpCache(): Cache = addonHttpCacheState.first
+
+    /** A cache opened at an earlier quota stops accepting network writes after Auto shrinks. */
+    fun addonHttpCacheWritesAllowed(): Boolean =
+        cacheWritesAllowed(MediaCacheCategory.ADDONS, addonHttpCacheState.second)
 
     private fun imageCacheAllocation() = MediaImageCachePolicy.allocate(
         cacheQuota(MediaCacheCategory.IMAGES), hasSeparateGifCache = false,

@@ -115,7 +115,11 @@ internal fun discoverPluginCodeCacheRoots(
 fun tvMediaCache(context: Context): TvMediaCache =
     (context.applicationContext as? com.nuvio.tv.NuvioApplication)?.mediaCache ?: TvMediaCache(context.applicationContext)
 
-internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: Path): MediaCacheOccupancy {
+internal fun measureTvMediaCacheOccupancy(
+    cacheDirectory: Path,
+    filesDirectory: Path,
+    codeCacheDirectory: Path? = null,
+): MediaCacheOccupancy {
     val staleVodCaches = discoverStaleVodCacheRoots(cacheDirectory)
     val pluginCodeCaches = discoverPluginCodeCacheRoots(filesDirectory)
     val currentCaches = OwnedMediaCacheOccupancy.measure(
@@ -134,18 +138,22 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
         filesDirectory,
         listOf(listOf("mdblist_cache"), listOf("cw_enrichment")) + pluginCodeCaches.roots,
     )
-    val totalBytes = if (currentCaches.bytes > Long.MAX_VALUE - legacyFilesCaches.bytes) {
-        Long.MAX_VALUE
-    } else {
-        currentCaches.bytes + legacyFilesCaches.bytes
-    }
-    val visitedEntries = (currentCaches.visitedEntries.toLong() + legacyFilesCaches.visitedEntries)
+    val codeCaches = codeCacheDirectory?.let {
+        OwnedMediaCacheOccupancy.measure(it, listOf(listOf("cs_dex_cache")))
+    } ?: MediaCacheOccupancy(0, 0, true)
+    val totalBytes = listOf(currentCaches.bytes, legacyFilesCaches.bytes, codeCaches.bytes)
+        .fold(0L) { total, bytes ->
+            if (total > Long.MAX_VALUE - bytes) Long.MAX_VALUE else total + bytes
+        }
+    val visitedEntries = listOf(currentCaches.visitedEntries, legacyFilesCaches.visitedEntries, codeCaches.visitedEntries)
+        .sumOf { it.toLong() }
         .coerceAtMost(Int.MAX_VALUE.toLong())
         .toInt()
     return MediaCacheOccupancy(
         totalBytes,
         visitedEntries,
-        currentCaches.complete && legacyFilesCaches.complete && staleVodCaches.complete && pluginCodeCaches.complete,
+        currentCaches.complete && legacyFilesCaches.complete && codeCaches.complete &&
+            staleVodCaches.complete && pluginCodeCaches.complete,
     )
 }
 
@@ -168,7 +176,13 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     }
     private val occupancyMonitor by lazy {
         MediaCacheOccupancyMonitor(
-            scan = { measureTvMediaCacheOccupancy(app.cacheDir.toPath(), app.filesDir.toPath()) },
+            scan = {
+                measureTvMediaCacheOccupancy(
+                    app.cacheDir.toPath(),
+                    app.filesDir.toPath(),
+                    app.codeCacheDir.toPath(),
+                )
+            },
             executor = occupancyExecutor,
             onSnapshotUpdated = budgetMonitor::invalidate,
         )

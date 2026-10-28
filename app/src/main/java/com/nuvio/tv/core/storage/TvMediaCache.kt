@@ -23,8 +23,12 @@ internal const val TV_TORRENT_PAYLOAD_CACHE_PATH = "nuvio-engine/payload"
 private const val MAX_STALE_VOD_CACHE_ROOTS = 128
 private const val MAX_STALE_VOD_DIRECTORY_ENTRIES = 16_384
 private const val STALE_VOD_DISCOVERY_TIMEOUT_NANOS = 10_000_000L
+private const val MAX_PLUGIN_CODE_CACHE_ROOTS = 128
+private const val MAX_PLUGIN_CODE_DIRECTORY_ENTRIES = 16_384
+private const val PLUGIN_CODE_DISCOVERY_TIMEOUT_NANOS = 10_000_000L
 
 private data class DiscoveredStaleVodCaches(val roots: List<List<String>>, val complete: Boolean)
+internal data class DiscoveredPluginCodeCaches(val roots: List<List<String>>, val complete: Boolean)
 
 private fun discoverStaleVodCacheRoots(cacheDirectory: Path): DiscoveredStaleVodCaches {
     val names = mutableListOf<String>()
@@ -65,11 +69,55 @@ private fun discoverStaleVodCacheRoots(cacheDirectory: Path): DiscoveredStaleVod
     return DiscoveredStaleVodCaches(names.sorted().map { listOf(it) }, complete)
 }
 
+/** Plugin scraper scripts are regenerated from configured repositories, but live in filesDir. */
+internal fun discoverPluginCodeCacheRoots(
+    filesDirectory: Path,
+    maxEntries: Int = MAX_PLUGIN_CODE_DIRECTORY_ENTRIES,
+    maxRoots: Int = MAX_PLUGIN_CODE_CACHE_ROOTS,
+    maxDurationNanos: Long = PLUGIN_CODE_DISCOVERY_TIMEOUT_NANOS,
+): DiscoveredPluginCodeCaches {
+    require(maxEntries > 0 && maxRoots > 0 && maxDurationNanos > 0)
+    val names = mutableListOf<String>()
+    var complete = true
+    val startedAtNanos = System.nanoTime()
+    var visitedEntries = 0
+    try {
+        Files.newDirectoryStream(filesDirectory).use { entries ->
+            val iterator = entries.iterator()
+            while (iterator.hasNext()) {
+                if (visitedEntries >= maxEntries ||
+                    System.nanoTime() - startedAtNanos >= maxDurationNanos ||
+                    names.size >= maxRoots
+                ) {
+                    complete = false
+                    break
+                }
+                visitedEntries++
+                val name = iterator.next().fileName?.toString().orEmpty()
+                val profileSuffix = name.removePrefix("plugin_code_p")
+                val isProfileCache = name.startsWith("plugin_code_p") && profileSuffix.isNotEmpty() &&
+                    profileSuffix.all { it in '0'..'9' }
+                if (name == "plugin_code" || isProfileCache) names += name
+            }
+        }
+    } catch (_: NoSuchFileException) {
+        // A fresh installation has no files directory yet.
+    } catch (_: IOException) {
+        complete = false
+    } catch (_: DirectoryIteratorException) {
+        complete = false
+    } catch (_: SecurityException) {
+        complete = false
+    }
+    return DiscoveredPluginCodeCaches(names.distinct().sorted().map { listOf(it) }, complete)
+}
+
 fun tvMediaCache(context: Context): TvMediaCache =
     (context.applicationContext as? com.nuvio.tv.NuvioApplication)?.mediaCache ?: TvMediaCache(context.applicationContext)
 
 internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: Path): MediaCacheOccupancy {
     val staleVodCaches = discoverStaleVodCacheRoots(cacheDirectory)
+    val pluginCodeCaches = discoverPluginCodeCacheRoots(filesDirectory)
     val currentCaches = OwnedMediaCacheOccupancy.measure(
         cacheDirectory,
         listOf(
@@ -84,7 +132,7 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
     )
     val legacyFilesCaches = OwnedMediaCacheOccupancy.measure(
         filesDirectory,
-        listOf(listOf("mdblist_cache"), listOf("cw_enrichment")),
+        listOf(listOf("mdblist_cache"), listOf("cw_enrichment")) + pluginCodeCaches.roots,
     )
     val totalBytes = if (currentCaches.bytes > Long.MAX_VALUE - legacyFilesCaches.bytes) {
         Long.MAX_VALUE
@@ -97,7 +145,7 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
     return MediaCacheOccupancy(
         totalBytes,
         visitedEntries,
-        currentCaches.complete && legacyFilesCaches.complete && staleVodCaches.complete,
+        currentCaches.complete && legacyFilesCaches.complete && staleVodCaches.complete && pluginCodeCaches.complete,
     )
 }
 

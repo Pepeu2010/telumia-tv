@@ -8,6 +8,7 @@ import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.annotation.ExperimentalCoilApi
 import com.nuvio.tv.core.image.CustomPosterFallbackInterceptor
+import com.nuvio.tv.core.image.CacheWritePreflightInterceptor
 import coil3.disk.DiskCache
 import com.nuvio.tv.core.storage.TvMediaCache
 import com.nuvio.tv.core.storage.MediaCacheCategory
@@ -142,6 +143,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
         val imageLoader = ImageLoader.Builder(this)
             .components {
+                add(CacheWritePreflightInterceptor { mediaCache.canBeginCacheWrite(cacheCategory) })
                 add(CustomPosterFallbackInterceptor())
                 if (Build.VERSION.SDK_INT >= 28) {
                     add(AnimatedImageDecoder.Factory())
@@ -173,7 +175,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
                     .maxSizeBytes(mediaCache.coilQuota(cacheCategory))
                     .build()
             }
-            .diskCachePolicy(mediaCache.requestPolicy)
+            .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
             .crossfade(false)
             .precision(coil3.size.Precision.INEXACT)
             .allowHardware(false)

@@ -222,7 +222,8 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
 
     private fun availableStorageBytes(): Long? =
         runCatching { StatFs(app.cacheDir.absolutePath).availableBytes }.getOrNull()
-    val requestPolicy: CachePolicy get() = if (writesEnabled) CachePolicy.ENABLED else CachePolicy.READ_ONLY
+    /** Per-request storage preflight controls writes; ENABLED keeps both reads and recovered writes available. */
+    val requestPolicy: CachePolicy get() = CachePolicy.ENABLED
 
     fun loadSettings(): MediaCacheSettings = runCatching {
         if (preferences.getInt("schema", 1) != 1) return@runCatching MediaCacheSettings()

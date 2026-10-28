@@ -40,6 +40,7 @@ import coil3.compose.AsyncImage
 import coil3.disk.DiskCache
 import coil3.memory.MemoryCache
 import coil3.ImageLoader
+import com.nuvio.tv.core.image.CacheWritePreflightInterceptor
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -70,6 +71,9 @@ private fun getBadgeImageLoader(context: android.content.Context): ImageLoader {
     badgeImageLoader?.let { return it }
     val cache = badgeMediaCache(context)
     val loader = ImageLoader.Builder(context.applicationContext)
+        .components {
+            add(CacheWritePreflightInterceptor { cache.canBeginCacheWrite(MediaCacheCategory.BADGES) })
+        }
         .memoryCache {
             MemoryCache.Builder()
                 .maxSizePercent(context.applicationContext, 0.05)
@@ -81,7 +85,7 @@ private fun getBadgeImageLoader(context: android.content.Context): ImageLoader {
                 .maxSizeBytes(cache.coilQuota(MediaCacheCategory.BADGES))
                 .build()
         }
-        .diskCachePolicy(cache.requestPolicy)
+        .diskCachePolicy(CachePolicy.ENABLED)
         .precision(Precision.INEXACT)
         .crossfade(false)
         .allowHardware(true)

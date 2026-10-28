@@ -8,10 +8,7 @@ internal object ReleaseSelector {
         RegexOption.IGNORE_CASE
     )
 
-    fun eligibleReleases(
-        releases: List<GitHubReleaseDto>,
-        channel: UpdateChannel
-    ): List<GitHubReleaseDto> = releases
+    fun eligibleReleases(releases: List<GitHubReleaseDto>): List<GitHubReleaseDto> = releases
         .asSequence()
         .filterNot(GitHubReleaseDto::draft)
         .mapNotNull { release ->
@@ -22,7 +19,7 @@ internal object ReleaseSelector {
                 prerelease = isPrerelease(release, version)
             )
         }
-        .filter { candidate -> channel == UpdateChannel.BETA || !candidate.prerelease }
+        .filterNot(ReleaseCandidate::prerelease)
         .sortedByDescending(ReleaseCandidate::version)
         .map(ReleaseCandidate::release)
         .toList()

@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.nuvio.tv.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -41,19 +40,14 @@ class UpdatePreferences @Inject constructor(
     }
 
     val updateChannel: Flow<UpdateChannel> = dataStore.data.map { prefs ->
-        UpdateChannel.fromStoredValue(prefs[updateChannelKey])
-            ?: UpdateChannel.defaultForVersion(BuildConfig.VERSION_NAME)
+        UpdateChannel.fromStoredValue(prefs[updateChannelKey]) ?: UpdateChannel.STABLE
     }
 
     suspend fun getOrInitializeUpdateChannel(): UpdateChannel {
-        val defaultChannel = UpdateChannel.defaultForVersion(BuildConfig.VERSION_NAME)
-        var resolvedChannel = defaultChannel
         dataStore.edit { prefs ->
-            resolvedChannel = UpdateChannel.fromStoredValue(prefs[updateChannelKey])
-                ?: defaultChannel
-            prefs[updateChannelKey] = resolvedChannel.storedValue
+            prefs[updateChannelKey] = UpdateChannel.STABLE.storedValue
         }
-        return resolvedChannel
+        return UpdateChannel.STABLE
     }
 
     suspend fun setIgnoredTag(tag: String?) {
@@ -74,10 +68,4 @@ class UpdatePreferences @Inject constructor(
         }
     }
 
-    suspend fun setUpdateChannel(channel: UpdateChannel) {
-        dataStore.edit { prefs ->
-            prefs[updateChannelKey] = channel.storedValue
-            prefs.remove(ignoredTagKey)
-        }
-    }
 }

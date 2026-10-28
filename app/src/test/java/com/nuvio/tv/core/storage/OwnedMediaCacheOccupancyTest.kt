@@ -18,6 +18,46 @@ class OwnedMediaCacheOccupancyTest {
         Files.createDirectories(file.parent)
         Files.write(file, ByteArray(size))
     }
+
+    @Test fun directCacheRootFilesCountWithoutWalkingChildDirectories() = fixture { root ->
+        write(root, "mpv-shader-cache-entry", 17)
+        write(root, "stale-frame-probe.tmp", 19)
+        write(root, "image_cache/poster.webp", 23)
+        write(root, "downloads/movie.mkv", 29)
+        val originalBytes = Files.readAllBytes(root.resolve("mpv-shader-cache-entry"))
+
+        val result = DirectCacheFileOccupancy.measure(root, maxMillis = 10_000)
+
+        assertTrue(result.complete)
+        assertEquals(36L, result.bytes)
+        assertArrayEquals(originalBytes, Files.readAllBytes(root.resolve("mpv-shader-cache-entry")))
+        assertEquals(23L, Files.size(root.resolve("image_cache/poster.webp")))
+        assertEquals(29L, Files.size(root.resolve("downloads/movie.mkv")))
+    }
+
+    @Test fun directCacheRootFileScanReportsEntryLimit() = fixture { root ->
+        repeat(4) { write(root, "root-file-$it.tmp", 5) }
+
+        val result = DirectCacheFileOccupancy.measure(root, maxEntries = 2, maxMillis = 10_000)
+
+        assertFalse(result.complete)
+        assertEquals(2, result.visitedEntries)
+        assertTrue(result.bytes <= 10L)
+    }
+
+    @Test fun autoOccupancyAddsDirectCacheFilesWithoutDoubleCountingAllowlistedDirectories() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(cacheDirectory, "mpv-shader-cache-entry", 31)
+        write(cacheDirectory, "image_cache/poster.webp", 37)
+        write(cacheDirectory, "downloads/movie.mkv", 41)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(68L, result.bytes)
+        assertEquals(41L, Files.size(cacheDirectory.resolve("downloads/movie.mkv")))
+    }
     @Test fun measuresOnlyAllowlistedCachesAndKeepsDurableFilesIntact() = fixture { root ->
         write(root, "media-cache-v1/images/coil/first", 7)
         write(root, "media-cache-v1/images/gifs/second", 11)

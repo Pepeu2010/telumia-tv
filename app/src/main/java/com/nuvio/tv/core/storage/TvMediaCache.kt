@@ -120,6 +120,7 @@ internal fun measureTvMediaCacheOccupancy(
     filesDirectory: Path,
     codeCacheDirectory: Path? = null,
 ): MediaCacheOccupancy {
+    val directCacheFiles = DirectCacheFileOccupancy.measure(cacheDirectory, maxMillis = 25)
     val staleVodCaches = discoverStaleVodCacheRoots(cacheDirectory)
     val pluginCodeCaches = discoverPluginCodeCacheRoots(filesDirectory)
     val currentCaches = OwnedMediaCacheOccupancy.measure(
@@ -141,18 +142,23 @@ internal fun measureTvMediaCacheOccupancy(
     val codeCaches = codeCacheDirectory?.let {
         OwnedMediaCacheOccupancy.measure(it, listOf(listOf("cs_dex_cache")))
     } ?: MediaCacheOccupancy(0, 0, true)
-    val totalBytes = listOf(currentCaches.bytes, legacyFilesCaches.bytes, codeCaches.bytes)
+    val totalBytes = listOf(directCacheFiles.bytes, currentCaches.bytes, legacyFilesCaches.bytes, codeCaches.bytes)
         .fold(0L) { total, bytes ->
             if (total > Long.MAX_VALUE - bytes) Long.MAX_VALUE else total + bytes
         }
-    val visitedEntries = listOf(currentCaches.visitedEntries, legacyFilesCaches.visitedEntries, codeCaches.visitedEntries)
+    val visitedEntries = listOf(
+        directCacheFiles.visitedEntries,
+        currentCaches.visitedEntries,
+        legacyFilesCaches.visitedEntries,
+        codeCaches.visitedEntries,
+    )
         .sumOf { it.toLong() }
         .coerceAtMost(Int.MAX_VALUE.toLong())
         .toInt()
     return MediaCacheOccupancy(
         totalBytes,
         visitedEntries,
-        currentCaches.complete && legacyFilesCaches.complete && codeCaches.complete &&
+        directCacheFiles.complete && currentCaches.complete && legacyFilesCaches.complete && codeCaches.complete &&
             staleVodCaches.complete && pluginCodeCaches.complete,
     )
 }

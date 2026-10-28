@@ -191,35 +191,6 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
-    fun setUpdateChannel(channel: UpdateChannel) {
-        val state = _uiState.value
-        if (state.updateChannel == channel) return
-
-        updateCheckJob?.cancel()
-        state.downloadedApkPath?.let { File(it).delete() }
-        _uiState.update {
-            it.copy(
-                updateChannel = channel,
-                isChecking = false,
-                update = null,
-                isUpdateAvailable = false,
-                isDownloading = false,
-                downloadProgress = null,
-                downloadedApkPath = null,
-                showBanner = false,
-                showUnknownSourcesDialog = false,
-                errorMessage = null,
-                feedbackMessage = null
-            )
-        }
-        viewModelScope.launch {
-            updatePreferences.setUpdateChannel(channel)
-            if (!BuildConfig.IS_DEBUG_BUILD) {
-                checkForUpdates(force = true, showNoUpdateFeedback = false)
-            }
-        }
-    }
-
     fun downloadUpdate() {
         val update = _uiState.value.update ?: return
 

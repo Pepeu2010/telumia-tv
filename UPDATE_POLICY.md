@@ -1,6 +1,6 @@
 # Atualizador estável para Android TV
 
-O Telumia TV consulta `GET /repos/{owner}/{repo}/releases/latest` ao iniciar e também oferece uma verificação manual em **Sobre > Verificar atualizações**. Ele não monitora o GitHub em segundo plano com o app fechado.
+O Telumia TV consulta `GET /repos/Pepeu2010/telumia/releases/latest` ao iniciar e também oferece uma verificação manual em **Sobre > Verificar atualizações**. O repositório principal contém a release combinada publicada com os APKs das plataformas. O app não monitora o GitHub em segundo plano enquanto estiver fechado.
 
 Somente releases publicadas e estáveis são elegíveis. Além do filtro do GitHub, o app rejeita releases marcadas como draft ou prerelease e tags ou títulos com alpha, beta, RC ou preview. Preferências antigas de canal beta são migradas para estável; a interface não oferece seleção de pré-lançamentos.
 

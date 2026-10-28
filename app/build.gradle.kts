@@ -115,8 +115,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10008
-        versionName = "1.0.2-alpha.3"
+        versionCode = 10011
+        versionName = "1.0.3"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -158,7 +158,7 @@ android {
 
         // In-app updater (GitHub Releases)
         buildConfigField("String", "GITHUB_OWNER", "\"Pepeu2010\"")
-        buildConfigField("String", "GITHUB_REPO", "\"telumia-tv\"")
+        buildConfigField("String", "GITHUB_REPO", "\"telumia\"")
     }
 
     flavorDimensions += "distribution"

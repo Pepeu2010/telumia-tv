@@ -95,6 +95,15 @@ val releaseKeyPasswordValue = env("NUVIO_RELEASE_KEY_PASSWORD")
     ?: localProperties.getProperty("NUVIO_RELEASE_KEY_PASSWORD", "")
 val releaseStorePasswordValue = env("NUVIO_RELEASE_STORE_PASSWORD")
     ?: localProperties.getProperty("NUVIO_RELEASE_STORE_PASSWORD", "")
+val signFullDebugWithReleaseKey = truthy(env("TELUMIA_SIGN_FULL_DEBUG_WITH_RELEASE_KEY"))
+if (signFullDebugWithReleaseKey) {
+    require(!releaseStoreFilePath.isNullOrBlank()) {
+        "TELUMIA_SIGN_FULL_DEBUG_WITH_RELEASE_KEY requires NUVIO_RELEASE_STORE_FILE."
+    }
+    require(releaseKeyAliasValue.isNotBlank() && releaseKeyPasswordValue.isNotBlank() && releaseStorePasswordValue.isNotBlank()) {
+        "Stable APK signing requires NUVIO_RELEASE_KEY_ALIAS, NUVIO_RELEASE_KEY_PASSWORD, and NUVIO_RELEASE_STORE_PASSWORD."
+    }
+}
 
 android {
     namespace = "com.nuvio.tv"
@@ -194,7 +203,9 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(
+                if (signFullDebugWithReleaseKey) "release" else "debug"
+            )
             isDebuggable = true
             isMinifyEnabled = false
 

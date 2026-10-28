@@ -98,6 +98,25 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(29L, Files.size(filesDirectory.resolve("profile-studio-v1/avatars/local.png")))
     }
 
+    @Test fun stagedUpdaterApkCountsWithoutChangingItsContentsOrIncludingOtherFiles() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        val stagedApk = cacheDirectory.resolve("updates/telumia-update.apk")
+        Files.createDirectories(stagedApk.parent)
+        val originalBytes = ByteArray(41) { it.toByte() }
+        Files.write(stagedApk, originalBytes)
+        write(cacheDirectory, "updates-backup/old.apk", 43)
+        write(cacheDirectory, "downloads/movie.mkv", 47)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(41L, result.bytes)
+        assertArrayEquals(originalBytes, Files.readAllBytes(stagedApk))
+        assertEquals(43L, Files.size(cacheDirectory.resolve("updates-backup/old.apk")))
+        assertEquals(47L, Files.size(cacheDirectory.resolve("downloads/movie.mkv")))
+    }
+
     @Test fun pluginCodeRootDiscoveryUsesExactProfileDirectoryNamesAndReportsBounds() = fixture { root ->
         listOf("plugin_code", "plugin_code_p2", "plugin_code_p17", "plugin_code_p2_backup", "plugin_code_p")
             .forEach { Files.createDirectories(root.resolve(it)) }

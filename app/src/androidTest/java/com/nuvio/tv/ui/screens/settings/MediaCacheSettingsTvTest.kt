@@ -181,6 +181,27 @@ class MediaCacheSettingsTvTest {
         assertEquals(29L, avatar.length())
     }
 
+    @Test fun runtimeMeasurementCountsStagedUpdaterApkWithoutChangingIt() {
+        fun write(root: File, name: String, bytes: ByteArray): File = File(root, name).apply {
+            parentFile!!.mkdirs()
+            writeBytes(bytes)
+        }
+        val cacheDirectory = File(fixtureDirectory, "updater-cache-scope").apply { mkdirs() }
+        val filesDirectory = File(fixtureDirectory, "updater-files-scope").apply { mkdirs() }
+        val originalBytes = ByteArray(41) { it.toByte() }
+        val stagedApk = write(cacheDirectory, "updates/telumia-update.apk", originalBytes)
+        val unrelatedUpdate = write(cacheDirectory, "updates-backup/old.apk", ByteArray(43))
+        val download = write(cacheDirectory, "downloads/movie.mkv", ByteArray(47))
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory.toPath(), filesDirectory.toPath())
+
+        assertTrue(result.complete)
+        assertEquals(41L, result.bytes)
+        assertArrayEquals(originalBytes, stagedApk.readBytes())
+        assertEquals(43L, unrelatedUpdate.length())
+        assertEquals(47L, download.length())
+    }
+
     @Test fun runtimeMeasurementCountsManagedHttpAddonMetadataAndLegacyCacheFolders() {
         fun write(relativePath: String, size: Int): File = File(context.cacheDir, relativePath).apply {
             parentFile!!.mkdirs()

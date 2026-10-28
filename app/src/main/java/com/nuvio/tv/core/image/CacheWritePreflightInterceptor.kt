@@ -8,9 +8,10 @@ import kotlinx.coroutines.withContext
 
 /** Rechecks storage for every request while keeping existing disk-cache entries readable. */
 internal class CacheWritePreflightInterceptor(
+    private val clockMillis: () -> Long = { System.nanoTime() / 1_000_000L },
     private val canWrite: () -> Boolean,
 ) : Interceptor {
-    private val storagePreflight = StorageWritePreflightSampler(canWrite)
+    private val storagePreflight = StorageWritePreflightSampler(canWrite, clockMillis)
 
     override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
         val request = chain.request

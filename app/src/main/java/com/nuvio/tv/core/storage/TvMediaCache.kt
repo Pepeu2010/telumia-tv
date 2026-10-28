@@ -123,7 +123,7 @@ internal fun measureTvMediaCacheOccupancy(cacheDirectory: Path, filesDirectory: 
         listOf(
             listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
             listOf("media-cache-v1", "previews"),
-            listOf("http_cache_v2"), listOf("addon_http_cache"),
+            listOf("http_cache_v2"), listOf("addon_http_cache"), listOf("updates"),
             // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
             listOf("http_cache"), listOf("member_profile_avatars"),
             listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),

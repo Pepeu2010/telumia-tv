@@ -158,6 +158,29 @@ class MediaCacheSettingsTvTest {
         assertEquals(31L, File(filesDirectory, "downloads/movie.mkv").length())
     }
 
+    @Test fun runtimeMeasurementCountsProfilePluginCodeAndExcludesDurableFiles() {
+        fun write(root: File, name: String, size: Int): File = File(root, name).apply {
+            parentFile!!.mkdirs()
+            writeBytes(ByteArray(size))
+        }
+        val cacheDirectory = File(fixtureDirectory, "plugin-cache-scope").apply { mkdirs() }
+        val filesDirectory = File(fixtureDirectory, "plugin-files-scope").apply { mkdirs() }
+        write(filesDirectory, "plugin_code/scraper.js", 7)
+        write(filesDirectory, "plugin_code_p2/scraper.js", 11)
+        write(filesDirectory, "plugin_code_p17/other.js", 13)
+        val unrelated = write(filesDirectory, "plugin_code_p2_backup/ignored.js", 17)
+        val datastore = write(filesDirectory, "datastore/account.preferences_pb", 23)
+        val avatar = write(filesDirectory, "profile-studio-v1/avatars/local.png", 29)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory.toPath(), filesDirectory.toPath())
+
+        assertTrue(result.complete)
+        assertEquals(31L, result.bytes)
+        assertEquals(17L, unrelated.length())
+        assertEquals(23L, datastore.length())
+        assertEquals(29L, avatar.length())
+    }
+
     @Test fun runtimeMeasurementCountsManagedHttpAddonMetadataAndLegacyCacheFolders() {
         fun write(relativePath: String, size: Int): File = File(context.cacheDir, relativePath).apply {
             parentFile!!.mkdirs()

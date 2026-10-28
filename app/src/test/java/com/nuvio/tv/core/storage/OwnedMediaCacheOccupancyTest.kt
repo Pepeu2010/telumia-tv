@@ -78,6 +78,39 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(11L, Files.size(filesDirectory.resolve("scene-bookmarks-v1/bookmarks.json")))
     }
 
+    @Test fun profilePluginCodeCachesCountWithoutIncludingDurableFilesOrUnrecognizedFolders() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(filesDirectory, "plugin_code/scraper.js", 7)
+        write(filesDirectory, "plugin_code_p2/scraper.js", 11)
+        write(filesDirectory, "plugin_code_p17/other.js", 13)
+        write(filesDirectory, "plugin_code_p2_backup/should-not-count.js", 17)
+        write(filesDirectory, "plugin_code_p/not-a-profile.js", 19)
+        write(filesDirectory, "datastore/account.preferences_pb", 23)
+        write(filesDirectory, "profile-studio-v1/avatars/local.png", 29)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(31L, result.bytes)
+        assertEquals(17L, Files.size(filesDirectory.resolve("plugin_code_p2_backup/should-not-count.js")))
+        assertEquals(23L, Files.size(filesDirectory.resolve("datastore/account.preferences_pb")))
+        assertEquals(29L, Files.size(filesDirectory.resolve("profile-studio-v1/avatars/local.png")))
+    }
+
+    @Test fun pluginCodeRootDiscoveryUsesExactProfileDirectoryNamesAndReportsBounds() = fixture { root ->
+        listOf("plugin_code", "plugin_code_p2", "plugin_code_p17", "plugin_code_p2_backup", "plugin_code_p")
+            .forEach { Files.createDirectories(root.resolve(it)) }
+
+        val result = discoverPluginCodeCacheRoots(root)
+
+        assertTrue(result.complete)
+        assertEquals(listOf(listOf("plugin_code"), listOf("plugin_code_p17"), listOf("plugin_code_p2")), result.roots.sortedBy { it.single() })
+        val bounded = discoverPluginCodeCacheRoots(root, maxEntries = 1)
+        assertFalse(bounded.complete)
+        assertTrue(bounded.roots.size <= 1)
+    }
+
     @Test fun playbackStreamCachesAndStaleVodFoldersCountTowardAutoOccupancy() = fixture { root ->
         val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
         val filesDirectory = root.resolve("files").also(Files::createDirectories)

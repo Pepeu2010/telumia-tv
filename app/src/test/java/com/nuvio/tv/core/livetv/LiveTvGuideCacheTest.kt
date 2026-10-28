@@ -11,6 +11,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class LiveTvGuideCacheTest {
     @get:Rule val temporaryFolder = TemporaryFolder()
@@ -18,14 +20,14 @@ class LiveTvGuideCacheTest {
     @Test
     fun compressedGuideRoundTripsAndCanBeReadWhenWritesAreDisabled() = kotlinx.coroutines.runBlocking {
         val cacheDir = temporaryFolder.newFolder("epg")
-        val cache = LiveTvGuideCache(cacheDir, 1024L * 1024L, writesEnabled = true)
+        val cache = cache(cacheDir, 1024L * 1024L, writesEnabled = true)
         val expected = sampleResult()
 
         assertTrue(cache.write("source-a", expected, updatedEpochMillis = 1234L))
         val persistedBytes = cacheDir.listFiles()?.singleOrNull()?.length() ?: 0L
         assertTrue(persistedBytes in 1L..1024L * 1024L)
 
-        val offlineReadOnlyCache = LiveTvGuideCache(cacheDir, 1024L * 1024L, writesEnabled = false)
+        val offlineReadOnlyCache = cache(cacheDir, 1024L * 1024L, writesEnabled = false)
         val actual = offlineReadOnlyCache.read("source-a")
         assertNotNull(actual)
         assertEquals(1234L, actual?.updatedEpochMillis)
@@ -36,7 +38,7 @@ class LiveTvGuideCacheTest {
     @Test
     fun updatingSourceReplacesItsCacheEntryAtomically() = kotlinx.coroutines.runBlocking {
         val cacheDir = temporaryFolder.newFolder("replace-epg")
-        val cache = LiveTvGuideCache(cacheDir, 1024L * 1024L, writesEnabled = true)
+        val cache = cache(cacheDir, 1024L * 1024L, writesEnabled = true)
         val original = sampleResult()
         val updated = original.copy(programs = listOf(
             original.programs.single().copy(title = "Jornal atualizado")
@@ -53,7 +55,7 @@ class LiveTvGuideCacheTest {
     @Test
     fun refusesPayloadLargerThanTheEpgShareAndIgnoresUnknownSourceIds() = kotlinx.coroutines.runBlocking {
         val cacheDir = temporaryFolder.newFolder("small-epg")
-        val cache = LiveTvGuideCache(cacheDir, quotaBytes = 1L, writesEnabled = true)
+        val cache = cache(cacheDir, quotaBytes = 1L, writesEnabled = true)
 
         assertFalse(cache.write("source-a", sampleResult()))
         assertNull(cache.read("source-a"))
@@ -63,16 +65,16 @@ class LiveTvGuideCacheTest {
     @Test
     fun evictsOlderSourceCacheToStayWithinTheEpgShare() = kotlinx.coroutines.runBlocking {
         val cacheDir = temporaryFolder.newFolder("bounded-epg")
-        val first = LiveTvGuideCache(cacheDir, 1024L * 1024L, writesEnabled = true)
+        val first = cache(cacheDir, 1024L * 1024L, writesEnabled = true)
         assertTrue(first.write("source-a", sampleResult(), updatedEpochMillis = 1L))
         val firstEntryBytes = cacheDir.listFiles()?.singleOrNull()?.length() ?: error("cache file missing")
         val sizingDir = temporaryFolder.newFolder("sizing-epg")
-        val sizingCache = LiveTvGuideCache(sizingDir, 1024L * 1024L, writesEnabled = true)
+        val sizingCache = cache(sizingDir, 1024L * 1024L, writesEnabled = true)
         assertTrue(sizingCache.write("source-b", sampleResult(), updatedEpochMillis = 2L))
         val secondEntryBytes = sizingDir.listFiles()?.singleOrNull()?.length() ?: error("sizing cache file missing")
         val quota = maxOf(firstEntryBytes, secondEntryBytes)
 
-        val singleEntryBudget = LiveTvGuideCache(cacheDir, quota, writesEnabled = true)
+        val singleEntryBudget = cache(cacheDir, quota, writesEnabled = true)
         assertTrue(singleEntryBudget.write("source-b", sampleResult(), updatedEpochMillis = 2L))
 
         assertNull(singleEntryBudget.read("source-a"))
@@ -84,4 +86,11 @@ class LiveTvGuideCacheTest {
         channels = listOf(LiveTvChannel("source-a:hash", "source-a", "Canal Brasil", "https://example.org/live.m3u8", tvgId = "br-1")),
         programs = listOf(LiveTvProgram("source-a", "br-1", "Jornal", 1000L, 2000L, description = "Notícias")),
     )
+
+    /** JVM tests run on Windows too; use the host's atomic replace equivalent to Android rename(2). */
+    private fun cache(directory: java.io.File, quotaBytes: Long, writesEnabled: Boolean) =
+        LiveTvGuideCache(directory, quotaBytes, writesEnabled) { source, target ->
+            Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            true
+        }
 }

@@ -26,6 +26,7 @@ data class LiveTvUiState(
     val programs: List<LiveTvProgram> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
+    val backgroundRefreshUnavailable: Boolean = false,
     val sourceErrors: Map<String, String> = emptyMap(),
     val lastUpdatedEpochMillis: Map<String, Long> = emptyMap(),
     val lastSavedSourceId: String? = null,
@@ -53,7 +54,7 @@ class LiveTvViewModel @Inject constructor(
                     sources = emptyList(), channels = emptyList(), programs = emptyList(),
                     favoriteChannelIds = emptySet(), recentChannelIds = emptyList(),
                     sourceErrors = emptyMap(), lastUpdatedEpochMillis = emptyMap(),
-                    isLoading = true, error = null,
+                    isLoading = true, error = null, backgroundRefreshUnavailable = false,
                 ) }
                 reloadSources()
                 try {
@@ -128,7 +129,18 @@ class LiveTvViewModel @Inject constructor(
         } catch (_: Exception) {
             return
         }
-        if (hasEnabledSource) refreshScheduler.schedule() else refreshScheduler.cancel()
+        applyRefreshSchedule(hasEnabledSource)
+    }
+
+    private fun applyRefreshSchedule(enabled: Boolean) {
+        try {
+            if (enabled) refreshScheduler.schedule() else refreshScheduler.cancel()
+            mutableState.update { it.copy(backgroundRefreshUnavailable = false) }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            mutableState.update { it.copy(backgroundRefreshUnavailable = true) }
+        }
     }
 
     private suspend fun reloadSources() {
@@ -164,7 +176,7 @@ class LiveTvViewModel @Inject constructor(
             runCatching { sourceStore.add(name, playlistUrl, epgUrl) }
                 .onSuccess { added ->
                     mutableState.update { it.copy(sources = it.sources + added, isLoading = false, lastSavedSourceId = added.id) }
-                    refreshScheduler.schedule()
+                    applyRefreshSchedule(enabled = true)
                     refresh()
                 }
                 .onFailure { error -> mutableState.update { it.copy(isLoading = false, error = error.message ?: "Não foi possível salvar a fonte") } }
@@ -183,7 +195,7 @@ class LiveTvViewModel @Inject constructor(
                         )
                     }
                     if (enabled) {
-                        refreshScheduler.schedule()
+                        applyRefreshSchedule(enabled = true)
                         refresh()
                     } else {
                         reconcileRefreshSchedule()
@@ -269,3 +281,4 @@ class LiveTvViewModel @Inject constructor(
         }
     }
 }
+

@@ -36,6 +36,7 @@ class LiveTvGuideCache private constructor(
     private val directory: File,
     private val quotaBytes: () -> Long,
     private val writesEnabled: () -> Boolean,
+    private val atomicReplace: (File, File) -> Boolean,
 ) {
     @Inject constructor(
         @ApplicationContext context: Context,
@@ -44,12 +45,15 @@ class LiveTvGuideCache private constructor(
         File(context.cacheDir, DIRECTORY_NAME),
         { mediaCache.coilQuota(MediaCacheCategory.EPG) },
         { mediaCache.writesEnabled },
+        { source, target -> source.renameTo(target) },
     )
 
-    internal constructor(directory: File, quotaBytes: Long, writesEnabled: Boolean) : this(
+    internal constructor(directory: File, quotaBytes: Long, writesEnabled: Boolean,
+        atomicReplace: (File, File) -> Boolean = { source, target -> source.renameTo(target) }) : this(
         directory,
         { quotaBytes },
         { writesEnabled },
+        atomicReplace,
     )
 
     suspend fun read(sourceId: String): CachedLiveTvGuide? = withContext(Dispatchers.IO) {
@@ -80,14 +84,12 @@ class LiveTvGuideCache private constructor(
             directory.listFiles().orEmpty().filter { it.isFile && it.name.endsWith(".tmp") }.forEach(File::delete)
             val target = fileFor(sourceId)
             val temporary = File(directory, "${UUID.randomUUID()}.tmp")
+            val limitedOutput = LimitedOutputStream(temporary.outputStream().buffered(), limit)
             try {
-                try {
-                    DataOutputStream(GZIPOutputStream(LimitedOutputStream(temporary.outputStream().buffered(), limit)).buffered()).use { output ->
-                        encode(output, CachedLiveTvGuide(SCHEMA_VERSION, sourceId, updatedEpochMillis, result))
-                    }
-                } catch (_: CacheQuotaExceededException) {
-                    return@withContext false
+                DataOutputStream(GZIPOutputStream(limitedOutput).buffered()).use { output ->
+                    encode(output, CachedLiveTvGuide(SCHEMA_VERSION, sourceId, updatedEpochMillis, result))
                 }
+                if (limitedOutput.exceeded) return@withContext false
                 val incomingBytes = temporary.length()
                 if (incomingBytes <= 0 || incomingBytes > limit) return@withContext false
 
@@ -104,7 +106,7 @@ class LiveTvGuideCache private constructor(
                 }
                 if (otherBytes + incomingBytes > limit) return@withContext false
 
-                if (!temporary.renameTo(target)) throw java.io.IOException("Could not atomically replace the cached guide")
+                if (!atomicReplace(temporary, target)) throw java.io.IOException("Could not atomically replace the cached guide")
                 target.setLastModified(System.currentTimeMillis())
                 true
             } finally {
@@ -225,22 +227,26 @@ class LiveTvGuideCache private constructor(
 
     private class LimitedOutputStream(output: OutputStream, private val maximumBytes: Long) : FilterOutputStream(output) {
         private var count = 0L
+        var exceeded = false
+            private set
         override fun write(value: Int) {
-            ensureCapacity(1)
+            if (!ensureCapacity(1)) return
             out.write(value)
             count++
         }
         override fun write(buffer: ByteArray, offset: Int, length: Int) {
-            ensureCapacity(length)
+            if (!ensureCapacity(length)) return
             out.write(buffer, offset, length)
             count += length
         }
-        private fun ensureCapacity(length: Int) {
-            if (length < 0 || count > maximumBytes - length) throw CacheQuotaExceededException()
+        private fun ensureCapacity(length: Int): Boolean {
+            if (length < 0 || count > maximumBytes - length) {
+                exceeded = true
+                return false
+            }
+            return true
         }
     }
-
-    private class CacheQuotaExceededException : java.io.IOException()
 
     private companion object {
         const val DIRECTORY_NAME = "live_tv_guide"

@@ -1387,11 +1387,13 @@ internal fun PlayerRuntimeController.initializePlayer(
                         val mediaId = contentId?.takeIf { it.isNotBlank() } ?: return
                         val mediaType = contentType?.takeIf { it.isNotBlank() } ?: return
                         val videoId = currentVideoId?.takeIf { it.isNotBlank() } ?: mediaId
-                        val scope = com.nuvio.tv.core.player.metadata.TimedMetadataScope(
+                        val baseScope = com.nuvio.tv.core.player.metadata.TimedMetadataScope(
                             mediaId = mediaId,
                             mediaType = mediaType,
                             videoId = videoId
                         )
+                        val scope = sceneInfoScopeForSource(baseScope, bookmarkSourceIdentity(_uiState.value))
+                            ?: baseScope
                         val currentTimeline = _uiState.value.embeddedChapterMetadata
                         val mergedTimeline = mergeMedia3ChapterMetadata(
                             current = currentTimeline,

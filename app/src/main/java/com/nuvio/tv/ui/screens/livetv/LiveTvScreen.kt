@@ -152,6 +152,9 @@ fun LiveTvScreen(
         }
         if (state.isLoading) item { Text(stringResource(R.string.live_tv_loading), color = NuvioTheme.colors.TextSecondary) }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
+        if (state.backgroundRefreshUnavailable) {
+            item { Text(stringResource(R.string.live_tv_refresh_schedule_unavailable), color = NuvioTheme.colors.TextSecondary) }
+        }
         if (state.sources.isNotEmpty()) {
             item { Text(stringResource(R.string.live_tv_sources), style = MaterialTheme.typography.titleLarge) }
             items(state.sources, key = { "source:${it.id}" }) { source ->
@@ -326,3 +329,4 @@ private fun String.hostForDisplay(): String = runCatching { java.net.URI(this).h
     .getOrDefault("").ifBlank { stringResourceFallback }
 
 private const val stringResourceFallback = "URL configurada"
+

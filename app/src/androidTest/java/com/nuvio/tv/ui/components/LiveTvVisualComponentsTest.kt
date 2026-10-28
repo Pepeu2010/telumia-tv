@@ -14,7 +14,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.nuvio.tv.domain.model.LiveTvChannel
+import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.domain.model.NavigationMotion
+import com.nuvio.tv.ui.screens.livetv.LiveTvQuickChannelOverlay
 import com.nuvio.tv.ui.theme.NuvioTheme
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -48,6 +51,51 @@ class LiveTvVisualComponentsTest {
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, channelClicks); assertEquals("schedule:1", programKey) }
         File(instrumentation.targetContext.getExternalFilesDir(null)!!, "live-guide-components.png").outputStream().use {
+            instrumentation.uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
+    }
+
+    @Test fun quickChannelOverlayShowsCurrentProgramAndSwitchesWithDpad() {
+        val now = System.currentTimeMillis()
+        val channels = listOf(
+            LiveTvChannel("qa-1", "qa", "Canal QA 1", "https://example.org/one.m3u8", tvgId = "qa-1"),
+            LiveTvChannel("qa-2", "qa", "Canal QA 2", "https://example.org/two.m3u8", tvgId = "qa-2"),
+        )
+        val programs = listOf(
+            LiveTvProgram("qa", "qa-1", "Programa Atual QA 1", now - 60_000L, now + 600_000L),
+            LiveTvProgram("qa", "qa-1", "A Seguir QA 1", now + 600_000L, now + 1_200_000L),
+            LiveTvProgram("qa", "qa-2", "Programa Atual QA 2", now - 60_000L, now + 600_000L),
+        )
+        val selectedChannels = mutableListOf<String>()
+        compose.setContent {
+            NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+                LiveTvQuickChannelOverlay(
+                    channels = channels,
+                    programs = programs,
+                    favoriteChannelIds = setOf("qa-2"),
+                    currentChannelId = "qa-1",
+                    timeZoneId = "UTC",
+                    onSelectChannel = { selectedChannels += it.id },
+                    onClose = {},
+                )
+            }
+        }
+
+        compose.waitUntil(5_000) {
+            compose.onAllNodesWithText("Canal QA 1").fetchSemanticsNodes().any { node ->
+                node.config.contains(SemanticsProperties.Focused) && node.config[SemanticsProperties.Focused]
+            }
+        }
+        compose.onNodeWithText("Canal QA 1").assertIsFocused()
+        compose.onNodeWithText("Programa Atual QA 1", substring = true).assertIsDisplayed()
+        compose.onNodeWithText("A Seguir QA 1", substring = true).assertIsDisplayed()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+        compose.onNodeWithText("Canal QA 2").assertIsFocused()
+        compose.onNodeWithText("Programa Atual QA 2", substring = true).assertIsDisplayed()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(listOf("qa-2"), selectedChannels) }
+
+        File(instrumentation.targetContext.filesDir, "live-tv-quick-channel-overlay.png").outputStream().use {
             instrumentation.uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG, 100, it)
         }
     }
@@ -110,7 +158,10 @@ class LiveTvVisualComponentsTest {
             )
         } }
 
-        compose.onNodeWithContentDescription("Remover dos favoritos").assertIsDisplayed().performClick()
+        val favorite = compose.onNodeWithContentDescription("Remover dos favoritos")
+        favorite.assertIsDisplayed().performSemanticsAction(SemanticsActions.RequestFocus)
+        favorite.assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, favoriteChanges) }
     }
 }

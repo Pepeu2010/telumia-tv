@@ -95,6 +95,15 @@ val releaseKeyPasswordValue = env("NUVIO_RELEASE_KEY_PASSWORD")
     ?: localProperties.getProperty("NUVIO_RELEASE_KEY_PASSWORD", "")
 val releaseStorePasswordValue = env("NUVIO_RELEASE_STORE_PASSWORD")
     ?: localProperties.getProperty("NUVIO_RELEASE_STORE_PASSWORD", "")
+val signFullDebugWithReleaseKey = truthy(env("TELUMIA_SIGN_FULL_DEBUG_WITH_RELEASE_KEY"))
+if (signFullDebugWithReleaseKey) {
+    require(!releaseStoreFilePath.isNullOrBlank()) {
+        "TELUMIA_SIGN_FULL_DEBUG_WITH_RELEASE_KEY requires NUVIO_RELEASE_STORE_FILE."
+    }
+    require(releaseKeyAliasValue.isNotBlank() && releaseKeyPasswordValue.isNotBlank() && releaseStorePasswordValue.isNotBlank()) {
+        "Stable APK signing requires NUVIO_RELEASE_KEY_ALIAS, NUVIO_RELEASE_KEY_PASSWORD, and NUVIO_RELEASE_STORE_PASSWORD."
+    }
+}
 
 android {
     namespace = "com.nuvio.tv"
@@ -106,8 +115,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10005
-        versionName = "1.0.1"
+        versionCode = 10011
+        versionName = "1.0.3"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -149,7 +158,7 @@ android {
 
         // In-app updater (GitHub Releases)
         buildConfigField("String", "GITHUB_OWNER", "\"Pepeu2010\"")
-        buildConfigField("String", "GITHUB_REPO", "\"telumia-tv\"")
+        buildConfigField("String", "GITHUB_REPO", "\"telumia\"")
     }
 
     flavorDimensions += "distribution"
@@ -194,7 +203,9 @@ android {
 
     buildTypes {
         debug {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(
+                if (signFullDebugWithReleaseKey) "release" else "debug"
+            )
             isDebuggable = true
             isMinifyEnabled = false
 
@@ -536,6 +547,9 @@ dependencies {
     add("fullImplementation", libs.crypto.js)
     // QR code + local server for addon management
     implementation(libs.nanohttpd)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.websockets)
     implementation(libs.zxing.core)
 
 

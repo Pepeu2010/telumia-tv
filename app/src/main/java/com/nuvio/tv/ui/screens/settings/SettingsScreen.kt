@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -104,6 +105,7 @@ import kotlin.math.roundToInt
 
 private enum class IntegrationSettingsSection {
     Hub,
+    PhoneRemote,
     Debrid,
     Tmdb,
     MdbList,
@@ -180,6 +182,7 @@ fun SettingsScreen(
     profileViewModel: ProfileSettingsViewModel = hiltViewModel(),
     experienceModeViewModel: ExperienceModeSettingsViewModel = hiltViewModel()
 ) {
+    val phoneRemoteViewModel: PhoneRemoteSettingsViewModel = hiltViewModel()
     val isPrimaryProfileActive by profileViewModel.isPrimaryProfileActive.collectAsStateWithLifecycle()
     val experienceModeState by remember(experienceModeViewModel) {
         experienceModeViewModel.mode.map<ExperienceMode?, ExperienceModeLoadState> {
@@ -239,6 +242,7 @@ fun SettingsScreen(
     val integrationTmdbFocusRequester = remember { FocusRequester() }
     val integrationMdbListFocusRequester = remember { FocusRequester() }
     val integrationAnimeSkipFocusRequester = remember { FocusRequester() }
+    val integrationPhoneRemoteFocusRequester = remember { FocusRequester() }
     var integrationSection by remember { mutableStateOf(IntegrationSettingsSection.Hub) }
     var pendingContentFocusCategory by remember { mutableStateOf<SettingsCategory?>(null) }
     var pendingContentFocusRequestId by remember { mutableLongStateOf(0L) }
@@ -622,6 +626,7 @@ fun SettingsScreen(
                                 allowDetailAutofocus = allowDetailAutofocus,
                                 contentFocusRequesters = contentFocusRequesters,
                                 experienceModeViewModel = experienceModeViewModel,
+                                phoneRemoteViewModel = phoneRemoteViewModel,
                                 integrationSection = integrationSection,
                                 onSelectIntegrationSection = { integrationSection = it },
                                 integrationHubFocusRequester = integrationHubFocusRequester,
@@ -629,6 +634,7 @@ fun SettingsScreen(
                                 integrationTmdbFocusRequester = integrationTmdbFocusRequester,
                                 integrationMdbListFocusRequester = integrationMdbListFocusRequester,
                                 integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
+                                integrationPhoneRemoteFocusRequester = integrationPhoneRemoteFocusRequester,
                                 onNavigateToManageProfiles = onNavigateToManageProfiles,
                                 onNavigateToAddons = onNavigateToAddons,
                                 onNavigateToPlugins = onNavigateToPlugins,
@@ -761,6 +767,7 @@ fun SettingsScreen(
                         allowDetailAutofocus = allowDetailAutofocus,
                         contentFocusRequesters = contentFocusRequesters,
                         experienceModeViewModel = experienceModeViewModel,
+                        phoneRemoteViewModel = phoneRemoteViewModel,
                         integrationSection = integrationSection,
                         onSelectIntegrationSection = { integrationSection = it },
                         integrationHubFocusRequester = integrationHubFocusRequester,
@@ -768,6 +775,7 @@ fun SettingsScreen(
                         integrationTmdbFocusRequester = integrationTmdbFocusRequester,
                         integrationMdbListFocusRequester = integrationMdbListFocusRequester,
                         integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
+                        integrationPhoneRemoteFocusRequester = integrationPhoneRemoteFocusRequester,
                         onNavigateToManageProfiles = onNavigateToManageProfiles,
                         onNavigateToAddons = onNavigateToAddons,
                         onNavigateToPlugins = onNavigateToPlugins,
@@ -789,6 +797,7 @@ private fun SettingsDetailPane(
     allowDetailAutofocus: Boolean,
     contentFocusRequesters: Map<SettingsCategory, FocusRequester>,
     experienceModeViewModel: ExperienceModeSettingsViewModel,
+    phoneRemoteViewModel: PhoneRemoteSettingsViewModel,
     integrationSection: IntegrationSettingsSection,
     onSelectIntegrationSection: (IntegrationSettingsSection) -> Unit,
     integrationHubFocusRequester: FocusRequester,
@@ -796,6 +805,7 @@ private fun SettingsDetailPane(
     integrationTmdbFocusRequester: FocusRequester,
     integrationMdbListFocusRequester: FocusRequester,
     integrationAnimeSkipFocusRequester: FocusRequester,
+    integrationPhoneRemoteFocusRequester: FocusRequester,
     onNavigateToManageProfiles: () -> Unit,
     onNavigateToAddons: () -> Unit,
     onNavigateToPlugins: () -> Unit,
@@ -880,6 +890,8 @@ private fun SettingsDetailPane(
                 null
             },
             hubFocusRequester = integrationHubFocusRequester,
+            phoneRemoteViewModel = phoneRemoteViewModel,
+            phoneRemoteFocusRequester = integrationPhoneRemoteFocusRequester,
             debridFocusRequester = integrationDebridFocusRequester,
             tmdbFocusRequester = integrationTmdbFocusRequester,
             mdbListFocusRequester = integrationMdbListFocusRequester,
@@ -1033,6 +1045,8 @@ private fun IntegrationSettingsContent(
     onSelectSection: (IntegrationSettingsSection) -> Unit,
     initialFocusRequester: FocusRequester?,
     hubFocusRequester: FocusRequester,
+    phoneRemoteViewModel: PhoneRemoteSettingsViewModel,
+    phoneRemoteFocusRequester: FocusRequester,
     debridFocusRequester: FocusRequester,
     tmdbFocusRequester: FocusRequester,
     mdbListFocusRequester: FocusRequester,
@@ -1048,6 +1062,7 @@ private fun IntegrationSettingsContent(
         if (!autoFocusEnabled) return@LaunchedEffect
         val requester = when (selectedSection) {
             IntegrationSettingsSection.Hub -> hubEntryFocusRequester
+            IntegrationSettingsSection.PhoneRemote -> phoneRemoteFocusRequester
             IntegrationSettingsSection.Debrid -> debridFocusRequester
             IntegrationSettingsSection.Tmdb -> tmdbFocusRequester
             IntegrationSettingsSection.MdbList -> mdbListFocusRequester
@@ -1111,12 +1126,25 @@ private fun IntegrationSettingsContent(
                                     onClick = { onSelectSection(IntegrationSettingsSection.AnimeSkip) }
                                 )
                             }
+                            item(key = "integration_hub_phone_remote") {
+                                SettingsActionRow(
+                                    title = stringResource(R.string.phone_remote_title),
+                                    subtitle = stringResource(R.string.phone_remote_subtitle),
+                                    leadingIcon = Icons.Default.PhoneAndroid,
+                                    onClick = { onSelectSection(IntegrationSettingsSection.PhoneRemote) }
+                                )
+                            }
                         }
                         SettingsVerticalScrollIndicators(state = integrationHubState)
                     }
                 }
             }
         }
+
+        IntegrationSettingsSection.PhoneRemote -> PhoneRemoteSettingsContent(
+            viewModel = phoneRemoteViewModel,
+            autoFocusEnabled = autoFocusEnabled
+        )
 
         IntegrationSettingsSection.Debrid -> {
             DebridSettingsContent(

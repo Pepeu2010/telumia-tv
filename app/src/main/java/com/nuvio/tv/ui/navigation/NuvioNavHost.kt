@@ -1,5 +1,10 @@
 package com.nuvio.tv.ui.navigation
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.os.SystemClock
+import android.view.KeyEvent
 import com.nuvio.tv.ui.theme.NuvioMotion
 import com.nuvio.tv.ui.theme.LocalUiMotion
 import com.nuvio.tv.ui.components.PlaybackAvailabilityProvider
@@ -17,14 +22,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.nuvio.tv.core.build.AppFeaturePolicy
+import com.nuvio.tv.core.remote.PhoneRemoteCommand
+import com.nuvio.tv.core.remote.PhoneRemoteCommandBus
 import com.nuvio.tv.domain.model.ExperienceMode
 import com.nuvio.tv.ui.screens.CatalogSeeAllScreen
 import com.nuvio.tv.ui.screens.ExperienceModeSelectionScreen
@@ -35,6 +45,7 @@ import com.nuvio.tv.ui.screens.addon.AddonManagerScreen
 import com.nuvio.tv.ui.screens.addon.CatalogOrderScreen
 import com.nuvio.tv.ui.screens.library.LibraryScreen
 import com.nuvio.tv.ui.screens.livetv.LiveTvScreen
+import com.nuvio.tv.ui.screens.livetv.LiveTvViewModel
 import com.nuvio.tv.ui.screens.player.PlayerExitReason
 import com.nuvio.tv.ui.screens.player.PlayerScreen
 import com.nuvio.tv.ui.screens.player.PostPlayRecommendation
@@ -88,6 +99,21 @@ private fun PlaybackNavHost(
         }
     }
     val context = LocalContext.current
+    LaunchedEffect(navController, context) {
+        PhoneRemoteCommandBus.commands.collect { command ->
+            val activity = context.findActivity() ?: return@collect
+            when (command) {
+                is PhoneRemoteCommand.Action -> when (command.action) {
+                    PhoneRemoteCommand.ActionType.HOME -> navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                    else -> activity.dispatchPhoneRemoteKey(command.action.keyCode())
+                }
+                is PhoneRemoteCommand.Text -> activity.dispatchPhoneRemoteText(command.value)
+            }
+        }
+    }
     fun isStreamToPlayer(from: String, to: String): Boolean {
         return from.startsWith("stream/") && to.startsWith("player/")
     }
@@ -817,9 +843,42 @@ private fun PlaybackNavHost(
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("liveTv") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("liveTvChannelId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("liveTvQuickSelect") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
+            val isLiveTv = backStackEntry.arguments?.getString("liveTv")
+                ?.toBooleanStrictOrNull() == true
+            val liveTvEntry = if (isLiveTv) {
+                remember(backStackEntry) { navController.getBackStackEntry(Screen.LiveTv.route) }
+            } else {
+                null
+            }
+            val liveTvViewModel = if (liveTvEntry != null) {
+                hiltViewModel<LiveTvViewModel>(liveTvEntry)
+            } else {
+                null
+            }
+            val liveTvState = if (liveTvViewModel != null) {
+                liveTvViewModel.state.collectAsStateWithLifecycle().value
+            } else {
+                null
+            }
+
             fun popBackToStream(): Boolean {
                 val autoPlayNavigation = backStackEntry.arguments
                     ?.getString("autoPlayNav")
@@ -1127,6 +1186,35 @@ private fun PlaybackNavHost(
                             }
                         }
                     }
+                },
+                isLiveTv = isLiveTv,
+                liveTvChannels = liveTvState?.channels.orEmpty(),
+                liveTvPrograms = liveTvState?.programs.orEmpty(),
+                liveTvFavoriteChannelIds = liveTvState?.favoriteChannelIds.orEmpty(),
+                liveTvTimeZoneId = liveTvState?.timeZoneId ?: "device",
+                currentLiveTvChannelId = backStackEntry.arguments?.getString("liveTvChannelId")
+                    ?.takeIf(String::isNotBlank),
+                liveTvQuickSelectOnStart = backStackEntry.arguments?.getString("liveTvQuickSelect")
+                    ?.toBooleanStrictOrNull() == true,
+                onLiveTvChannelSelected = { channel ->
+                    val streamUrl = channel.streamUrl?.takeIf(String::isNotBlank)
+                    if (isLiveTv && streamUrl != null) {
+                        liveTvViewModel?.recordRecent(channel.id)
+                        navController.navigate(
+                            Screen.Player.createRoute(
+                                streamUrl = streamUrl,
+                                title = channel.displayName,
+                                streamName = "Live TV",
+                                logo = channel.logoUrl,
+                                liveTv = true,
+                                liveTvChannelId = channel.id,
+                                liveTvQuickSelect = true,
+                            )
+                        ) {
+                            popUpTo(Screen.Player.route) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 }
             )
         }
@@ -1140,6 +1228,8 @@ private fun PlaybackNavHost(
                         title = channel.displayName,
                         streamName = "Live TV",
                         logo = channel.logoUrl,
+                        liveTv = true,
+                        liveTvChannelId = channel.id,
                     )
                 )
             })
@@ -1468,5 +1558,54 @@ private fun PlaybackNavHost(
                 }
             )
         }
+    }
+}
+
+private fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun PhoneRemoteCommand.ActionType.keyCode(): Int = when (this) {
+    PhoneRemoteCommand.ActionType.UP -> KeyEvent.KEYCODE_DPAD_UP
+    PhoneRemoteCommand.ActionType.DOWN -> KeyEvent.KEYCODE_DPAD_DOWN
+    PhoneRemoteCommand.ActionType.LEFT -> KeyEvent.KEYCODE_DPAD_LEFT
+    PhoneRemoteCommand.ActionType.RIGHT -> KeyEvent.KEYCODE_DPAD_RIGHT
+    PhoneRemoteCommand.ActionType.SELECT -> KeyEvent.KEYCODE_DPAD_CENTER
+    PhoneRemoteCommand.ActionType.BACK -> KeyEvent.KEYCODE_BACK
+    PhoneRemoteCommand.ActionType.HOME -> KeyEvent.KEYCODE_HOME
+    PhoneRemoteCommand.ActionType.PLAY_PAUSE -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+    PhoneRemoteCommand.ActionType.SEEK_BACKWARD -> KeyEvent.KEYCODE_MEDIA_REWIND
+    PhoneRemoteCommand.ActionType.SEEK_FORWARD -> KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+    PhoneRemoteCommand.ActionType.VOLUME_DOWN -> KeyEvent.KEYCODE_VOLUME_DOWN
+    PhoneRemoteCommand.ActionType.VOLUME_UP -> KeyEvent.KEYCODE_VOLUME_UP
+    PhoneRemoteCommand.ActionType.TOGGLE_SUBTITLES -> KeyEvent.KEYCODE_CAPTIONS
+}
+
+private fun Activity.dispatchPhoneRemoteKey(keyCode: Int) {
+    val eventTime = SystemClock.uptimeMillis()
+    dispatchKeyEvent(KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN, keyCode, 0, 0))
+    dispatchKeyEvent(KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP, keyCode, 0, 0))
+}
+
+private fun Activity.dispatchPhoneRemoteText(text: String) {
+    text.take(256).forEach { character ->
+        val normalized = character.lowercaseChar()
+        val keyCode = when {
+            normalized in 'a'..'z' -> KeyEvent.KEYCODE_A + (normalized - 'a')
+            normalized in '0'..'9' -> KeyEvent.KEYCODE_0 + (normalized - '0')
+            normalized == ' ' -> KeyEvent.KEYCODE_SPACE
+            normalized == '.' -> KeyEvent.KEYCODE_PERIOD
+            normalized == ',' -> KeyEvent.KEYCODE_COMMA
+            normalized == '-' -> KeyEvent.KEYCODE_MINUS
+            normalized == '/' -> KeyEvent.KEYCODE_SLASH
+            normalized == '@' -> KeyEvent.KEYCODE_AT
+            else -> return@forEach
+        }
+        val metaState = if (character.isUpperCase()) KeyEvent.META_SHIFT_ON else 0
+        val eventTime = SystemClock.uptimeMillis()
+        dispatchKeyEvent(KeyEvent(eventTime, eventTime, KeyEvent.ACTION_DOWN, keyCode, 0, metaState))
+        dispatchKeyEvent(KeyEvent(eventTime, eventTime, KeyEvent.ACTION_UP, keyCode, 0, metaState))
     }
 }

@@ -110,4 +110,11 @@ fun UpdateBannerHost(
             onDismiss = onDismissUnknownSources
         )
     }
+
+    if (state.isDownloading && update != null) {
+        UpdateDownloadProgressDialog(
+            state = state,
+            update = update
+        )
+    }
 }

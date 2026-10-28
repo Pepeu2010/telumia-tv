@@ -1,0 +1,4 @@
+<resources>
+    <string name="live_tv_refresh_schedule_unavailable">Automatic guide refresh is unavailable. Use Refresh to update it now.</string>
+</resources>
+

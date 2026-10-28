@@ -132,6 +132,9 @@ import coil3.request.ImageRequest
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import com.nuvio.tv.core.player.PlayerWindowBackdrop
+import com.nuvio.tv.core.player.metadata.TimedMetadataScope
+import com.nuvio.tv.core.player.metadata.TimedMetadataTimeline
+import com.nuvio.tv.core.player.metadata.loadTimedMetadata
 import com.nuvio.tv.ui.util.localizeEpisodeTitle
 import com.nuvio.tv.data.local.InternalPlayerEngine
 import com.nuvio.tv.data.local.LibassRenderType
@@ -139,7 +142,11 @@ import com.nuvio.tv.data.local.SubtitleStyleSettings
 import com.nuvio.tv.data.local.StreamAutoPlayMode
 import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.domain.model.LiveTvChannel
+import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.ui.components.LoadingIndicator
+import com.nuvio.tv.ui.screens.livetv.LiveTvQuickChannelOverlay
+import com.nuvio.tv.ui.screens.livetv.liveTvPlayableChannels
 import android.text.format.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -181,9 +188,29 @@ fun PlayerScreen(
     onPlaybackErrorBack: () -> Unit = { onBackPress(null, null, null, false, false) },
     onPlaybackEnded: ((nextVideoId: String?, nextSeason: Int?, nextEpisode: Int?, exitReason: PlayerExitReason?) -> Unit)? = null,
     onPlayRecommendation: (PostPlayRecommendation, manualSelection: Boolean) -> Unit = { _, _ -> },
-    onOpenRecommendationDetails: (PostPlayRecommendation) -> Unit = {}
+    onOpenRecommendationDetails: (PostPlayRecommendation) -> Unit = {},
+    isLiveTv: Boolean = false,
+    liveTvChannels: List<LiveTvChannel> = emptyList(),
+    liveTvPrograms: List<LiveTvProgram> = emptyList(),
+    liveTvFavoriteChannelIds: Set<String> = emptySet(),
+    liveTvTimeZoneId: String = "device",
+    currentLiveTvChannelId: String? = null,
+    liveTvQuickSelectOnStart: Boolean = false,
+    onLiveTvChannelSelected: (LiveTvChannel) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val currentSceneInfoSource = remember(
+        uiState.currentStreamUrl,
+        uiState.currentStreamInfoHash,
+        uiState.currentStreamFileIdx,
+    ) { bookmarkSourceIdentity(uiState) }
+    val currentSceneInfoScope = remember(uiState.embeddedChapterMetadata?.scope, currentSceneInfoSource) {
+        uiState.embeddedChapterMetadata?.scope?.let { sceneInfoScopeForSource(it, currentSceneInfoSource) }
+    }
+    var sceneInfoDialogState by remember { mutableStateOf<TvSceneInfoDialogState?>(null) }
+    LaunchedEffect(currentSceneInfoScope) {
+        if (sceneInfoDialogState?.scope != currentSceneInfoScope) sceneInfoDialogState = null
+    }
     val postPlayRecommendationState by viewModel.postPlayRecommendationUiState.collectAsState()
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsState(initial = false)
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -202,6 +229,15 @@ fun PlayerScreen(
     val bookmarkState by viewModel.sceneBookmarks.state.collectAsState()
     val postPlayRecommendationFocusRequester = remember { FocusRequester() }
     val postPlayRecommendationPlayerWindowFocusRequester = remember { FocusRequester() }
+    val liveTvSelectableChannels = remember(isLiveTv, liveTvChannels) {
+        if (isLiveTv) liveTvPlayableChannels(liveTvChannels) else emptyList()
+    }
+    var liveTvQuickSelectorVisible by remember(currentLiveTvChannelId, liveTvQuickSelectOnStart) {
+        mutableStateOf(false)
+    }
+    var liveTvQuickSelectPending by remember(liveTvQuickSelectOnStart) {
+        mutableStateOf(liveTvQuickSelectOnStart)
+    }
     var skipButtonActuallyVisible by remember { mutableStateOf(false) }
     var restoreStreamInfoFocus by remember { mutableStateOf(false) }
     var focusPlayAfterMoreBack by remember { mutableStateOf(false) }
@@ -310,7 +346,10 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
-        if (uiState.showSceneBookmarks) {
+        if (liveTvQuickSelectorVisible) {
+            liveTvQuickSelectorVisible = false
+            runCatching { containerFocusRequester.requestFocus() }
+        } else if (uiState.showSceneBookmarks) {
             viewModel.onEvent(PlayerEvent.OnDismissSceneBookmarks)
             restoreBookmarksFocus = true
         } else if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
@@ -365,6 +404,13 @@ fun PlayerScreen(
             viewModel.hideControls()
         } else {
             exitPlayer()
+        }
+    }
+
+    LaunchedEffect(liveTvSelectableChannels.isNotEmpty()) {
+        if (liveTvQuickSelectPending && liveTvSelectableChannels.isNotEmpty()) {
+            liveTvQuickSelectorVisible = true
+            liveTvQuickSelectPending = false
         }
     }
 
@@ -633,6 +679,12 @@ fun PlayerScreen(
                 if (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_ESCAPE ||
                     (keyEvent.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_BACK && !postPlayHandlesBack)
                 ) {
+                    if (sceneInfoDialogState != null) {
+                        return@onPreviewKeyEvent when (keyEvent.nativeKeyEvent.action) {
+                            KeyEvent.ACTION_UP -> { sceneInfoDialogState = null; true }
+                            else -> true
+                        }
+                    }
                     return@onPreviewKeyEvent when (keyEvent.nativeKeyEvent.action) {
                         KeyEvent.ACTION_DOWN -> true
                         KeyEvent.ACTION_UP -> {
@@ -783,6 +835,8 @@ fun PlayerScreen(
                         uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
                         uiState.showMoreDialog ||
+                        sceneInfoDialogState != null ||
+                        liveTvQuickSelectorVisible ||
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
@@ -853,7 +907,11 @@ fun PlayerScreen(
                         }
                         KeyEvent.KEYCODE_DPAD_UP -> {
                                 if (!uiState.showControls) {
-                                    viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                    if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                        liveTvQuickSelectorVisible = true
+                                    } else {
+                                        viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                    }
                                 } else {
                                     try {
                                         progressBarFocusRequester.requestFocus()
@@ -878,10 +936,23 @@ fun PlayerScreen(
                             }
                         KeyEvent.KEYCODE_DPAD_DOWN -> {
                             if (!uiState.showControls) {
-                                viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                    liveTvQuickSelectorVisible = true
+                                } else {
+                                    viewModel.onEvent(PlayerEvent.OnToggleControls)
+                                }
                                 true
                             } else {
                                 // Let focus system handle navigation when controls are visible
+                                false
+                            }
+                        }
+                        KeyEvent.KEYCODE_CHANNEL_UP,
+                        KeyEvent.KEYCODE_CHANNEL_DOWN -> {
+                            if (isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+                                liveTvQuickSelectorVisible = true
+                                true
+                            } else {
                                 false
                             }
                         }
@@ -932,28 +1003,29 @@ fun PlayerScreen(
                 } else false
             }
     ) {
+        val compactPlayerSurface = postPlayRecommendationState.isVisible || liveTvQuickSelectorVisible
         val postPlayRecommendationPlayerWidth by animateFloatAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 0.32f else 1f,
+            targetValue = if (compactPlayerSurface) 0.32f else 1f,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerWidth"
         )
         val postPlayRecommendationPlayerPadding by animateDpAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) NuvioTheme.spacing.xxl else 0.dp,
+            targetValue = if (compactPlayerSurface) NuvioTheme.spacing.xxl else 0.dp,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerPadding"
         )
         val postPlayRecommendationPlayerCornerRadius by animateDpAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 12.dp else 0.dp,
+            targetValue = if (compactPlayerSurface) 12.dp else 0.dp,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerCornerRadius"
         )
         val postPlayRecommendationPlayerBorderAlpha by animateFloatAsState(
-            targetValue = if (postPlayRecommendationState.isVisible) 0.2f else 0f,
+            targetValue = if (compactPlayerSurface) 0.2f else 0f,
             animationSpec = tween(durationMillis = POST_PLAY_RECOMMENDATION_TRANSITION_MS),
             label = "postPlayRecommendationPlayerBorderAlpha"
         )
         val playerSurfaceShape = RoundedCornerShape(postPlayRecommendationPlayerCornerRadius)
-        val playerSurfaceIsFullscreen = !postPlayRecommendationState.isVisible &&
+        val playerSurfaceIsFullscreen = !compactPlayerSurface &&
             postPlayRecommendationPlayerWidth >= 0.999f
         val playerSurfaceModifier = Modifier
             .align(Alignment.TopEnd)
@@ -970,7 +1042,7 @@ fun PlayerScreen(
                 else Modifier.background(Color.Black)
             )
             .zIndex(
-                if (postPlayRecommendationState.isVisible || postPlayRecommendationPlayerWidth < 0.999f) {
+                if (compactPlayerSurface || postPlayRecommendationPlayerWidth < 0.999f) {
                     2.2f
                 } else {
                     0f
@@ -981,9 +1053,9 @@ fun PlayerScreen(
             !postPlayRecommendationState.isTrailerPlaying &&
             (!postPlayRecommendationState.isVisible || !postPlayRecommendationState.hasAutoPlayedTrailer)
         ) {
-            LaunchedEffect(postPlayRecommendationState.isVisible) {
+            LaunchedEffect(compactPlayerSurface) {
                 val playerView = viewModel.controller.exoPlayerView
-                val vis = if (postPlayRecommendationState.isVisible) {
+                val vis = if (compactPlayerSurface) {
                     android.view.View.GONE
                 } else {
                     android.view.View.VISIBLE
@@ -1076,6 +1148,30 @@ fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(1f)
+            )
+        }
+
+        if (liveTvQuickSelectorVisible && isLiveTv && liveTvSelectableChannels.isNotEmpty()) {
+            LiveTvQuickChannelOverlay(
+                channels = liveTvSelectableChannels,
+                programs = liveTvPrograms,
+                favoriteChannelIds = liveTvFavoriteChannelIds,
+                currentChannelId = currentLiveTvChannelId,
+                timeZoneId = liveTvTimeZoneId,
+                onSelectChannel = { channel ->
+                    if (channel.id == currentLiveTvChannelId) {
+                        liveTvQuickSelectorVisible = false
+                        runCatching { containerFocusRequester.requestFocus() }
+                    } else {
+                        viewModel.stopAndRelease()
+                        onLiveTvChannelSelected(channel)
+                    }
+                },
+                onClose = {
+                    liveTvQuickSelectorVisible = false
+                    runCatching { containerFocusRequester.requestFocus() }
+                },
+                modifier = Modifier.fillMaxSize().zIndex(3f)
             )
         }
 
@@ -1337,7 +1433,7 @@ fun PlayerScreen(
 
         // Controls overlay
         AnimatedVisibility(
-            visible = uiState.showControls && uiState.error == null &&
+            visible = (uiState.showControls || sceneInfoDialogState != null) && uiState.error == null &&
                 !uiState.showLoadingOverlay && !uiState.showPauseOverlay &&
                 !uiState.showStreamInfoOverlay &&
                 !uiState.showSubtitleStylePanel &&
@@ -1376,6 +1472,14 @@ fun PlayerScreen(
                 onShowSubtitleDialog = { viewModel.onEvent(PlayerEvent.OnShowSubtitleOverlay) },
                 onShowSpeedDialog = { viewModel.onEvent(PlayerEvent.OnShowSpeedDialog) },
                 onShowSceneBookmarks = { viewModel.onEvent(PlayerEvent.OnShowSceneBookmarks) },
+                onShowSceneInfo = { scope, entries -> sceneInfoDialogState = TvSceneInfoDialogState(scope, entries) },
+                onSceneInfoEntriesChanged = { scope, entries ->
+                    val open = sceneInfoDialogState
+                    if (open != null && open.scope == scope) {
+                        sceneInfoDialogState = entries.takeIf { it.isNotEmpty() }
+                            ?.let { open.copy(entries = it) }
+                    }
+                },
                 bookmarksFocusRequester = bookmarksFocusRequester,
                 onToggleAspectRatio = {
                     Log.d("PlayerScreen", "onToggleAspectRatio called - dispatching event")
@@ -1425,6 +1529,10 @@ fun PlayerScreen(
                 onBack = { exitPlayer() },
                 skipButtonVisible = skipButtonActuallyVisible
             )
+        }
+
+        sceneInfoDialogState?.let { state ->
+            SceneInfoDialog(entries = state.entries, onDismiss = { sceneInfoDialogState = null })
         }
 
         // Aspect ratio indicator (floating pill)
@@ -2192,6 +2300,8 @@ private fun PlayerControlsOverlay(
     onShowSubtitleDialog: () -> Unit,
     onShowSpeedDialog: () -> Unit,
     onShowSceneBookmarks: () -> Unit,
+    onShowSceneInfo: (TimedMetadataScope, List<TvSceneInfoEntry>) -> Unit,
+    onSceneInfoEntriesChanged: (TimedMetadataScope?, List<TvSceneInfoEntry>) -> Unit,
     bookmarksFocusRequester: FocusRequester,
     onToggleAspectRatio: () -> Unit,
     onSwitchPlayerEngine: () -> Unit,
@@ -2220,6 +2330,35 @@ private fun PlayerControlsOverlay(
     val customEpisodesPainter = rememberRawSvgPainter(R.raw.ic_player_episodes)
     val playbackTimeline by viewModel.playbackTimeline.collectAsState()
     val isLivePlayback = playbackTimeline.isLive
+    val sceneInfoSourceIdentity = remember(
+        uiState.currentStreamUrl,
+        uiState.currentStreamInfoHash,
+        uiState.currentStreamFileIdx,
+    ) { bookmarkSourceIdentity(uiState) }
+    val sceneInfoScope = remember(uiState.embeddedChapterMetadata?.scope, sceneInfoSourceIdentity) {
+        uiState.embeddedChapterMetadata?.scope?.let { sceneInfoScopeForSource(it, sceneInfoSourceIdentity) }
+    }
+    var sceneInfoTimeline by remember { mutableStateOf<TimedMetadataTimeline?>(null) }
+    LaunchedEffect(uiState.embeddedChapterMetadata, sceneInfoScope, playbackTimeline.duration) {
+        sceneInfoTimeline = null
+        val sourceTimeline = uiState.embeddedChapterMetadata ?: return@LaunchedEffect
+        val scope = sceneInfoScope ?: return@LaunchedEffect
+        if (sourceTimeline.scope != scope) return@LaunchedEffect
+        val provider = EmbeddedChapterSceneMetadataProvider(sourceTimeline, playbackTimeline.duration)
+        sceneInfoTimeline = loadTimedMetadata(
+            scope = scope,
+            providers = listOf(provider),
+            durationMs = playbackTimeline.duration,
+            trustedSceneProviderIds = setOf(provider.id),
+        ).timeline
+    }
+    val activeSceneInfo = remember(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition) {
+        sceneInfoEntriesAt(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition)
+    }
+    val currentOnSceneInfoEntriesChanged by rememberUpdatedState(onSceneInfoEntriesChanged)
+    LaunchedEffect(sceneInfoScope, activeSceneInfo) {
+        currentOnSceneInfoEntriesChanged(sceneInfoScope, activeSceneInfo)
+    }
     val progressUpTarget = if (isLivePlayback) {
         progressBarUpFocusRequester ?: playPauseFocusRequester
     } else {
@@ -2483,6 +2622,16 @@ private fun PlayerControlsOverlay(
                                     upFocusRequester = progressUpTarget,
                                     onDownKey = onHideControls,
                                     onFocused = onResetHideTimer
+                                )
+                            }
+                            if (!isLivePlayback && activeSceneInfo.isNotEmpty()) {
+                                ControlButton(
+                                    icon = Icons.Default.Info,
+                                    contentDescription = stringResource(R.string.scene_info_title),
+                                    onClick = { sceneInfoScope?.let { onShowSceneInfo(it, activeSceneInfo) } },
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer,
                                 )
                             }
                             if (!isLivePlayback && playbackTimeline.duration > 0) ControlButton(

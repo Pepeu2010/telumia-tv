@@ -322,6 +322,9 @@ open class MainActivity : ComponentActivity() {
     lateinit var trailerPlayerPool: com.nuvio.tv.core.player.TrailerPlayerPool
 
     @Inject
+    internal lateinit var phoneRemoteController: com.nuvio.tv.core.remote.PhoneRemoteController
+
+    @Inject
     lateinit var externalPlaybackTracker: com.nuvio.tv.core.player.ExternalPlaybackTracker
 
     @Inject
@@ -1417,6 +1420,7 @@ open class MainActivity : ComponentActivity() {
     override fun onStop() {
         externalPlaybackTracker.onExternalPlayerCoveredApp()
         super.onStop()
+        phoneRemoteController.disable()
         startupSyncService.stopPeriodicSurfacePulls()
         // App going to background (e.g. user returning to the launcher): reconcile the
         // Continue Watching channel once so Projectivy repaints it with fresh progress.
@@ -1426,6 +1430,7 @@ open class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         motionSettingsObserver?.let { contentResolver.unregisterContentObserver(it) }
         motionSettingsObserver = null
+        if (isFinishing) phoneRemoteController.shutdown()
         super.onDestroy()
         PluginRuntimeHooks.onActivityDestroy()
     }

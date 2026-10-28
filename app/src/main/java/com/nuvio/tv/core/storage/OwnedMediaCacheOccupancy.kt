@@ -9,6 +9,58 @@ import java.nio.file.attribute.BasicFileAttributes
 
 internal data class MediaCacheOccupancy(val bytes: Long, val visitedEntries: Int, val complete: Boolean)
 
+/** Counts direct files only; child directories stay under their specific allowlists. */
+internal object DirectCacheFileOccupancy {
+    fun measure(
+        directory: Path,
+        maxEntries: Int = 16_384,
+        maxMillis: Long = 100,
+    ): MediaCacheOccupancy {
+        require(maxEntries > 0 && maxMillis > 0)
+        val base = try { directory.toRealPath() }
+            catch (_: NoSuchFileException) { return MediaCacheOccupancy(0, 0, true) }
+            catch (_: IOException) { return MediaCacheOccupancy(0, 0, false) }
+            catch (_: SecurityException) { return MediaCacheOccupancy(0, 0, false) }
+        val started = System.nanoTime()
+        var bytes = 0L
+        var visited = 0
+        var complete = true
+        val fileKeys = HashSet<Any>()
+        fun canContinue(): Boolean {
+            if (visited >= maxEntries || (System.nanoTime() - started) / 1_000_000 >= maxMillis) {
+                complete = false
+                return false
+            }
+            return true
+        }
+        try {
+            Files.newDirectoryStream(base).use { children ->
+                val iterator = children.iterator()
+                while (iterator.hasNext()) {
+                    if (!canContinue()) break
+                    val path = iterator.next()
+                    visited++
+                    try {
+                        val attributes = Files.readAttributes(path, BasicFileAttributes::class.java, NOFOLLOW_LINKS)
+                        if (attributes.isSymbolicLink || attributes.isOther || !attributes.isRegularFile ||
+                            !path.toRealPath().startsWith(base)) continue
+                        val key = attributes.fileKey()
+                        if (key == null || fileKeys.add(key)) {
+                            val size = attributes.size().coerceAtLeast(0)
+                            bytes = if (bytes > Long.MAX_VALUE - size) Long.MAX_VALUE else bytes + size
+                        }
+                    } catch (_: IOException) { complete = false }
+                      catch (_: SecurityException) { complete = false }
+                      catch (_: java.nio.file.DirectoryIteratorException) { complete = false }
+                }
+            }
+        } catch (_: IOException) { complete = false }
+          catch (_: SecurityException) { complete = false }
+          catch (_: java.nio.file.DirectoryIteratorException) { complete = false }
+        return MediaCacheOccupancy(bytes, visited, complete)
+    }
+}
+
 /** Read-only, allowlisted measurement. No file contents, durable data or linked directories are traversed. */
 internal object OwnedMediaCacheOccupancy {
     fun measure(

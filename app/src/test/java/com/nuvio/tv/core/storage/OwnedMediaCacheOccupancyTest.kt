@@ -117,6 +117,24 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(47L, Files.size(cacheDirectory.resolve("downloads/movie.mkv")))
     }
 
+    @Test fun compiledAddonDexCacheCountsWithoutIncludingOtherCodeOrDurableFiles() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        val codeCacheDirectory = root.resolve("code-cache").also(Files::createDirectories)
+        write(codeCacheDirectory, "cs_dex_cache/addon/classes.dex", 37)
+        write(codeCacheDirectory, "other-code/compiled.dex", 43)
+        write(filesDirectory, "cs_extensions/addon.cs3", 47)
+        write(filesDirectory, "datastore/account.preferences_pb", 53)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory, codeCacheDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(37L, result.bytes)
+        assertEquals(43L, Files.size(codeCacheDirectory.resolve("other-code/compiled.dex")))
+        assertEquals(47L, Files.size(filesDirectory.resolve("cs_extensions/addon.cs3")))
+        assertEquals(53L, Files.size(filesDirectory.resolve("datastore/account.preferences_pb")))
+    }
+
     @Test fun pluginCodeRootDiscoveryUsesExactProfileDirectoryNamesAndReportsBounds() = fixture { root ->
         listOf("plugin_code", "plugin_code_p2", "plugin_code_p17", "plugin_code_p2_backup", "plugin_code_p")
             .forEach { Files.createDirectories(root.resolve(it)) }

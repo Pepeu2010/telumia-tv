@@ -37,7 +37,6 @@ class UpdateViewModel @Inject constructor() : ViewModel() {
 
     fun setUpdateBannerEnabled(enabled: Boolean) = Unit
 
-    fun setUpdateChannel(channel: UpdateChannel) = Unit
 
     fun downloadUpdate() = Unit
 

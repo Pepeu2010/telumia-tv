@@ -23,6 +23,14 @@ class BoundedLruCache<K, V : Any>(private val capacity: Int) {
         }
     }
 
+    /** Removes [key] only when its current value still matches [expectedValue]. */
+    @Synchronized
+    fun remove(key: K, expectedValue: V): Boolean {
+        if (entries[key] != expectedValue) return false
+        entries.remove(key)
+        return true
+    }
+
     @get:Synchronized
     val size: Int
         get() = entries.size

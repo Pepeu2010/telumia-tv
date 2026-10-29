@@ -1,8 +1,13 @@
 package com.nuvio.tv.core.tmdb
 
+import android.content.Context
 import android.util.Log
 import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.core.runtime.DeviceCapabilities
+import com.nuvio.tv.core.runtime.DeviceResourceTier
+import com.nuvio.tv.core.storage.BoundedLruCache
 import com.nuvio.tv.data.remote.api.TmdbApi
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -21,14 +26,28 @@ private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
  * Provides caching to avoid redundant API calls.
  */
 @Singleton
-class TmdbService @Inject constructor(
-    private val tmdbApi: TmdbApi
+class TmdbService internal constructor(
+    private val tmdbApi: TmdbApi,
+    mappingCacheCapacity: Int,
 ) {
+    @Inject
+    constructor(@ApplicationContext context: Context, tmdbApi: TmdbApi) : this(
+        tmdbApi,
+        TmdbMetadataCacheLimits.forTier(DeviceCapabilities.resourceTier(DeviceCapabilities.memory(context))).idMappings,
+    )
+
+    internal constructor(tmdbApi: TmdbApi) : this(
+        tmdbApi,
+        TmdbMetadataCacheLimits.forTier(DeviceResourceTier.UNKNOWN).idMappings,
+    )
+
+    internal constructor(tmdbApi: TmdbApi, limits: TmdbMetadataCacheLimits) : this(tmdbApi, limits.idMappings)
+
     // Cache: IMDB ID -> TMDB ID (keyed by "$imdbId:$mediaType")
-    private val imdbToTmdbCache = ConcurrentHashMap<String, Int>()
+    private val imdbToTmdbCache = BoundedLruCache<String, Int>(mappingCacheCapacity)
     
     // Cache: TMDB ID -> IMDB ID (keyed by "$tmdbId:$mediaType")
-    private val tmdbToImdbCache = ConcurrentHashMap<String, String>()
+    private val tmdbToImdbCache = BoundedLruCache<String, String>(mappingCacheCapacity)
 
     private val imdbToTmdbInFlight = ConcurrentHashMap<String, CompletableDeferred<Int?>>()
     private val tmdbToImdbInFlight = ConcurrentHashMap<String, CompletableDeferred<String?>>()

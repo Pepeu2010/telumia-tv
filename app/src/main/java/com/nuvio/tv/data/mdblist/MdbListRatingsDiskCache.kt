@@ -24,6 +24,9 @@ internal class MdbListRatingsDiskCache(
     private val now: () -> Long = System::currentTimeMillis,
     private val quotaBytes: () -> Long = { tvMediaCache(context).coilQuota(MediaCacheCategory.METADATA) },
     private val writesEnabled: () -> Boolean = { tvMediaCache(context).writesEnabled },
+    private val canWrite: (Long) -> Boolean = { bytes ->
+        tvMediaCache(context).canWriteCacheEntry(MediaCacheCategory.METADATA, bytes)
+    },
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private data class Entry(val ratings: MDBListRatings, val storedAtMs: Long)
@@ -137,6 +140,7 @@ internal class MdbListRatingsDiskCache(
                 }
                 return@withLock
             }
+            if (!runCatching { canWrite(encoded.size.toLong()) }.getOrDefault(false)) return@withLock
             val parent = target.parentFile ?: return@withLock
             if (!parent.exists() && !parent.mkdirs()) return@withLock
             val temporary = File(parent, "${target.name}.tmp")

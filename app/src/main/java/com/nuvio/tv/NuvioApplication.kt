@@ -135,6 +135,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         val performanceProfile = TvPerformanceProfile.detect(this)
         val imageLoaderReference = AtomicReference<ImageLoader?>()
         val imageLoaderRef: () -> ImageLoader = { imageLoaderReference.get() ?: SingletonImageLoader.get(this) }
+        val openedQuota = mediaCache.coilQuota(cacheCategory)
         val diskCacheDirectory = if (cacheCategory == MediaCacheCategory.IMAGES) {
             cacheDir.resolve("image_cache")
         } else {
@@ -143,7 +144,9 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
         val imageLoader = ImageLoader.Builder(this)
             .components {
-                add(CacheWritePreflightInterceptor { mediaCache.canBeginCacheWrite(cacheCategory) })
+                add(CacheWritePreflightInterceptor {
+                    mediaCache.coilCacheWritesAllowed(cacheCategory, openedQuota)
+                })
                 add(CustomPosterFallbackInterceptor())
                 if (Build.VERSION.SDK_INT >= 28) {
                     add(AnimatedImageDecoder.Factory())
@@ -172,7 +175,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .diskCache {
                 DiskCache.Builder()
                     .directory(diskCacheDirectory.toOkioPath())
-                    .maxSizeBytes(mediaCache.coilQuota(cacheCategory))
+                    .maxSizeBytes(openedQuota)
                     .build()
             }
             .diskCachePolicy(coil3.request.CachePolicy.ENABLED)

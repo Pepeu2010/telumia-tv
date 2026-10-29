@@ -282,7 +282,36 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     private fun imageCacheAllocation() = MediaImageCachePolicy.allocate(
         cacheQuota(MediaCacheCategory.IMAGES), hasSeparateGifCache = false,
     )
-    fun coilQuota(category: MediaCacheCategory): Long =
-        if (category == MediaCacheCategory.IMAGES) imageCacheAllocation().coilBytes else cacheQuota(category)
+    private fun coilQuota(category: MediaCacheCategory, budget: MediaCacheBudget): Long = when (category) {
+        MediaCacheCategory.IMAGES -> MediaImageCachePolicy.allocate(
+            budget.quota(category), hasSeparateGifCache = false,
+        ).coilBytes
+        MediaCacheCategory.PREVIEWS, MediaCacheCategory.BADGES -> budget.quota(category)
+        else -> error("$category is not backed by a Coil cache")
+    }
+
+    fun coilQuota(category: MediaCacheCategory): Long {
+        val active = activeBudget
+        val budget = if (active.totalBytes > 0) active else active.copy(totalBytes = active.requestedBytes)
+        return coilQuota(category, budget)
+    }
+
+    /** Stops writes when Auto shrinks below the exact allocation captured by a Coil loader. */
+    fun coilCacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean {
+        val snapshot = budgetMonitor.current(forceRefresh = true)
+        val reserve = MediaCachePlatform.TV.reserveBytes
+        return MediaCachePolicy.allowsNewWrites(
+            snapshot.budget,
+            category,
+            openedQuotaBytes,
+            coilQuota(category, snapshot.budget),
+        ) && MediaCachePolicy.canBeginCacheWrite(
+            snapshot.budget,
+            category,
+            snapshot.device.usableStorageBytes,
+            reserve,
+        )
+    }
+
     fun profileBackgroundQuota(): Long = imageCacheAllocation().memberBackgroundBytes
 }

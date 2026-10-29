@@ -157,4 +157,26 @@ class MediaCachePolicyTest {
         assertEquals(0L, tv.gifBytes)
         assertEquals(100L, tv.memberBackgroundBytes)
     }
+
+    @Test fun openedCoilCacheStopsWritesWhenAutoShrinksItsImageSubquota() {
+        val openedBudget = MediaCacheBudget(1_000L, 1_000L, emptySet())
+        val openedQuota = MediaImageCachePolicy.allocate(
+            openedBudget.quota(MediaCacheCategory.IMAGES), hasSeparateGifCache = false,
+        ).coilBytes
+        val refreshedBudget = openedBudget.copy(totalBytes = 950L)
+        val refreshedCategoryQuota = refreshedBudget.quota(MediaCacheCategory.IMAGES)
+        val refreshedCoilQuota = MediaImageCachePolicy.allocate(
+            refreshedCategoryQuota, hasSeparateGifCache = false,
+        ).coilBytes
+
+        assertTrue(refreshedCategoryQuota >= openedQuota)
+        assertTrue(refreshedCoilQuota < openedQuota)
+        assertTrue(MediaCachePolicy.allowsNewWrites(refreshedBudget, MediaCacheCategory.IMAGES, openedQuota))
+        assertFalse(MediaCachePolicy.allowsNewWrites(
+            refreshedBudget, MediaCacheCategory.IMAGES, openedQuota, refreshedCoilQuota,
+        ))
+        assertFalse(MediaCachePolicy.allowsNewWrites(
+            refreshedBudget, MediaCacheCategory.IMAGES, refreshedCategoryQuota + 1L, Long.MAX_VALUE,
+        ))
+    }
 }

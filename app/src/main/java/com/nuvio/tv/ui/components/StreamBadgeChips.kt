@@ -70,9 +70,12 @@ private var badgeImageLoader: ImageLoader? = null
 private fun getBadgeImageLoader(context: android.content.Context): ImageLoader {
     badgeImageLoader?.let { return it }
     val cache = badgeMediaCache(context)
+    val openedQuota = cache.coilQuota(MediaCacheCategory.BADGES)
     val loader = ImageLoader.Builder(context.applicationContext)
         .components {
-            add(CacheWritePreflightInterceptor { cache.canBeginCacheWrite(MediaCacheCategory.BADGES) })
+            add(CacheWritePreflightInterceptor {
+                cache.coilCacheWritesAllowed(MediaCacheCategory.BADGES, openedQuota)
+            })
         }
         .memoryCache {
             MemoryCache.Builder()
@@ -82,7 +85,7 @@ private fun getBadgeImageLoader(context: android.content.Context): ImageLoader {
         .diskCache {
             DiskCache.Builder()
                 .directory(context.applicationContext.cacheDir.resolve("badge_cache").toOkioPath())
-                .maxSizeBytes(cache.coilQuota(MediaCacheCategory.BADGES))
+                .maxSizeBytes(openedQuota)
                 .build()
         }
         .diskCachePolicy(CachePolicy.ENABLED)

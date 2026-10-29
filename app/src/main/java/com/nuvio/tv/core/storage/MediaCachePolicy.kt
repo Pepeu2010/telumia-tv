@@ -79,6 +79,16 @@ object MediaCachePolicy {
     fun allowsNewWrites(budget: MediaCacheBudget, category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
         openedQuotaBytes > 0 && budget.totalBytes > 0 && budget.quota(category) >= openedQuotaBytes
 
+    /** Network caches have unknown response sizes, so they must retain the free-storage reserve before caching. */
+    fun allowsNetworkCacheWrite(
+        budget: MediaCacheBudget,
+        category: MediaCacheCategory,
+        openedQuotaBytes: Long,
+        freeStorageBytes: Long?,
+        reserveBytes: Long,
+    ): Boolean = allowsNewWrites(budget, category, openedQuotaBytes) &&
+        canBeginCacheWrite(budget, category, freeStorageBytes, reserveBytes)
+
     fun canBeginCacheWrite(
         budget: MediaCacheBudget,
         category: MediaCacheCategory,

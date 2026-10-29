@@ -209,8 +209,16 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
     }
     internal val occupiedCache: MediaCacheOccupancy get() = occupancyMonitor.current()
     val writesEnabled: Boolean get() = activeBudget.totalBytes > 0
-    fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean =
-        MediaCachePolicy.allowsNewWrites(activeBudget, category, openedQuotaBytes)
+    fun cacheWritesAllowed(category: MediaCacheCategory, openedQuotaBytes: Long): Boolean {
+        val snapshot = budgetMonitor.current(forceRefresh = true)
+        return MediaCachePolicy.allowsNetworkCacheWrite(
+            snapshot.budget,
+            category,
+            openedQuotaBytes,
+            snapshot.device.usableStorageBytes,
+            MediaCachePlatform.TV.reserveBytes,
+        )
+    }
 
     fun canBeginCacheWrite(category: MediaCacheCategory): Boolean = MediaCachePolicy.canBeginCacheWrite(
         activeBudget, category, availableStorageBytes(), MediaCachePlatform.TV.reserveBytes,

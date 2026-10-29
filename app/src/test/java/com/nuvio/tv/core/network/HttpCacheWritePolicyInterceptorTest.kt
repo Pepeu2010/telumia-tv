@@ -51,6 +51,32 @@ class HttpCacheWritePolicyInterceptorTest {
         }
     }
 
+    @Test fun storagePreflightDenialKeepsExistingHitsReadableAndSkipsNewWrites() = withCache { _, cache ->
+        MockWebServer().use { server ->
+            server.enqueue(MockResponse().setBody("cached").addHeader("Cache-Control", "public, max-age=3600"))
+            server.enqueue(MockResponse().setBody("fresh").addHeader("Cache-Control", "public, max-age=3600"))
+            var storageAvailable = true
+            val client = client(cache) { storageAvailable }
+            val cachedRequest = Request.Builder().url(server.url("/cached")).build()
+
+            client.newCall(cachedRequest).execute().use { assertEquals("cached", it.body.string()) }
+            storageAvailable = false
+            client.newCall(cachedRequest).execute().use { response ->
+                assertEquals("cached", response.body.string())
+                assertNotNull(response.cacheResponse)
+                assertNull(response.networkResponse)
+            }
+            client.newCall(Request.Builder().url(server.url("/fresh")).build()).execute().use { response ->
+                assertEquals("fresh", response.body.string())
+                assertEquals("no-store", response.header("Cache-Control"))
+                assertNull(response.cacheResponse)
+                assertNotNull(response.networkResponse)
+            }
+
+            assertEquals(2, server.requestCount)
+        }
+    }
+
     @Test fun sharedAddonCacheServesCloudstreamEntriesToOtherAddonClients() = withCache { _, cache ->
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody("addon-catalog").addHeader("Cache-Control", "public, max-age=3600"))

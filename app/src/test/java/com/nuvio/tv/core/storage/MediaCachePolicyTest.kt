@@ -115,6 +115,17 @@ class MediaCachePolicyTest {
         ))
     }
 
+    @Test fun networkCacheWritesRequireTheOpenedQuotaAndFreshStorageReserve() {
+        val budget = MediaCachePolicy.resolve(MediaCachePlatform.TV, MediaCacheSettings(), MediaCacheDeviceSnapshot())
+        val openedQuota = budget.quota(MediaCacheCategory.HTTP)
+        val reserve = MediaCachePlatform.TV.reserveBytes
+
+        assertTrue(MediaCachePolicy.allowsNetworkCacheWrite(budget, MediaCacheCategory.HTTP, openedQuota, reserve + 1, reserve))
+        assertFalse(MediaCachePolicy.allowsNetworkCacheWrite(budget, MediaCacheCategory.HTTP, openedQuota, reserve, reserve))
+        assertFalse(MediaCachePolicy.allowsNetworkCacheWrite(budget, MediaCacheCategory.HTTP, openedQuota, null, reserve))
+        assertFalse(MediaCachePolicy.allowsNetworkCacheWrite(budget, MediaCacheCategory.HTTP, openedQuota + 1, reserve + 1, reserve))
+    }
+
     @Test fun categorySharesUseTheWholeBudgetExactlyOnce() {
         assertEquals(100, MediaCacheCategory.entries.sumOf { it.share })
         val budget = MediaCachePolicy.resolve(

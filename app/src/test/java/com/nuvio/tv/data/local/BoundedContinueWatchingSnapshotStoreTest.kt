@@ -79,4 +79,15 @@ class BoundedContinueWatchingSnapshotStoreTest {
         assertEquals(2L * 1024 * 1024, com.nuvio.tv.core.storage.MetadataCachePolicy.allocate(10L * 1024 * 1024).continueWatchingBytes)
         assertEquals(8L * 1024 * 1024, com.nuvio.tv.core.storage.MetadataCachePolicy.allocate(64L * 1024 * 1024).continueWatchingBytes)
     }
+
+    @Test
+    fun `metadata cache allocation shares only space left after ratings and continue watching`() {
+        val allocation = com.nuvio.tv.core.storage.MetadataCachePolicy.allocate(24L * 1024 * 1024)
+
+        assertEquals(8L * 1024 * 1024, allocation.ratingsBytes)
+        assertEquals(8L * 1024 * 1024, allocation.continueWatchingBytes)
+        assertEquals(6L * 1024 * 1024, allocation.streamLinksBytes)
+        assertEquals(1L * 1024 * 1024, allocation.bingeGroupsBytes)
+        assertTrue(allocation.ratingsBytes + allocation.continueWatchingBytes + allocation.streamLinksBytes + allocation.bingeGroupsBytes <= 24L * 1024 * 1024)
+    }
 }

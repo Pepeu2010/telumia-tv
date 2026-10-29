@@ -17,18 +17,31 @@ data class MediaCacheBudget(val totalBytes: Long, val requestedBytes: Long, val 
     fun quota(category: MediaCacheCategory): Long = totalBytes / 100 * category.share
 }
 
-data class MetadataCacheAllocation(val ratingsBytes: Long, val continueWatchingBytes: Long)
+data class MetadataCacheAllocation(
+    val ratingsBytes: Long,
+    val continueWatchingBytes: Long,
+    val streamLinksBytes: Long = 0L,
+    val bingeGroupsBytes: Long = 0L,
+)
 
 /** The TV has two persistent consumers in METADATA; keep their combined ceiling inside the category quota. */
 object MetadataCachePolicy {
     const val MAX_RATINGS_BYTES = 8L * MIB
     const val MAX_CONTINUE_WATCHING_BYTES = 8L * MIB
+    const val MAX_STREAM_LINK_BYTES = 8L * MIB
+    const val MAX_BINGE_GROUP_BYTES = 2L * MIB
 
     fun allocate(categoryQuotaBytes: Long): MetadataCacheAllocation {
         val quota = categoryQuotaBytes.coerceAtLeast(0L)
         val ratings = quota.coerceAtMost(MAX_RATINGS_BYTES)
         val continueWatching = (quota - ratings).coerceAtLeast(0L).coerceAtMost(MAX_CONTINUE_WATCHING_BYTES)
-        return MetadataCacheAllocation(ratings, continueWatching)
+        val afterExistingConsumers = (quota - ratings - continueWatching).coerceAtLeast(0L)
+        val streamLinks = (afterExistingConsumers - afterExistingConsumers / 4L)
+            .coerceAtMost(MAX_STREAM_LINK_BYTES)
+        val afterStreamLinks = (afterExistingConsumers - streamLinks).coerceAtLeast(0L)
+        val bingeGroups = (afterStreamLinks - afterStreamLinks / 2L)
+            .coerceAtMost(MAX_BINGE_GROUP_BYTES)
+        return MetadataCacheAllocation(ratings, continueWatching, streamLinks, bingeGroups)
     }
 }
 

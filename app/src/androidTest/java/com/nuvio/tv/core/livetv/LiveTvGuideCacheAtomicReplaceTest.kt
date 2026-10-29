@@ -9,6 +9,7 @@ import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -30,6 +31,35 @@ class LiveTvGuideCacheAtomicReplaceTest {
             assertEquals(updated, cache.read("source-a")?.result)
             assertEquals(2L, cache.read("source-a")?.updatedEpochMillis)
             assertEquals(1, directory.listFiles().orEmpty().count { it.name.endsWith(".bin.gz") })
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun deniedStoragePreflightKeepsTheExistingOfflineGuideOnAndroid() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val directory = File(context.cacheDir, "live-guide-preflight-${UUID.randomUUID()}").apply { mkdirs() }
+        try {
+            var canBeginWrite = true
+            val cache = LiveTvGuideCache(
+                directory,
+                1024L * 1024L,
+                writesEnabled = true,
+                canBeginWrite = { canBeginWrite },
+            )
+            val original = sampleResult("Jornal")
+            assertTrue(cache.write("source-a", original, updatedEpochMillis = 1L))
+            val target = directory.listFiles().orEmpty().single { it.name.endsWith(".bin.gz") }
+            val originalBytes = target.readBytes()
+
+            canBeginWrite = false
+            assertFalse(cache.write("source-a", sampleResult("Jornal atualizado"), updatedEpochMillis = 2L))
+
+            assertTrue(target.readBytes().contentEquals(originalBytes))
+            assertTrue(directory.listFiles().orEmpty().none { it.name.endsWith(".tmp") })
+            assertEquals(original, cache.read("source-a")?.result)
+            assertEquals(1L, cache.read("source-a")?.updatedEpochMillis)
         } finally {
             directory.deleteRecursively()
         }

@@ -53,6 +53,29 @@ class LiveTvGuideCacheTest {
     }
 
     @Test
+    fun storagePreflightDenialPreservesThePreviousOfflineGuide() = kotlinx.coroutines.runBlocking {
+        val cacheDir = temporaryFolder.newFolder("epg-storage-preflight")
+        val original = sampleResult()
+        val writable = cache(cacheDir, 1024L * 1024L, writesEnabled = true)
+        assertTrue(writable.write("source-a", original, updatedEpochMillis = 1L))
+        val target = cacheDir.listFiles()?.single { it.name.endsWith(".bin.gz") } ?: error("cached guide missing")
+        val originalBytes = target.readBytes()
+        val updated = original.copy(programs = listOf(original.programs.single().copy(title = "Atualizado")))
+        val storageConstrained = cache(
+            cacheDir,
+            1024L * 1024L,
+            writesEnabled = true,
+            canBeginWrite = { false },
+        )
+
+        assertFalse(storageConstrained.write("source-a", updated, updatedEpochMillis = 2L))
+        assertTrue(target.readBytes().contentEquals(originalBytes))
+        assertTrue(cacheDir.listFiles().orEmpty().none { it.name.endsWith(".tmp") })
+        assertEquals(original, storageConstrained.read("source-a")?.result)
+        assertEquals(1L, storageConstrained.read("source-a")?.updatedEpochMillis)
+    }
+
+    @Test
     fun refusesPayloadLargerThanTheEpgShareAndIgnoresUnknownSourceIds() = kotlinx.coroutines.runBlocking {
         val cacheDir = temporaryFolder.newFolder("small-epg")
         val cache = cache(cacheDir, quotaBytes = 1L, writesEnabled = true)
@@ -88,9 +111,16 @@ class LiveTvGuideCacheTest {
     )
 
     /** JVM tests run on Windows too; use the host's atomic replace equivalent to Android rename(2). */
-    private fun cache(directory: java.io.File, quotaBytes: Long, writesEnabled: Boolean) =
-        LiveTvGuideCache(directory, quotaBytes, writesEnabled) { source, target ->
+    private fun cache(
+        directory: java.io.File,
+        quotaBytes: Long,
+        writesEnabled: Boolean,
+        canBeginWrite: () -> Boolean = { true },
+    ) = LiveTvGuideCache(directory, quotaBytes, writesEnabled,
+        atomicReplace = { source, target ->
             Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             true
-        }
+        },
+        canBeginWrite = canBeginWrite,
+    )
 }

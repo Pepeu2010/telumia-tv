@@ -36,6 +36,7 @@ class LiveTvGuideCache private constructor(
     private val directory: File,
     private val quotaBytes: () -> Long,
     private val writesEnabled: () -> Boolean,
+    private val canBeginWrite: () -> Boolean,
     private val atomicReplace: (File, File) -> Boolean,
 ) {
     @Inject constructor(
@@ -45,14 +46,17 @@ class LiveTvGuideCache private constructor(
         File(context.cacheDir, DIRECTORY_NAME),
         { mediaCache.coilQuota(MediaCacheCategory.EPG) },
         { mediaCache.writesEnabled },
+        { mediaCache.canBeginCacheWrite(MediaCacheCategory.EPG) },
         { source, target -> source.renameTo(target) },
     )
 
     internal constructor(directory: File, quotaBytes: Long, writesEnabled: Boolean,
-        atomicReplace: (File, File) -> Boolean = { source, target -> source.renameTo(target) }) : this(
+        atomicReplace: (File, File) -> Boolean = { source, target -> source.renameTo(target) },
+        canBeginWrite: () -> Boolean = { true }) : this(
         directory,
         { quotaBytes },
         { writesEnabled },
+        canBeginWrite,
         atomicReplace,
     )
 
@@ -80,7 +84,9 @@ class LiveTvGuideCache private constructor(
                 result.programs.size > XmlTvParser.MAX_PROGRAMS
             ) return@withContext false
             val limit = quotaBytes().coerceAtLeast(0).coerceAtMost(MAX_COMPRESSED_BYTES)
-            if (limit == 0L || !directory.exists() && !directory.mkdirs()) return@withContext false
+            // Recheck actual free storage immediately before staging; the Auto snapshot may be stale.
+            if (limit == 0L || !runCatching(canBeginWrite).getOrDefault(false)) return@withContext false
+            if (!directory.exists() && !directory.mkdirs()) return@withContext false
             directory.listFiles().orEmpty().filter { it.isFile && it.name.endsWith(".tmp") }.forEach(File::delete)
             val target = fileFor(sourceId)
             val temporary = File(directory, "${UUID.randomUUID()}.tmp")

@@ -26,5 +26,9 @@ class TmdbMetadataCacheLimitsTest {
         assertTrue(balanced.episodes < high.episodes)
         assertTrue(low.people < balanced.people)
         assertTrue(low.entityRails < high.entityRails)
+        assertTrue(low.collections < balanced.collections)
+        assertTrue(balanced.collections < high.collections)
+        assertTrue(low.idMappings < balanced.idMappings)
+        assertTrue(balanced.idMappings < high.idMappings)
     }
 }

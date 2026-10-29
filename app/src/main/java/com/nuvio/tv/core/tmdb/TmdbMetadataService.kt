@@ -798,7 +798,7 @@ class TmdbMetadataService internal constructor(
         }
     }
 
-    private val collectionCache = ConcurrentHashMap<String, TmdbMovieCollection>()
+    private val collectionCache = BoundedLruCache<String, TmdbMovieCollection>(cacheLimits.collections)
 
     suspend fun fetchMovieCollection(
         collectionId: Int,

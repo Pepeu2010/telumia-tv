@@ -1,11 +1,12 @@
 # Cache de metadata TMDB em memória
 
-`TmdbMetadataService` mantinha sete mapas de respostas sem limite de entradas,
-com vida útil igual à do processo. A TV agora usa LRU concorrente e limita cada
-mapa separadamente. Ao atingir a capacidade, remove o item menos recentemente
-usado; as respostas retornadas pelos métodos e a coalescência de pedidos em
-andamento continuam iguais. Uma resposta removida pode ser consultada à rede
-novamente quando for pedida.
+Os serviços TMDB mantinham dez mapas permanentes sem limite: sete caches de
+respostas do `TmdbMetadataService`, o cache de coleções e os dois sentidos do
+mapa de IDs do `TmdbService`. Agora cada mapa usa LRU concorrente com capacidade
+própria. Ao atingir o limite, remove a entrada menos recentemente usada. O
+conteúdo e os retornos dos métodos não mudam; uma entrada removida pode voltar a
+ser consultada à rede quando necessária. Os mapas de requisições em andamento
+continuam separados, preservando a coalescência existente.
 
 O limite é escolhido na criação do serviço pelo `DeviceCapabilities.resourceTier`
 já existente. O tier usa RAM física, classe de memória Android e heap máximo
@@ -20,6 +21,8 @@ reportado; `UNKNOWN` adota o perfil conservador de `LOW_RAM`.
 | Cabeçalhos de entidade | 12 | 24 | 48 |
 | Rails de entidade | 6 | 12 | 24 |
 | Browse de entidade | 6 | 12 | 24 |
+| Coleções de filmes | 6 | 12 | 24 |
+| Mapeamentos IMDB ↔ TMDB, por direção | 128 | 256 | 512 |
 
 São tetos de quantidade de entradas, não medições em bytes. Cada resposta pode
 ter tamanhos diferentes; os limites reduzem retenção sem memória infinita, mas
@@ -28,16 +31,14 @@ avaliado ao construir o singleton; não há reavaliação durante a sessão nest
 incremento. As caches em voo permanecem separadas para preservar a coalescência
 de requisições.
 
-## Verificação deste incremento
+## Verificação deste incremento integrado à fonte estável 1.0.5
 
-- 31 testes direcionados passaram: LRU/concorrência, limites por tier e todos os
-  26 testes de `TmdbMetadataServiceTest`.
-- Suíte completa: 2.058 testes, 13 falhas e 1 skip. As 13 falhas foram
-  reproduzidas nas mesmas 10 classes no commit-base `e1e7d992`; nenhuma ocorreu
-  nos testes novos ou no serviço TMDB. O registro principal lista as classes.
-- APK Full Debug compilado em todas as cinco arquiteturas. O application ID é
-  `io.github.pepeu2010.telumia.tv.debug`; os APKs são só para validação.
-- O Desktop, sem mudança de fonte, passou novamente os testes focados de cache e
-  o `packageMsi`; as tarefas de compilação/empacotamento estavam atualizadas.
+- 33 testes direcionados passaram: LRU (3), limites por tier (2),
+  `TmdbMetadataServiceTest` (27) e eviction dos mapeamentos `TmdbService` (1).
+- `:app:assembleFullDebug` gerou os cinco APKs locais com application ID
+  `io.github.pepeu2010.telumia.tv.debug`, versão `1.0.5`, código `10015`; não
+  foram publicados e não atualizam a instalação de produção.
+- Desktop, sem mudança de fonte neste incremento, passou 22 testes focados de
+  cache. `:composeApp:packageMsi` terminou com sucesso como `UP-TO-DATE`.
 - Não houve medição física de heap, jank, CPU ou latência em TV Box. Build e
   testes locais não demonstram desempenho em hardware real.

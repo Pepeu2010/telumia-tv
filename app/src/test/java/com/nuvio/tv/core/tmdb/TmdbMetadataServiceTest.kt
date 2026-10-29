@@ -102,6 +102,8 @@ class TmdbMetadataServiceTest {
             entityHeaders = 1,
             entityRails = 1,
             entityBrowse = 1,
+            collections = 1,
+            idMappings = 1,
         )
         val service = TmdbMetadataService(api, Dispatchers.Unconfined, limits)
 
@@ -110,6 +112,33 @@ class TmdbMetadataServiceTest {
         service.fetchEnrichment("10", ContentType.MOVIE)
 
         coVerify(exactly = 2) { api.getMovieDetails(10, any(), any()) }
+    }
+
+    @Test
+    fun `fetchMovieCollection reloads an entry evicted by the bounded device cache`() = runTest {
+        val api = mockk<TmdbApi>()
+        coEvery { api.getCollectionDetails(any(), any(), any()) } answers {
+            val id = firstArg<Int>()
+            Response.success(TmdbCollectionResponse(id = id, name = "Collection $id"))
+        }
+        val limits = TmdbMetadataCacheLimits(
+            enrichment = 1,
+            episodes = 1,
+            people = 1,
+            recommendations = 1,
+            entityHeaders = 1,
+            entityRails = 1,
+            entityBrowse = 1,
+            collections = 1,
+            idMappings = 1,
+        )
+        val service = TmdbMetadataService(api, Dispatchers.Unconfined, limits)
+
+        service.fetchMovieCollection(10)
+        service.fetchMovieCollection(20)
+        service.fetchMovieCollection(10)
+
+        coVerify(exactly = 2) { api.getCollectionDetails(10, any(), "en") }
     }
 
     @Test

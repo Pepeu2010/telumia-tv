@@ -1,7 +1,12 @@
 package com.nuvio.tv.data.trailer
 
+import android.content.Context
 import android.util.Log
+import com.nuvio.tv.core.runtime.DeviceCapabilities
+import com.nuvio.tv.core.runtime.DeviceResourceTier
+import com.nuvio.tv.core.storage.BoundedLruCache
 import com.nuvio.tv.core.tmdb.TmdbService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
 import com.nuvio.tv.data.remote.api.TmdbApi
 import com.nuvio.tv.data.remote.api.TmdbVideoResult
@@ -10,7 +15,6 @@ import java.time.Clock
 import java.net.URI
 import java.time.Instant
 import java.time.Duration
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -29,9 +33,29 @@ class TrailerService(
     private val inAppYouTubeExtractor: InAppYouTubeExtractor,
     private val tmdbSettingsDataStore: TmdbSettingsDataStore,
     private val tmdbService: TmdbService,
-    private val clock: Clock
+    private val clock: Clock,
+    cacheLimits: TrailerCacheLimits = TrailerCacheLimits.forTier(DeviceResourceTier.UNKNOWN)
 ) {
     @Inject
+    constructor(
+        @ApplicationContext context: Context,
+        trailerApi: TrailerApi,
+        tmdbApi: TmdbApi,
+        inAppYouTubeExtractor: InAppYouTubeExtractor,
+        tmdbSettingsDataStore: TmdbSettingsDataStore,
+        tmdbService: TmdbService
+    ) : this(
+        trailerApi = trailerApi,
+        tmdbApi = tmdbApi,
+        inAppYouTubeExtractor = inAppYouTubeExtractor,
+        tmdbSettingsDataStore = tmdbSettingsDataStore,
+        tmdbService = tmdbService,
+        clock = Clock.systemUTC(),
+        cacheLimits = TrailerCacheLimits.forTier(
+            DeviceCapabilities.resourceTier(DeviceCapabilities.memory(context))
+        )
+    )
+
     constructor(
         trailerApi: TrailerApi,
         tmdbApi: TmdbApi,
@@ -44,14 +68,16 @@ class TrailerService(
         inAppYouTubeExtractor = inAppYouTubeExtractor,
         tmdbSettingsDataStore = tmdbSettingsDataStore,
         tmdbService = tmdbService,
-        clock = Clock.systemUTC()
+        clock = Clock.systemUTC(),
+        cacheLimits = TrailerCacheLimits.forTier(DeviceResourceTier.UNKNOWN)
     )
 
-    // Cache: "title|year|tmdbId|type" -> trailer playback source (NEGATIVE_CACHE sentinel for misses)
-    private val cache = ConcurrentHashMap<String, TrailerPlaybackSource>()
+    // Search results include the negative sentinel, so repeated misses are bounded too.
+    private val cache = BoundedLruCache<String, TrailerPlaybackSource>(cacheLimits.searchResults)
     private val NEGATIVE_CACHE = TrailerPlaybackSource(videoUrl = "")
-    // Time-bound cache: youtubeVideoId -> resolved playback source (success-only)
-    private val youtubeSourceCache = ConcurrentHashMap<String, CachedTrailerPlaybackSource>()
+    // Successful YouTube sources keep their existing URL-expiry and three-hour TTL checks.
+    private val youtubeSourceCache =
+        BoundedLruCache<String, CachedTrailerPlaybackSource>(cacheLimits.youtubePlaybackSources)
 
     /**
      * Search for a trailer by title, year, tmdbId, and type.

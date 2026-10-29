@@ -43,3 +43,5 @@ de requisições.
 - Fonte: commit [`5ddd99b`](https://github.com/Pepeu2010/telumia-tv/commit/5ddd99b31ca461fb9e20b40b896572a8da7aeb93), [PR #27](https://github.com/Pepeu2010/telumia-tv/pull/27), baseado na correção de quota Coil da fonte estável 1.0.5.
 - Não houve medição física de heap, jank, CPU ou latência em TV Box. Build e
   testes locais não demonstram desempenho em hardware real.
+
+O serviço de trailers mantém caches de busca e de fontes YouTube separados; seus limites e validação estão em [TRAILER_CACHE.md](TRAILER_CACHE.md).

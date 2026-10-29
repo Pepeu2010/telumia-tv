@@ -41,6 +41,18 @@ class BoundedLruCacheTest {
     }
 
     @Test
+    fun `conditional removal preserves a newer replacement`() {
+        val cache = BoundedLruCache<String, Int>(2)
+        cache["key"] = 1
+        cache["key"] = 2
+
+        assertFalse(cache.remove("key", 1))
+        assertEquals(2, cache["key"])
+        assertTrue(cache.remove("key", 2))
+        assertNull(cache["key"])
+    }
+
+    @Test
     fun `clearing a cache removes every retained value`() {
         val cache = BoundedLruCache<String, Int>(3)
         cache["a"] = 1

@@ -2,6 +2,7 @@ package com.nuvio.tv.data.mdblist
 
 import android.content.Context
 import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.MetadataCachePolicy
 import com.nuvio.tv.core.storage.tvMediaCache
 import com.nuvio.tv.domain.model.MDBListRatings
 import kotlinx.coroutines.CoroutineScope
@@ -250,7 +251,7 @@ internal class MdbListRatingsDiskCache(
         private const val SAVE_DEBOUNCE_MS = 2_000L
         private const val MAX_KEY_LENGTH = 512
         private const val MAX_MEMORY_ENTRIES = 25_000
-        internal const val MAX_CACHE_FILE_BYTES = 8L * 1024L * 1024L
+        internal const val MAX_CACHE_FILE_BYTES = MetadataCachePolicy.MAX_RATINGS_BYTES
         private const val EMPTY_JSON_BYTES = 2L
     }
 }

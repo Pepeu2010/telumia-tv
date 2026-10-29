@@ -17,6 +17,21 @@ data class MediaCacheBudget(val totalBytes: Long, val requestedBytes: Long, val 
     fun quota(category: MediaCacheCategory): Long = totalBytes / 100 * category.share
 }
 
+data class MetadataCacheAllocation(val ratingsBytes: Long, val continueWatchingBytes: Long)
+
+/** The TV has two persistent consumers in METADATA; keep their combined ceiling inside the category quota. */
+object MetadataCachePolicy {
+    const val MAX_RATINGS_BYTES = 8L * MIB
+    const val MAX_CONTINUE_WATCHING_BYTES = 8L * MIB
+
+    fun allocate(categoryQuotaBytes: Long): MetadataCacheAllocation {
+        val quota = categoryQuotaBytes.coerceAtLeast(0L)
+        val ratings = quota.coerceAtMost(MAX_RATINGS_BYTES)
+        val continueWatching = (quota - ratings).coerceAtLeast(0L).coerceAtMost(MAX_CONTINUE_WATCHING_BYTES)
+        return MetadataCacheAllocation(ratings, continueWatching)
+    }
+}
+
 data class MediaImageCacheAllocation(val coilBytes: Long, val gifBytes: Long, val memberBackgroundBytes: Long)
 
 object MediaImageCachePolicy {

@@ -5,6 +5,9 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nuvio.tv.core.profile.ProfileManager
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.MetadataCachePolicy
+import com.nuvio.tv.core.storage.tvMediaCache
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -78,6 +81,16 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
 
     private val gson = Gson()
     private val mutex = Mutex()
+    private val snapshotStore by lazy {
+        val mediaCache = tvMediaCache(context)
+        BoundedContinueWatchingSnapshotStore(
+            directory = File(context.filesDir, "cw_enrichment"),
+            quotaBytes = {
+                MetadataCachePolicy.allocate(mediaCache.cacheQuota(MediaCacheCategory.METADATA)).continueWatchingBytes
+            },
+            canWriteEntry = { bytes -> mediaCache.canWriteCacheEntry(MediaCacheCategory.METADATA, bytes) },
+        )
+    }
     @Volatile private var lastNextUpWriteMs = 0L
     @Volatile private var lastInProgressWriteMs = 0L
     @Volatile private var lastNextUpHash = 0
@@ -93,19 +106,11 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
 
     // --- Next Up snapshot cache ---
 
-    private fun nextUpFile(): File {
-        val profileId = profileManager.activeProfileId.value
-        val dir = File(context.filesDir, "cw_enrichment")
-        dir.mkdirs()
-        return File(dir, "nextup_${profileId}.json")
-    }
-
     suspend fun getNextUpSnapshot(): List<CachedNextUpItem> = withContext(Dispatchers.IO) {
         mutex.withLock {
             try {
-                val file = nextUpFile()
-                if (!file.exists()) return@withContext emptyList()
-                gson.fromJson(file.readText(), object : TypeToken<List<CachedNextUpItem>>() {}.type)
+                val content = snapshotStore.read(nextUpFileName()) ?: return@withContext emptyList()
+                gson.fromJson(content, object : TypeToken<List<CachedNextUpItem>>() {}.type)
                     ?: emptyList()
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to read next-up cache: ${e.message}")
@@ -126,8 +131,7 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
         }
         mutex.withLock {
             try {
-                val file = nextUpFile()
-                atomicWrite(file, gson.toJson(items))
+                if (!snapshotStore.write(nextUpFileName(), gson.toJson(items))) return@withLock
                 lastNextUpWriteMs = System.currentTimeMillis()
                 lastNextUpHash = contentHash
                 _snapshotVersion.value++
@@ -139,19 +143,11 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
 
     // --- In-progress snapshot cache ---
 
-    private fun inProgressFile(): File {
-        val profileId = profileManager.activeProfileId.value
-        val dir = File(context.filesDir, "cw_enrichment")
-        dir.mkdirs()
-        return File(dir, "inprogress_${profileId}.json")
-    }
-
     suspend fun getInProgressSnapshot(): List<CachedInProgressItem> = withContext(Dispatchers.IO) {
         mutex.withLock {
             try {
-                val file = inProgressFile()
-                if (!file.exists()) return@withContext emptyList()
-                gson.fromJson(file.readText(), object : TypeToken<List<CachedInProgressItem>>() {}.type)
+                val content = snapshotStore.read(inProgressFileName()) ?: return@withContext emptyList()
+                gson.fromJson(content, object : TypeToken<List<CachedInProgressItem>>() {}.type)
                     ?: emptyList()
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to read in-progress cache: ${e.message}")
@@ -172,8 +168,7 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
         }
         mutex.withLock {
             try {
-                val file = inProgressFile()
-                atomicWrite(file, gson.toJson(items))
+                if (!snapshotStore.write(inProgressFileName(), gson.toJson(items))) return@withLock
                 lastInProgressWriteMs = System.currentTimeMillis()
                 lastInProgressHash = contentHash
                 _snapshotVersion.value++
@@ -189,8 +184,8 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
     suspend fun clearAll() = withContext(Dispatchers.IO) {
         mutex.withLock {
             try {
-                nextUpFile().delete()
-                inProgressFile().delete()
+                snapshotStore.delete(nextUpFileName())
+                snapshotStore.delete(inProgressFileName())
                 lastNextUpHash = 0
                 lastInProgressHash = 0
                 Log.d(TAG, "Cleared CW enrichment cache for profile ${profileManager.activeProfileId.value}")
@@ -201,14 +196,7 @@ class ContinueWatchingEnrichmentCache @Inject constructor(
         _cacheCleared.value++
     }
 
-    private fun atomicWrite(target: File, content: String) {
-        val tmp = File(target.parentFile, "${target.name}.tmp")
-        tmp.writeText(content)
-        if (!tmp.renameTo(target)) {
-            // renameTo can fail on some filesystems; fall back to copy+delete
-            tmp.copyTo(target, overwrite = true)
-            tmp.delete()
-        }
-    }
+    private fun nextUpFileName() = "nextup_${profileManager.activeProfileId.value}.json"
+    private fun inProgressFileName() = "inprogress_${profileManager.activeProfileId.value}.json"
 
 }

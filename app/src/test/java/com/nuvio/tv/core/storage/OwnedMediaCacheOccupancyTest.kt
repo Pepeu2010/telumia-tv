@@ -58,6 +58,23 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(68L, result.bytes)
         assertEquals(41L, Files.size(cacheDirectory.resolve("downloads/movie.mkv")))
     }
+
+    @Test fun profileScopedStreamAndBingeDataStoreFilesAndBackupsCountTowardAutoOccupancy() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(filesDirectory, "datastore/stream_link_cache.preferences_pb", 11)
+        write(filesDirectory, "datastore/stream_link_cache.preferences_pb.bak", 13)
+        write(filesDirectory, "datastore/stream_link_cache_p6.preferences_pb", 17)
+        write(filesDirectory, "datastore/stream_link_cache_p6.preferences_pb.bak", 19)
+        write(filesDirectory, "datastore/binge_group_cache.preferences_pb", 23)
+        write(filesDirectory, "datastore/binge_group_cache.preferences_pb.bak", 29)
+        write(filesDirectory, "datastore/unrelated_durable_preferences.preferences_pb", 31)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(112L, result.bytes)
+    }
     @Test fun measuresOnlyAllowlistedCachesAndKeepsDurableFilesIntact() = fixture { root ->
         write(root, "media-cache-v1/images/coil/first", 7)
         write(root, "media-cache-v1/images/gifs/second", 11)

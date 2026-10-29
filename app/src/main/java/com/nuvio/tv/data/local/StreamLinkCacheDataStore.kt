@@ -4,6 +4,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.nuvio.tv.core.profile.ProfileManager
+import com.nuvio.tv.core.storage.BoundedPreferenceCacheEntry
+import com.nuvio.tv.core.storage.BoundedPreferenceCachePolicy
+import com.nuvio.tv.core.storage.MediaCacheCategory
+import com.nuvio.tv.core.storage.MetadataCachePolicy
+import com.nuvio.tv.core.storage.TvMediaCache
+import com.nuvio.tv.core.storage.estimateShadowedPreferenceCacheBytes
 import kotlinx.coroutines.flow.first
 import org.json.JSONArray
 import org.json.JSONObject
@@ -30,10 +36,13 @@ data class CachedStreamLink(
 @Singleton
 class StreamLinkCacheDataStore @Inject constructor(
     private val factory: ProfileDataStoreFactory,
-    private val profileManager: ProfileManager
+    private val profileManager: ProfileManager,
+    private val mediaCache: TvMediaCache,
 ) {
     companion object {
         private const val FEATURE = "stream_link_cache"
+        private const val ENTRY_PREFIX = "stream_link_"
+        private const val MAX_ENTRIES_PER_PROFILE = 128
     }
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) =
@@ -54,10 +63,11 @@ class StreamLinkCacheDataStore @Inject constructor(
         contentLanguage: String? = null,
         year: String? = null
     ) {
+        val cachedAtMs = System.currentTimeMillis().coerceAtLeast(0L)
         val payload = JSONObject().apply {
             put("url", url)
             put("streamName", streamName)
-            put("cachedAtMs", System.currentTimeMillis())
+            put("cachedAtMs", cachedAtMs)
             put("headers", JSONObject(headers ?: emptyMap<String, String>()))
             put("filename", filename)
             put("videoHash", videoHash)
@@ -70,8 +80,41 @@ class StreamLinkCacheDataStore @Inject constructor(
             year?.let { put("year", it) }
         }.toString()
 
+        val key = cachePrefKey(contentKey)
+        val perProfileQuota = MetadataCachePolicy.allocate(
+            mediaCache.cacheQuota(MediaCacheCategory.METADATA),
+        ).streamLinksBytes / ProfileManager.MAX_PROFILES
+        val candidateBytes = estimateShadowedPreferenceCacheBytes(key.name to payload)
+        if (!mediaCache.writesEnabled || perProfileQuota <= 0L || candidateBytes > perProfileQuota ||
+            !mediaCache.canWriteCacheEntry(MediaCacheCategory.METADATA, candidateBytes)
+        ) return
+
         store().edit { prefs ->
-            prefs[cachePrefKey(contentKey)] = payload
+            val existing = prefs.asMap().mapNotNull { (storedKey, storedValue) ->
+                if (!storedKey.name.startsWith(ENTRY_PREFIX)) return@mapNotNull null
+                val value = storedValue as? String ?: return@mapNotNull null
+                val cachedAt = runCatching { JSONObject(value).optLong("cachedAtMs", 0L) }
+                    .getOrDefault(0L)
+                BoundedPreferenceCacheEntry(
+                    key = storedKey.name,
+                    storedBytes = estimateShadowedPreferenceCacheBytes(storedKey.name to value),
+                    savedAtMs = cachedAt,
+                )
+            }
+            val candidate = BoundedPreferenceCacheEntry(key.name, candidateBytes, cachedAtMs)
+            val retained = BoundedPreferenceCachePolicy.retain(
+                entries = existing + candidate,
+                maxEntries = MAX_ENTRIES_PER_PROFILE,
+                maxBytes = perProfileQuota,
+                protectedKey = key.name,
+            )
+            if (retained.none { it.key == key.name }) return@edit
+
+            val retainedKeys = retained.mapTo(mutableSetOf()) { it.key }
+            prefs.asMap().keys
+                .filter { it.name.startsWith(ENTRY_PREFIX) && it.name !in retainedKeys }
+                .forEach { prefs.remove(stringPreferencesKey(it.name)) }
+            prefs[key] = payload
         }
     }
 

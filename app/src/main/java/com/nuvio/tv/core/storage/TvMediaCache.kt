@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.StatFs
 import coil3.request.CachePolicy
 import com.nuvio.tv.core.runtime.DeviceCapabilities
+import com.nuvio.tv.core.profile.ProfileManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import okhttp3.Cache
 import java.io.File
@@ -29,6 +30,19 @@ private const val PLUGIN_CODE_DISCOVERY_TIMEOUT_NANOS = 10_000_000L
 
 private data class DiscoveredStaleVodCaches(val roots: List<List<String>>, val complete: Boolean)
 internal data class DiscoveredPluginCodeCaches(val roots: List<List<String>>, val complete: Boolean)
+
+internal fun profileCacheDataStorePaths(
+    featureName: String,
+    profileCount: Int = ProfileManager.MAX_PROFILES,
+): List<List<String>> {
+    require(featureName.isNotEmpty() && featureName.all { it.isLetterOrDigit() || it == '_' })
+    require(profileCount >= 0)
+    return (1..profileCount).flatMap { profileId ->
+        val suffix = if (profileId == 1) "" else "_p$profileId"
+        val baseName = "$featureName$suffix.preferences_pb"
+        listOf(baseName, "$baseName.bak").map { listOf("datastore", it) }
+    }
+}
 
 private fun discoverStaleVodCacheRoots(cacheDirectory: Path): DiscoveredStaleVodCaches {
     val names = mutableListOf<String>()
@@ -137,7 +151,10 @@ internal fun measureTvMediaCacheOccupancy(
     )
     val legacyFilesCaches = OwnedMediaCacheOccupancy.measure(
         filesDirectory,
-        listOf(listOf("mdblist_cache"), listOf("cw_enrichment")) + pluginCodeCaches.roots,
+        listOf(listOf("mdblist_cache"), listOf("cw_enrichment")) +
+            profileCacheDataStorePaths("stream_link_cache") +
+            profileCacheDataStorePaths("binge_group_cache") +
+            pluginCodeCaches.roots,
     )
     val codeCaches = codeCacheDirectory?.let {
         OwnedMediaCacheOccupancy.measure(it, listOf(listOf("cs_dex_cache")))

@@ -56,7 +56,9 @@ internal fun UpdateChannelSettings(
 
     SettingsActionRow(
         title = stringResource(R.string.about_check_updates),
-        subtitle = stringResource(R.string.about_check_updates_subtitle),
+        subtitle = state.latestReleaseVersion?.let {
+            stringResource(R.string.about_latest_download_version, it)
+        } ?: stringResource(R.string.about_check_updates_subtitle),
         trailingIcon = Icons.AutoMirrored.Filled.OpenInNew,
         onClick = {
             viewModel.checkForUpdates(force = true, showNoUpdateFeedback = true)

@@ -19,22 +19,11 @@ class UpdateRepository @Inject constructor(
             val owner = BuildConfig.GITHUB_OWNER
             val repo = BuildConfig.GITHUB_REPO
 
-            val releases = when (channel) {
-                UpdateChannel.STABLE -> {
-                    val response = gitHubReleaseApi.getLatestRelease(owner = owner, repo = repo)
-                    if (!response.isSuccessful) {
-                        error("GitHub API error: ${response.code()}")
-                    }
-                    listOf(response.body() ?: error("Empty GitHub release response"))
-                }
-                UpdateChannel.BETA -> {
-                    val response = gitHubReleaseApi.getReleases(owner = owner, repo = repo)
-                    if (!response.isSuccessful) {
-                        error("GitHub API error: ${response.code()}")
-                    }
-                    response.body() ?: error("Empty GitHub release response")
-                }
+            val response = gitHubReleaseApi.getReleases(owner = owner, repo = repo)
+            if (!response.isSuccessful) {
+                error("GitHub API error: ${response.code()}")
             }
+            val releases = response.body() ?: error("Empty GitHub release response")
             val releaseWithAsset = ReleaseSelector
                 .eligibleReleases(releases, channel)
                 .firstNotNullOfOrNull { release ->

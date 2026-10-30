@@ -22,6 +22,8 @@ import kotlinx.coroutines.withContext
 
 data class UpdateUiState(
     val isChecking: Boolean = false,
+    val latestRelease: AppUpdate? = null,
+    val latestReleaseVersion: String? = null,
     val update: AppUpdate? = null,
     val isUpdateAvailable: Boolean = false,
     val isDownloading: Boolean = false,
@@ -57,15 +59,13 @@ class UpdateViewModel @Inject constructor(
                     updateChannel = channel
                 )
             }
-            if (enabled && !BuildConfig.IS_DEBUG_BUILD) {
+            if (!BuildConfig.IS_DEBUG_BUILD) {
                 checkForUpdates(force = false, showNoUpdateFeedback = false)
             }
         }
     }
 
     fun checkForUpdates(force: Boolean, showNoUpdateFeedback: Boolean) {
-        if (!force && !_uiState.value.updateBannerEnabled) return
-
         updateCheckJob?.cancel()
         updateCheckJob = viewModelScope.launch {
             val channel = _uiState.value.updateChannel
@@ -97,6 +97,8 @@ class UpdateViewModel @Inject constructor(
                     _uiState.update { state ->
                         state.copy(
                             isChecking = false,
+                            latestRelease = update,
+                            latestReleaseVersion = update.tag,
                             update = update.takeIf { remoteNewer },
                             isUpdateAvailable = remoteNewer,
                             isDownloading = false,
@@ -119,12 +121,21 @@ class UpdateViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(
                             isChecking = false,
-                            update = null,
-                            isUpdateAvailable = false,
-                            isDownloading = false,
-                            downloadProgress = null,
-                            downloadedApkPath = null,
-                            showBanner = false,
+                            update = it.latestRelease?.takeIf {
+                                VersionUtils.isRemoteNewer(it.tag, BuildConfig.VERSION_NAME)
+                            },
+                            isUpdateAvailable = it.latestRelease?.let {
+                                VersionUtils.isRemoteNewer(it.tag, BuildConfig.VERSION_NAME)
+                            } == true,
+                            showBanner = it.latestRelease?.let { latest ->
+                                UpdateBannerPolicy.shouldShow(
+                                    isRemoteNewer = VersionUtils.isRemoteNewer(latest.tag, BuildConfig.VERSION_NAME),
+                                    force = force,
+                                    bannerEnabled = it.updateBannerEnabled,
+                                    dismissedTag = dismissedTag,
+                                    updateTag = latest.tag
+                                )
+                            } == true,
                             showUnknownSourcesDialog = false,
                             errorMessage = null,
                             feedbackMessage = if (showNoUpdateFeedback) {
@@ -201,6 +212,8 @@ class UpdateViewModel @Inject constructor(
             it.copy(
                 updateChannel = channel,
                 isChecking = false,
+                latestRelease = null,
+                latestReleaseVersion = null,
                 update = null,
                 isUpdateAvailable = false,
                 isDownloading = false,

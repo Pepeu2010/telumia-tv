@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class UpdateUiState(
     val isChecking: Boolean = false,
+    val latestReleaseVersion: String? = null,
     val update: Any? = null,
     val isUpdateAvailable: Boolean = false,
     val isDownloading: Boolean = false,

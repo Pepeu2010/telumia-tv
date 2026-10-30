@@ -440,6 +440,7 @@
     <string name="about_update_channel_subtitle">Escolha o tipo de atualizações do app que você quer receber</string>
     <string name="about_check_updates">Verificar atualizações</string>
     <string name="about_check_updates_subtitle">Baixar a versão mais recente</string>
+    <string name="about_latest_download_version">Última versão disponível para download: %1$s</string>
     <string name="update_channel_stable">Estável</string>
     <string name="update_channel_beta">Beta</string>
     <string name="update_channel_dialog_subtitle">Escolha o tipo de atualização que você quer receber</string>

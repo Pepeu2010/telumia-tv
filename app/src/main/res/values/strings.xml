@@ -443,6 +443,7 @@
     <string name="about_update_channel_subtitle">Choose the type of app updates to receive</string>
     <string name="about_check_updates">Check for updates</string>
     <string name="about_check_updates_subtitle">Download latest release</string>
+    <string name="about_latest_download_version">Latest version available to download: %1$s</string>
     <string name="update_channel_stable">Stable</string>
     <string name="update_channel_beta">Beta</string>
     <string name="update_channel_dialog_subtitle">Choose the type of updates you want to receive</string>

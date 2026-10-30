@@ -20,6 +20,19 @@ class ReleaseSelectorTest {
     }
 
     @Test
+    fun `stable channel sorts by semantic version instead of GitHub response order`() {
+        val releases = listOf(
+            release("1.0.8"),
+            release("1.0.11"),
+            release("1.0.9")
+        )
+
+        val selected = ReleaseSelector.eligibleReleases(releases, UpdateChannel.STABLE)
+
+        assertEquals(listOf("1.0.11", "1.0.9", "1.0.8"), selected.map { it.tagName })
+    }
+
+    @Test
     fun `beta channel prefers final promotion over its betas`() {
         val releases = listOf(
             release("1.1.0-beta.10", prerelease = true),

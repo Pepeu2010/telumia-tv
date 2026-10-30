@@ -49,9 +49,25 @@ val devProperties = Properties().apply {
     }
 }
 
-fun resolveSupabaseProperty(property: String, legacyProperty: String): String =
-    resolveProperty(devProperties, localProperties, property)
+val officialNuvioBackendDefaults = mapOf(
+    "NUVIO_SUPABASE_URL" to "https://api.nuvio.tv",
+    // Nuvio publishes this client key for app builds; it is not a service-role key.
+    "NUVIO_SUPABASE_ANON_KEY" to "sb_publishable_1Clq8rlTVACkdcZuqr6_AD__xUUC_EN",
+)
+
+val configuredSupabaseUrl = resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_URL")
+    .ifBlank { resolveProperty(devProperties, localProperties, "SUPABASE_URL") }
+val configuredSupabaseKey = resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_ANON_KEY")
+    .ifBlank { resolveProperty(devProperties, localProperties, "SUPABASE_ANON_KEY") }
+val useOfficialNuvioBackendDefaults = configuredSupabaseUrl.isBlank() && configuredSupabaseKey.isBlank()
+
+fun resolveSupabaseProperty(property: String, legacyProperty: String): String {
+    val configured = resolveProperty(devProperties, localProperties, property)
         .ifBlank { resolveProperty(devProperties, localProperties, legacyProperty) }
+    if (configured.isNotBlank()) return configured
+    if (!useOfficialNuvioBackendDefaults) return ""
+    return officialNuvioBackendDefaults[property].orEmpty()
+}
 
 val enableDoviNative = parseBooleanProperty(
     resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED")

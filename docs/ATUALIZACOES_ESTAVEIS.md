@@ -10,8 +10,8 @@ Em 2026-10-30, a release estável mais recente é a v1.0.12: [abrir release](htt
 
 ## Incidente do login por QR
 
-A release estável principal v1.0.11 contém o commit TV `4afb3243e83e42fd8423f2398a256da0ee523cdc`. A v1.0.12 inclui o código corrigido no commit `debb535c5ab6607c7807ac6f85ac425e06b96f98`, mas a auditoria da publicação confirmou que o workflow principal ainda não injeta a configuração Supabase. As secrets `TELUMIA_SUPABASE_URL` e `TELUMIA_SUPABASE_ANON_KEY` também não existem no repositório principal. Assim, não se deve tratar o QR da v1.0.12 como corrigido.
+A release estável principal v1.0.11 contém o commit TV `4afb3243e83e42fd8423f2398a256da0ee523cdc`. A v1.0.12 inclui o código de geração QR do commit `debb535c5ab6607c7807ac6f85ac425e06b96f98`, mas a auditoria confirmou que o workflow daquela compilação não forneceu propriedades Supabase. Assim, não se deve tratar o QR da v1.0.12 como corrigido.
 
-O código atualizado aceita também `SUPABASE_URL` e `SUPABASE_ANON_KEY` e mostra um erro explícito quando falta configuração. O workflow foi preparado para injetar secrets Telumia e interromper a compilação quando estiverem ausentes; uma nova release estável precisa ser gerada após o cadastro das duas secrets. Não use as credenciais de outro projeto/backend.
+O código atualizado aceita também `SUPABASE_URL` e `SUPABASE_ANON_KEY` e mostra um erro explícito quando falta configuração. Por decisão do produto, a identidade visual continua Telumia e o login usa o backend oficial Nuvio: `https://api.nuvio.tv` com a publishable key pública descrita no [exemplo oficial Nuvio](https://github.com/NuvioMedia/self-host/blob/main/.env.example). Esses defaults agora entram diretamente no build; não dependem de secrets novas no GitHub Actions. A próxima release estável deve ser compilada e verificada com essa configuração.
 
 O build local deste ambiente não possui `local.properties` nem credenciais de release. APKs Full Debug servem para validar compilação e interface; não substituem o pacote estável assinado pelo workflow.

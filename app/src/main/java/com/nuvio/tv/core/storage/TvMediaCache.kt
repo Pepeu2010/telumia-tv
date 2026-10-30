@@ -21,6 +21,7 @@ import javax.inject.Singleton
 internal const val TV_VOD_CACHE_DIRECTORY_NAME = "nuvio_vod_cache"
 internal const val TV_VOD_CACHE_STALE_PREFIX = "nuvio_vod_cache_stale_"
 internal const val TV_TORRENT_PAYLOAD_CACHE_PATH = "nuvio-engine/payload"
+internal const val TV_SENTRY_CACHE_DIRECTORY_NAME = "sentry"
 private const val MAX_STALE_VOD_CACHE_ROOTS = 128
 private const val MAX_STALE_VOD_DIRECTORY_ENTRIES = 16_384
 private const val STALE_VOD_DISCOVERY_TIMEOUT_NANOS = 10_000_000L
@@ -143,6 +144,7 @@ internal fun measureTvMediaCacheOccupancy(
             listOf("image_cache"), listOf("badge_cache"), listOf("live_tv_guide"), listOf("metadata"),
             listOf("media-cache-v1", "previews"),
             listOf("http_cache_v2"), listOf("addon_http_cache"), listOf("updates"),
+            listOf(TV_SENTRY_CACHE_DIRECTORY_NAME),
             // Legacy trust-all/plugin cache: count bytes without opening or migrating entries.
             listOf("http_cache"), listOf("member_profile_avatars"),
             listOf("member_profile_backgrounds"), listOf("member_profile_backgrounds_v2"), listOf("subtitles"),

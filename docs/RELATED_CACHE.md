@@ -54,3 +54,25 @@ Passaram cinco testes novos: três de limites por tier e dois com MockWebServer 
 | x86 | 94639101 | `8be0ff2c039b3b706041c5cec7d0e59a9aaedd867364633d8d3479ac8aad0736` |
 
 Fonte: branch `codex/1d-tv-simkl-id-cache-lru`, empilhada sobre a implementação relacionada [PR #30](https://github.com/Pepeu2010/telumia-tv/pull/30), na fundação aprovada [Telumia #12](https://github.com/Pepeu2010/telumia/issues/12). Não houve mudança Desktop; a MSI não foi recompilada neste incremento. Limites são contagens de itens, não bytes de heap. Sem QA físico, medição de jank/heap ou teste offline completo; a Fase 1-D continua aberta.
+
+## Remapeamentos de episódios Trakt e caches de temporada
+
+`TraktEpisodeMappingService` mantinha quatro mapas de vida do processo: remapeamentos diretos por episódio, listas de vídeos do addon, listas de episódios do Trakt e remapeamentos reversos. A normalização de títulos também usava um mapa global sem capacidade. Agora todos têm TTL de dez minutos e capacidades por tier. O deduplicador de requests em voo permanece separado e intacto; listas vazias/erros continuam sem gravação nos caches de listas, e a lógica de equivalência por estrutura/título/índice não muda.
+
+| Tier de memória | Remapeamentos diretos | Listas addon | Listas Trakt | Remapeamentos reversos | Títulos normalizados |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| LOW_RAM / UNKNOWN | 96 | 4 | 4 | 96 | 512 |
+| BALANCED | 192 | 8 | 8 | 192 | 1.024 |
+| HIGH_CAPACITY | 384 | 16 | 16 | 384 | 2.048 |
+
+Passaram seis testes novos: três da tabela de capacidades, um teste de fluxo que confirma reuso do remapeamento sem refazer chamadas de addon/Trakt e dois para normalização e limite LRU dos títulos. A seleção ampliada executou 196 testes; 195 passaram e uma falha de mock em `TraktAuthServiceTest` foi reproduzida anteriormente no commit-base limpo `6224107be17ed15db4b9a030c5409839b6dc7f3c`. `:app:assembleFullDebug` compilou os cinco APKs locais da v1.0.10, versionCode `10020`. São variantes Full Debug com application ID `.debug` e assinatura de desenvolvimento; os artefatos publicados usam a assinatura persistente do workflow oficial.
+
+| Variante | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Universal | 180031961 | `05e518972d63815714d244df9266910d7a5239b3c56d753b9d6d1580a0c265da` |
+| ARM64-v8a | 93060719 | `f3decd6f67fac35a52a3aa81f169bd9f0825ee5fed0f1d5f024148ae9a02bcb5` |
+| Armeabi-v7a | 90959133 | `53817033bbaa683655195306c55cf94df68d8281f787db6c3b2bdf4969f7a607` |
+| x86_64 | 95481238 | `43e59d437e1699114b5c1eca8ee22d1911dcfd7a38637bcd57d3e100fc9fcbd2` |
+| x86 | 94641373 | `98e711046f009aaaac2672d05e9e3cf9c8bdee7ea333bebf80e72ae242bf91bb` |
+
+Incremento na branch `codex/1d-tv-trakt-episode-mapping-lru`, empilhada sobre o [PR #31](https://github.com/Pepeu2010/telumia-tv/pull/31), dentro da fundação aprovada [Telumia #12](https://github.com/Pepeu2010/telumia/issues/12). Não altera cliente Desktop nem contratos da API. Os budgets contam entradas, não bytes de heap; sem QA físico ou fluxo offline ponta a ponta, a Fase 1-D continua aberta.

@@ -32,3 +32,25 @@ Após o bump estável, `:app:assembleFullDebug` compilou as cinco variantes loca
 O teste local de build MSI oficial no workflow Desktop `40981827939` parou em `Configure desktop runtime` porque faltam `LOCAL_PROPERTIES_BASE64`, `SENTRY_AUTH_TOKEN` e `SENTRY_DESKTOP_DSN` nos segredos do repositório. Como não houve alteração no cliente Desktop, o pacote Windows permanece o MSI estável 1.0.4 já publicado; o workflow combinado verifica e inclui esse pacote sem recompilá-lo.
 
 Nenhum teste físico em PC ou TV Box, medição de heap/jank ou fluxo offline completo foi feito neste incremento.
+
+## Caches de IDs, episódios e temporadas do Simkl
+
+`SimklIdResolver` mantinha três mapas em memória sem limite: IDs resolvidos por provider/ID, mapeamentos de episódios Simkl↔TVDB e a lista de entradas por temporada de anime. Agora cada mapa usa `TtlLruCache` com TTL de dez minutos e capacidade inicial por tier do aparelho. Respostas de sucesso, inclusive uma lista vazia válida de episódios/temporadas, continuam reutilizáveis; falhas HTTP, respostas inválidas e exceções não são armazenadas. A resolução, as chaves, o fallback e as chamadas de rede permanecem iguais.
+
+| Tier de memória | IDs resolvidos | Mapeamentos de episódios | Temporadas de anime |
+| --- | ---: | ---: | ---: |
+| LOW_RAM / UNKNOWN | 24 | 4 | 8 |
+| BALANCED | 48 | 8 | 16 |
+| HIGH_CAPACITY | 96 | 16 | 32 |
+
+Passaram cinco testes novos: três de limites por tier e dois com MockWebServer para reuso de IDs/episódios e de IDs de temporadas/irmãos. A seleção ampliada Trakt/Simkl/cache executou 190 testes; 189 passaram e uma falha de verificação do mock em `TraktAuthServiceTest` continua reproduzível no commit-base limpo `6224107be17ed15db4b9a030c5409839b6dc7f3c`, antes destes limites. `:app:assembleFullDebug` compilou os cinco APKs Full Debug em versionName `1.0.9` e versionCode `10019`:
+
+| Variante | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Universal | 180029689 | `12ced491e06b4247dffa8f96fcc308403ec7f618bba5b147fd3a0103ab8b3242` |
+| ARM64-v8a | 93058451 | `68cf13d39dd7ba0663c3c89ed7a2759718e137fa99870cbc693bc4b216d588c5` |
+| Armeabi-v7a | 90956861 | `84922e5fec4c9614d1576f366dcff94b0708aa116d62ed652fd1051868597bcc` |
+| x86_64 | 95478966 | `07709d8216811d53fa4a88ed0cf323093a1221990cfc2f362bccafb9dbb87c85` |
+| x86 | 94639101 | `8be0ff2c039b3b706041c5cec7d0e59a9aaedd867364633d8d3479ac8aad0736` |
+
+Fonte: branch `codex/1d-tv-simkl-id-cache-lru`, empilhada sobre a implementação relacionada [PR #30](https://github.com/Pepeu2010/telumia-tv/pull/30), na fundação aprovada [Telumia #12](https://github.com/Pepeu2010/telumia/issues/12). Não houve mudança Desktop; a MSI não foi recompilada neste incremento. Limites são contagens de itens, não bytes de heap. Sem QA físico, medição de jank/heap ou teste offline completo; a Fase 1-D continua aberta.

@@ -1,12 +1,15 @@
 package com.nuvio.tv.data.repository
 
+import android.content.Context
 import android.util.Log
+import com.nuvio.tv.core.runtime.DeviceCapabilities
+import com.nuvio.tv.core.storage.TtlLruCache
 import com.nuvio.tv.data.simkl.SimklApiConfiguration
+import com.nuvio.tv.data.simkl.SimklIdResolverCacheLimits
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONArray
 import org.json.JSONObject
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -23,7 +26,8 @@ private fun parseRedirectLocation(location: String): RedirectResult? {
 
 @Singleton
 class SimklIdResolver @Inject constructor(
-    @Named("simkl") private val okHttpClient: OkHttpClient,
+    @param:dagger.hilt.android.qualifiers.ApplicationContext private val appContext: Context,
+    @param:Named("simkl") private val okHttpClient: OkHttpClient,
     private val simklConfig: SimklApiConfiguration
 ) {
     private val clientId = simklConfig.clientId
@@ -46,13 +50,25 @@ class SimklIdResolver @Inject constructor(
         val tvdbEpisode: Int
     )
 
-    private val idsCache = ConcurrentHashMap<String, ResolvedIds?>()
-    private val episodeCache = ConcurrentHashMap<Long, List<EpisodeMapping>>()
-    private val animeSeasonCache = ConcurrentHashMap<String, List<AnimeSeasonEntry>>()
+    private val cacheLimits = SimklIdResolverCacheLimits.forTier(
+        DeviceCapabilities.resourceTier(DeviceCapabilities.memory(appContext)),
+    )
+    private val idsCache = TtlLruCache<String, ResolvedIds>(
+        capacity = cacheLimits.resolvedIds,
+        ttlMillis = CACHE_TTL_MILLIS,
+    )
+    private val episodeCache = TtlLruCache<Long, List<EpisodeMapping>>(
+        capacity = cacheLimits.episodeMappings,
+        ttlMillis = CACHE_TTL_MILLIS,
+    )
+    private val animeSeasonCache = TtlLruCache<String, List<AnimeSeasonEntry>>(
+        capacity = cacheLimits.animeSeasons,
+        ttlMillis = CACHE_TTL_MILLIS,
+    )
 
     suspend fun resolveIds(source: String, id: String, contentTypeHint: String? = null): ResolvedIds? {
         val cacheKey = if (contentTypeHint != null) "$source:$id:$contentTypeHint" else "$source:$id"
-        idsCache[cacheKey]?.let { return it }
+        idsCache.get(cacheKey)?.let { return it }
         if (clientId.isBlank()) return null
 
         return try {
@@ -70,7 +86,7 @@ class SimklIdResolver @Inject constructor(
                 kitsu = ids?.optString("kitsu")?.takeIf { it.isNotBlank() },
                 imdb = ids?.optString("imdb")?.takeIf { it.isNotBlank() },
                 tvdbSeason = details.optInt("season", -1).takeIf { it > 0 }
-            ).also { idsCache[cacheKey] = it }
+            ).also { idsCache.put(cacheKey, it) }
         } catch (e: Exception) {
             Log.d(TAG, "resolveIds $source:$id failed: ${e.message}")
             null
@@ -78,7 +94,7 @@ class SimklIdResolver @Inject constructor(
     }
 
     suspend fun getEpisodeMapping(simklId: Long, type: String = "anime"): List<EpisodeMapping> {
-        episodeCache[simklId]?.let { return it }
+        episodeCache.get(simklId)?.let { return it }
         if (clientId.isBlank()) return emptyList()
 
         return try {
@@ -95,7 +111,7 @@ class SimklIdResolver @Inject constructor(
                     mapping.add(EpisodeMapping(epNum, tvdbSeason, tvdbEpisode))
                 }
             }
-            mapping.also { episodeCache[simklId] = it }
+            mapping.also { episodeCache.put(simklId, it) }
         } catch (e: Exception) {
             Log.d(TAG, "getEpisodeMapping $type:$simklId failed: ${e.message}")
             emptyList()
@@ -136,7 +152,7 @@ class SimklIdResolver @Inject constructor(
 
     private suspend fun resolveSeasonSimklId(parentSimklId: Long, type: String, tvdbSeason: Int): Long? {
         val cacheKey = "anime_seasons:$parentSimklId"
-        animeSeasonCache[cacheKey]?.let { seasons ->
+        animeSeasonCache.get(cacheKey)?.let { seasons ->
             return seasons.firstOrNull { it.tvdbSeason == tvdbSeason }?.simklId
         }
 
@@ -154,7 +170,7 @@ class SimklIdResolver @Inject constructor(
                 val mappedTvdbSeason = entry.optInt("tvdb_season", -1).takeIf { it > 0 } ?: continue
                 seasons.add(AnimeSeasonEntry(simklId, mappedTvdbSeason))
             }
-            animeSeasonCache[cacheKey] = seasons
+            animeSeasonCache.put(cacheKey, seasons)
             seasons.firstOrNull { it.tvdbSeason == tvdbSeason }?.simklId
         } catch (e: Exception) {
             Log.d(TAG, "resolveSeasonSimklId anime:$parentSimklId season:$tvdbSeason failed: ${e.message}")
@@ -164,7 +180,7 @@ class SimklIdResolver @Inject constructor(
 
     private suspend fun resolveIdsBySimklId(simklId: Long, type: String): ResolvedIds? {
         val cacheKey = "simkl:$simklId"
-        idsCache[cacheKey]?.let { return it }
+        idsCache.get(cacheKey)?.let { return it }
 
         return try {
             val detailsBody = httpGet("$baseUrl/$type/$simklId?extended=full&${commonParams()}") ?: return null
@@ -179,7 +195,7 @@ class SimklIdResolver @Inject constructor(
                 kitsu = ids?.optString("kitsu")?.takeIf { it.isNotBlank() },
                 imdb = ids?.optString("imdb")?.takeIf { it.isNotBlank() },
                 tvdbSeason = details.optInt("season", -1).takeIf { it > 0 }
-            ).also { idsCache[cacheKey] = it }
+            ).also { idsCache.put(cacheKey, it) }
         } catch (e: Exception) {
             Log.d(TAG, "resolveIdsBySimklId $type:$simklId failed: ${e.message}")
             null
@@ -221,6 +237,7 @@ class SimklIdResolver @Inject constructor(
 
     companion object {
         private const val TAG = "SimklIdResolver"
+        private const val CACHE_TTL_MILLIS = 10 * 60_000L
     }
 }
 

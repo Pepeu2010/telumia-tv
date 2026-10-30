@@ -2,11 +2,13 @@ package com.nuvio.tv.core.diagnostics
 
 import android.app.Application
 import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.core.storage.TV_SENTRY_CACHE_DIRECTORY_NAME
 import com.nuvio.tv.data.local.SentrySettingsDataStore
 import io.sentry.Sentry
 import io.sentry.SentryEvent
 import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
+import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -53,6 +55,7 @@ object SentryInitializer {
 
         SentryAndroid.init(application) { options ->
             options.dsn = dsn
+            options.cacheDirPath = File(application.cacheDir, TV_SENTRY_CACHE_DIRECTORY_NAME).absolutePath
             options.release = "${BuildConfig.APPLICATION_ID}@${BuildConfig.VERSION_NAME}+${BuildConfig.VERSION_CODE}"
             options.environment = BuildConfig.SENTRY_ENVIRONMENT
             options.isSendDefaultPii = false

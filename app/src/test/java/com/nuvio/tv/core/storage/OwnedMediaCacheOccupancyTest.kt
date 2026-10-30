@@ -174,6 +174,22 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(47L, Files.size(cacheDirectory.resolve("downloads/movie.mkv")))
     }
 
+    @Test fun sentryEnvelopeCacheCountsWithoutReadingEventsOrIncludingUnknownDirectories() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        write(cacheDirectory, "$TV_SENTRY_CACHE_DIRECTORY_NAME/envelopes/queued-event", 29)
+        write(cacheDirectory, "unmanaged/private-payload", 31)
+        val queuedEvent = cacheDirectory.resolve("$TV_SENTRY_CACHE_DIRECTORY_NAME/envelopes/queued-event")
+        val original = Files.readAllBytes(queuedEvent)
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory, filesDirectory)
+
+        assertTrue(result.complete)
+        assertEquals(29L, result.bytes)
+        assertArrayEquals(original, Files.readAllBytes(queuedEvent))
+        assertEquals(31L, Files.size(cacheDirectory.resolve("unmanaged/private-payload")))
+    }
+
     @Test fun compiledAddonDexCacheCountsWithoutIncludingOtherCodeOrDurableFiles() = fixture { root ->
         val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
         val filesDirectory = root.resolve("files").also(Files::createDirectories)

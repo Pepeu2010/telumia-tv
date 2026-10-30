@@ -19,15 +19,15 @@ No commit base `6224107be17ed15db4b9a030c5409839b6dc7f3c`, os testes novos foram
 
 O comando ampliado `:app:testFullDebugUnitTest --tests '*Trakt*Test' --tests '*Simkl*Test' --tests '*TtlLruCacheTest' --tests '*RelatedServiceCacheLimitsTest'` executou 185 testes e encontrou uma falha em `TraktAuthServiceTest`. A mesma classe e a mesma asserção falharam no worktree limpo do commit base `6224107`; trata-se de uma falha preexistente no mock da renovação do token, não relacionada aos caches. Os 9 testes deste incremento passaram.
 
-`:app:assembleFullDebug` compilou as cinco variantes locais com versionName `1.0.7`, versionCode `10017` e application ID `.debug`. Elas são artefatos locais de validação, com assinatura debug; o workflow oficial da release gera APKs assinados pela chave persistente para instalação sobre a versão estável.
+Após o bump estável, `:app:assembleFullDebug` compilou as cinco variantes locais com versionName `1.0.8`, versionCode `10018` e application ID `.debug`. O `aapt` confirmou a versão e `apksigner` confirmou a assinatura local (certificado debug SHA-256 `da24b46124823f776e120a84a91923123da1fd3f21d94e1eb06f4d1a76471805`). Esses APKs são artefatos de validação; o workflow oficial da release assina os APKs distribuídos com a chave persistente para atualização sobre a versão estável.
 
 | Variante | Bytes | SHA-256 |
 | --- | ---: | --- |
-| Universal | 180027473 | `135558f68e016154c3f30d184647719b50f77fe30fcf3f532c42eccfcb55603d` |
-| ARM64-v8a | 93056235 | `ead43fc328e2bacff97c2b8fc27bdfedb9147b7a38f5c62b4d2463adc72eca10` |
-| Armeabi-v7a | 90954649 | `02c34b3beba3c54909d1966a5af73ddaf34be9cfb516dff93d917aef7d492371` |
-| x86_64 | 95476750 | `46e72b6ebcf5c3ca8965fe5332df953ef56488c4a92f03596e960a2a28239b39` |
-| x86 | 94636885 | `3b001761a5a2813738a0dc012320e5d935f9ac848109c77aa1c65886313d7ea2` |
+| Universal | 180028273 | `2071c89af844a11a3d33be4fbd2066ca11b80e6e2c747a25a8b74f92527e37bc` |
+| ARM64-v8a | 93057035 | `830a94cb14581a5c92c49c07b81d1ad348d7baef18d0e84e31b80cdb1711ccb0` |
+| Armeabi-v7a | 90955445 | `9d3d21cafd6509378b8e00cfdb1a23f61394f0dcfd5e574eaf42e9e2127b1886` |
+| x86_64 | 95477550 | `18a49b929a120f1da2130eaddd238d9d3d11d4f92e2811d3c5324c8ae4340757` |
+| x86 | 94637685 | `7e606add6382b05bf9fbf8ef998247f8a41cb4ef0e27ab582442423b49959891` |
 
 O teste local de build MSI oficial no workflow Desktop `40981827939` parou em `Configure desktop runtime` porque faltam `LOCAL_PROPERTIES_BASE64`, `SENTRY_AUTH_TOKEN` e `SENTRY_DESKTOP_DSN` nos segredos do repositório. Como não houve alteração no cliente Desktop, o pacote Windows permanece o MSI estável 1.0.4 já publicado; o workflow combinado verifica e inclui esse pacote sem recompilá-lo.
 

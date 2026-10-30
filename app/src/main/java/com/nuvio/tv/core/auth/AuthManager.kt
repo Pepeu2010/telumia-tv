@@ -576,7 +576,7 @@ class AuthManager @Inject constructor(
             val results = json.decodeFromString<List<DeviceLoginStartResult>>(body)
             val result = results.firstOrNull()
                 ?: throw Exception("Empty response from start_device_login_session")
-            Log.d(TAG, "$trace startDeviceLoginSession ok elapsedMs=${SystemClock.elapsedRealtime() - startedAtMs} deviceCode=${result.deviceCode.rawForLog()} userCode=${result.userCode.rawForLog()} url=${result.verificationUriComplete.urlForLog()}")
+            Log.d(TAG, "$trace startDeviceLoginSession ok elapsedMs=${SystemClock.elapsedRealtime() - startedAtMs} deviceCode=${result.deviceCode.rawForLog()} userCode=${result.userCode.rawForLog()} url=${result.verificationUriComplete.orEmpty().urlForLog()}")
             Result.success(result)
         } catch (error: Exception) {
             val message = error.message.orEmpty().lowercase()

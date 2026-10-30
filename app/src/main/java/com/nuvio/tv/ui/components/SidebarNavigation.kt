@@ -34,7 +34,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import com.nuvio.tv.R
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -88,10 +87,11 @@ fun SidebarNavigation(
             },
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
     ) {
-        Text(
-            text = stringResource(R.string.app_name).uppercase(),
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-            color = NuvioTheme.colors.Primary
+        BrandWordmark(
+            contentDescription = stringResource(R.string.cd_nuvio_logo),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(34.dp)
         )
 
         Spacer(modifier = Modifier.height(NuvioTheme.spacing.md))

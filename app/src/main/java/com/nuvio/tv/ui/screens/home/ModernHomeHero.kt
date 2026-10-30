@@ -4,9 +4,16 @@ import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +62,10 @@ import androidx.compose.ui.unit.sp
 import com.nuvio.tv.ui.theme.LocalUiMotion
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.tv.material3.Button
+import androidx.tv.material3.ButtonDefaults
+import androidx.tv.material3.Border
+import androidx.tv.material3.ExperimentalTvMaterial3Api
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -210,6 +221,7 @@ internal fun ModernHeroGradientLayer(
     modifier: Modifier
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val accentColor = NuvioTheme.palette.secondary
     Box(
         modifier = modifier
             .graphicsLayer {
@@ -272,6 +284,14 @@ internal fun ModernHeroGradientLayer(
                 )
 
                 onDrawBehind {
+                    val accentRadius = maxOf(size.width, size.height) * 0.72f
+                    drawRect(
+                        brush = Brush.radialGradient(
+                            colors = listOf(accentColor.copy(alpha = 0.13f), Color.Transparent),
+                            center = Offset(size.width * if (isRtl) 0.24f else 0.78f, size.height * 0.22f),
+                            radius = accentRadius
+                        )
+                    )
                     // 1. Horizontal fade (reversed in RTL)
                     val rectLeft = if (isRtl) size.width - horizontalFadeEndX else 0f
                     drawRect(
@@ -299,6 +319,7 @@ internal fun HeroTitleBlock(
     showImdbRatings: Boolean,
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
+    onPrimaryAction: (() -> Unit)? = null,
     trailerPlaying: () -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
@@ -319,30 +340,52 @@ internal fun HeroTitleBlock(
 
     val displayPreview = if (!isEnriching && currentPreview != null) currentPreview else stablePreview
     if (displayPreview == null) return
+    val heroMotion = NuvioTheme.motion
     
     Box(
         modifier = modifier,
         contentAlignment = Alignment.BottomStart
     ) {
-        HeroTitleContent(
-            previewProvider = { displayPreview },
-            portraitMode = portraitMode,
-            showImdbRatings = showImdbRatings,
-            mdbListShowOnHero = mdbListShowOnHero,
-            mdbListRatingOrder = mdbListRatingOrder,
-            trailerPlaying = trailerPlaying
-        )
+        AnimatedContent(
+            targetState = displayPreview,
+            contentKey = { preview -> preview.title to preview.backdrop },
+            transitionSpec = {
+                (fadeIn(tween(heroMotion.durations.medium)) +
+                    slideInVertically(
+                        animationSpec = tween(heroMotion.durations.medium),
+                        initialOffsetY = { it / 14 }
+                    )).togetherWith(
+                    fadeOut(tween(heroMotion.durations.fast)) +
+                        slideOutVertically(
+                            animationSpec = tween(heroMotion.durations.fast),
+                            targetOffsetY = { -it / 16 }
+                        )
+                )
+            },
+            label = "telumiaHeroTitleTransition"
+        ) { animatedPreview ->
+            HeroTitleContent(
+                previewProvider = { animatedPreview },
+                portraitMode = portraitMode,
+                showImdbRatings = showImdbRatings,
+                mdbListShowOnHero = mdbListShowOnHero,
+                mdbListRatingOrder = mdbListRatingOrder,
+                onPrimaryAction = onPrimaryAction,
+                trailerPlaying = trailerPlaying
+            )
+        }
     }
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalTvMaterial3Api::class)
 internal fun HeroTitleContent(
     previewProvider: () -> HeroPreview?,
     portraitMode: Boolean,
     showImdbRatings: Boolean,
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
+    onPrimaryAction: (() -> Unit)? = null,
     trailerPlaying: () -> Boolean = { false }
 ) {
     val preview = previewProvider() ?: return
@@ -442,6 +485,36 @@ internal fun HeroTitleContent(
                 Text(it, style = MaterialTheme.typography.bodyMedium.copy(textDirection = it.contentTextDirection()),
                     color = colors.TextSecondary, maxLines = if (compact) 1 else 2,
                     overflow = TextOverflow.Ellipsis)
+            }
+        }
+        onPrimaryAction?.let { action ->
+            Button(
+                onClick = action,
+                modifier = Modifier
+                    .height(48.dp)
+                    .graphicsLayer { alpha = metaAlpha }
+                    .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
+                enabled = !trailerPlaying(),
+                shape = ButtonDefaults.shape(RoundedCornerShape(if (compact) 12.dp else 14.dp)),
+                colors = ButtonDefaults.colors(
+                    containerColor = colors.Secondary,
+                    contentColor = colors.OnSecondary,
+                    focusedContainerColor = colors.Secondary,
+                    focusedContentColor = colors.OnSecondary
+                ),
+                border = ButtonDefaults.border(
+                    border = Border.None,
+                    focusedBorder = androidx.tv.material3.Border(
+                        border = BorderStroke(2.dp, colors.FocusRing),
+                        shape = RoundedCornerShape(if (compact) 12.dp else 14.dp)
+                    )
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.cw_action_go_to_details),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }

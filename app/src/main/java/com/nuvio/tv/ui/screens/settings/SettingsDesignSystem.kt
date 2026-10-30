@@ -56,6 +56,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -238,10 +239,24 @@ internal fun SettingsBrandPanel(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(SettingsContainerRadius))
-            .background(NuvioTheme.colors.BackgroundElevated)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        NuvioTheme.colors.BackgroundElevated,
+                        NuvioTheme.colors.BackgroundCard.copy(alpha = 0.76f),
+                        NuvioTheme.colors.BackgroundElevated
+                    )
+                )
+            )
             .border(
                 width = NuvioTheme.spacing.hairline,
-                color = NuvioTheme.colors.Border,
+                brush = Brush.linearGradient(
+                    listOf(
+                        NuvioTheme.colors.Border.copy(alpha = 0.58f),
+                        NuvioTheme.colors.Secondary.copy(alpha = 0.34f),
+                        NuvioTheme.colors.Border.copy(alpha = 0.42f)
+                    )
+                ),
                 shape = RoundedCornerShape(SettingsContainerRadius)
             )
             .padding(26.dp),
@@ -269,6 +284,16 @@ internal fun SettingsBrandPanel(
                 color = titleColor
             )
         }
+
+        Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
+
+        Box(
+            modifier = Modifier
+                .width(68.dp)
+                .height(3.dp)
+                .clip(CircleShape)
+                .background(Brush.horizontalGradient(NuvioTheme.palette.accentGradient))
+        )
 
         Spacer(modifier = Modifier.height(26.dp))
 
@@ -326,10 +351,24 @@ internal fun SettingsWorkspaceSurface(
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(SettingsContainerRadius))
-                .background(NuvioTheme.colors.BackgroundElevated)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            NuvioTheme.colors.BackgroundElevated,
+                            NuvioTheme.colors.BackgroundCard.copy(alpha = 0.72f),
+                            NuvioTheme.colors.BackgroundElevated
+                        )
+                    )
+                )
                 .border(
                     width = NuvioTheme.spacing.hairline,
-                    color = NuvioTheme.colors.Border,
+                    brush = Brush.linearGradient(
+                        listOf(
+                            NuvioTheme.colors.Border.copy(alpha = 0.54f),
+                            NuvioTheme.colors.Secondary.copy(alpha = 0.28f),
+                            NuvioTheme.colors.Border.copy(alpha = 0.4f)
+                        )
+                    ),
                     shape = RoundedCornerShape(SettingsContainerRadius)
                 )
                 .padding(20.dp),

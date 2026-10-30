@@ -1909,6 +1909,14 @@ private fun ModernSidebarScaffold(
         isSidebarExpanded || sidebarCollapsePending || pendingContentFocusTransfer
     val hasSidebarProfileItem = showProfileSelector && activeProfileName.isNotEmpty()
     val sidebarTopBoundaryIndex = if (hasSidebarProfileItem) drawerItems.size else 0
+    val selectedDrawerIndex = remember(drawerItems, selectedDrawerRoute) {
+        drawerItems.indexOfFirst { it.route == selectedDrawerRoute }.coerceAtLeast(0)
+    }
+    val requestDrawerItemFocus: (Int) -> Boolean = { index ->
+        drawerItems.getOrNull(index)?.route
+            ?.let { route -> drawerItemFocusRequesters[route]?.requestFocus() == true }
+            ?: false
+    }
 
     LaunchedEffect(showSidebar) {
         if (!showSidebar) {
@@ -2177,18 +2185,32 @@ private fun ModernSidebarScaffold(
                         }
                         when (keyEvent.key) {
                             Key.DirectionUp -> {
-                                if (focusedDrawerIndex == sidebarTopBoundaryIndex) {
+                                val currentIndex = focusedDrawerIndex
+                                    .takeIf { it in drawerItems.indices }
+                                    ?: selectedDrawerIndex
+                                if (focusedDrawerIndex == sidebarTopBoundaryIndex ||
+                                    (currentIndex == 0 && !hasSidebarProfileItem)
+                                ) {
+                                    true
+                                } else if (currentIndex > 0) {
+                                    requestDrawerItemFocus(currentIndex - 1)
                                     true
                                 } else {
-                                    // Move focus within the sidebar; consume unconditionally
-                                    // so focus never escapes into the content behind.
+                                    // The profile card sits above the first route, outside the
+                                    // drawerItemFocusRequesters map. Keep geometric focus for this
+                                    // single transition; all route-to-route moves use exact targets.
                                     focusManager.moveFocus(FocusDirection.Up)
                                     true
                                 }
                             }
 
                             Key.DirectionDown -> {
-                                if (focusedDrawerIndex == drawerItems.lastIndex) {
+                                val currentIndex = focusedDrawerIndex
+                                    .takeIf { it in drawerItems.indices }
+                                    ?: selectedDrawerIndex
+                                if (focusedDrawerIndex == drawerItems.lastIndex ||
+                                    currentIndex == drawerItems.lastIndex
+                                ) {
                                     // Already at the bottom drawer item — stay put.
                                     true
                                 } else if (focusedDrawerIndex == drawerItems.size && hasSidebarProfileItem) {
@@ -2200,7 +2222,8 @@ private fun ModernSidebarScaffold(
                                     }
                                     true
                                 } else {
-                                    focusManager.moveFocus(FocusDirection.Down)
+                                    val moved = requestDrawerItemFocus(currentIndex + 1)
+                                    if (!moved) focusManager.moveFocus(FocusDirection.Down)
                                     true
                                 }
                             }

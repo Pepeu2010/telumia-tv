@@ -221,6 +221,15 @@ jobs:
             fi
           done
 
+          if ! grep -Eq '^[[:space:]]*(NUVIO_SUPABASE_URL|SUPABASE_URL)[[:space:]]*=[[:space:]]*[^[:space:]].*$' local.properties; then
+            echo "Missing Supabase URL property (NUVIO_SUPABASE_URL or SUPABASE_URL)." >&2
+            exit 1
+          fi
+          if ! grep -Eq '^[[:space:]]*(NUVIO_SUPABASE_ANON_KEY|SUPABASE_ANON_KEY)[[:space:]]*=[[:space:]]*[^[:space:]].*$' local.properties; then
+            echo "Missing Supabase anon key property (NUVIO_SUPABASE_ANON_KEY or SUPABASE_ANON_KEY)." >&2
+            exit 1
+          fi
+
       - name: Test updater and build full release APKs
         if: inputs.mode != 'dry-run'
         run: ./gradlew :app:testFullReleaseUnitTest --tests 'com.nuvio.tv.updater.*' :app:assembleFullRelease --stacktrace

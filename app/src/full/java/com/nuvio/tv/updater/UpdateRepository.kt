@@ -25,7 +25,7 @@ class UpdateRepository @Inject constructor(
             }
             val releases = response.body() ?: error("Empty GitHub release response")
             val releaseWithAsset = ReleaseSelector
-                .eligibleReleases(releases, channel)
+                .eligibleReleases(releases)
                 .firstNotNullOfOrNull { release ->
                     AbiSelector.chooseBestApkAsset(release.assets)?.let { asset ->
                         release to asset

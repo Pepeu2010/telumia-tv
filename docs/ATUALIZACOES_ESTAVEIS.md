@@ -1,6 +1,6 @@
 # Atualizações estáveis no Android TV
 
-O app consulta a lista de releases do repositório principal `Pepeu2010/telumia` ao iniciar e quando a pessoa seleciona **Verificar atualizações**. A tela de configurações mostra a versão mais recente encontrada que tenha um APK compatível com a arquitetura do aparelho, mesmo quando essa versão já está instalada. Desativar o banner desativa o aviso automático, não a consulta nem a informação de versão.
+O app consulta a lista de releases do repositório principal `Pepeu2010/telumia` ao iniciar e quando a pessoa seleciona **Verificar atualizações**. O canal é estável; releases alpha, beta, RC e rascunhos são sempre ignorados e não há seletor de versões de teste. A tela de configurações mostra a versão estável mais recente encontrada que tenha um APK compatível com a arquitetura do aparelho, mesmo quando essa versão já está instalada. Desativar o banner desativa o aviso automático, não a consulta nem a informação de versão.
 
 No canal estável, a seleção ignora rascunhos e pré-lançamentos, ordena as versões por semver e procura da mais nova para a mais antiga um APK compatível. Isso evita depender do marcador `latest` do GitHub e permite usar o release mais recente que o dispositivo consegue instalar.
 

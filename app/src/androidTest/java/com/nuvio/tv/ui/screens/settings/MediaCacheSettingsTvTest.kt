@@ -223,6 +223,26 @@ class MediaCacheSettingsTvTest {
         assertEquals(23L, legacy.length())
     }
 
+    @Test fun runtimeMeasurementCountsQueuedSentryFilesWithoutReadingOrChangingThem() {
+        val cacheDirectory = File(fixtureDirectory, "sentry-cache-scope").apply { mkdirs() }
+        val filesDirectory = File(fixtureDirectory, "sentry-files-scope").apply { mkdirs() }
+        val queuedEnvelope = File(cacheDirectory, "sentry/envelopes/queued-event").apply {
+            parentFile!!.mkdirs()
+        }
+        val original = ByteArray(37) { (it * 3).toByte() }
+        queuedEnvelope.writeBytes(original)
+        File(cacheDirectory, "unrecognized-cache/ignored-entry").apply {
+            parentFile!!.mkdirs()
+            writeBytes(ByteArray(41))
+        }
+
+        val result = measureTvMediaCacheOccupancy(cacheDirectory.toPath(), filesDirectory.toPath())
+
+        assertTrue(result.complete)
+        assertEquals(original.size.toLong(), result.bytes)
+        assertArrayEquals(original, queuedEnvelope.readBytes())
+    }
+
     @Test fun nativeDirectoryIterationStopsAtItsEntryBudget() {
         val images = File(context.cacheDir, "image_cache").apply { mkdirs() }
         repeat(20) { File(images, "$it").writeBytes(ByteArray(4)) }

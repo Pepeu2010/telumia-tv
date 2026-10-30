@@ -439,7 +439,8 @@
     <string name="about_update_channel_title">Canal de Atualizações</string>
     <string name="about_update_channel_subtitle">Escolha o tipo de atualizações do app que você quer receber</string>
     <string name="about_check_updates">Verificar atualizações</string>
-    <string name="about_check_updates_subtitle">Baixar a versão mais recente</string>
+    <string name="about_check_updates_subtitle">Baixar a versão estável mais recente</string>
+    <string name="about_latest_download_version">Última versão disponível para download: %1$s</string>
     <string name="update_channel_stable">Estável</string>
     <string name="update_channel_beta">Beta</string>
     <string name="update_channel_dialog_subtitle">Escolha o tipo de atualização que você quer receber</string>
@@ -1416,6 +1417,7 @@
     <string name="qr_login_device_auth_failed">Falha ao autenticar dispositivo</string>
     <string name="qr_login_scan_prompt">Escaneie o QR e entre pelo celular</string>
     <string name="qr_login_start_failed">Falha ao iniciar login por QR</string>
+    <string name="qr_login_service_not_configured">O login por QR não está configurado nesta compilação. Instale a versão oficial ou configure o backend.</string>
     <string name="qr_login_signing_in">Entrando…</string>
     <string name="qr_login_success">Login realizado com sucesso</string>
     <string name="qr_login_exchange_failed">Não foi possível concluir login por QR</string>

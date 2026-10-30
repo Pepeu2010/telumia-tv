@@ -49,6 +49,26 @@ val devProperties = Properties().apply {
     }
 }
 
+val officialNuvioBackendDefaults = mapOf(
+    "NUVIO_SUPABASE_URL" to "https://api.nuvio.tv",
+    // Nuvio publishes this client key for app builds; it is not a service-role key.
+    "NUVIO_SUPABASE_ANON_KEY" to "sb_publishable_1Clq8rlTVACkdcZuqr6_AD__xUUC_EN",
+)
+
+val configuredSupabaseUrl = resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_URL")
+    .ifBlank { resolveProperty(devProperties, localProperties, "SUPABASE_URL") }
+val configuredSupabaseKey = resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_ANON_KEY")
+    .ifBlank { resolveProperty(devProperties, localProperties, "SUPABASE_ANON_KEY") }
+val useOfficialNuvioBackendDefaults = configuredSupabaseUrl.isBlank() && configuredSupabaseKey.isBlank()
+
+fun resolveSupabaseProperty(property: String, legacyProperty: String): String {
+    val configured = resolveProperty(devProperties, localProperties, property)
+        .ifBlank { resolveProperty(devProperties, localProperties, legacyProperty) }
+    if (configured.isNotBlank()) return configured
+    if (!useOfficialNuvioBackendDefaults) return ""
+    return officialNuvioBackendDefaults[property].orEmpty()
+}
+
 val enableDoviNative = parseBooleanProperty(
     resolveProperty(devProperties, localProperties, "DOVI_NATIVE_ENABLED")
 )
@@ -115,8 +135,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10020
-        versionName = "1.0.10"
+        versionCode = 10025
+        versionName = "1.0.13"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")
@@ -213,9 +233,9 @@ android {
             buildConfigField("String", "SENTRY_ENVIRONMENT", buildConfigString("debug"))
 
             // Dev environment (from local.dev.properties)
-            buildConfigField("String", "SUPABASE_URL", buildConfigString(resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_URL")))
-            buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_ANON_KEY")))
-            buildConfigField("String", "SUPABASE_FALLBACK_URL", buildConfigString(resolveProperty(devProperties, localProperties, "NUVIO_SUPABASE_FALLBACK_URL")))
+            buildConfigField("String", "SUPABASE_URL", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_URL", "SUPABASE_URL")))
+            buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY")))
+            buildConfigField("String", "SUPABASE_FALLBACK_URL", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_FALLBACK_URL", "SUPABASE_FALLBACK_URL")))
             buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${devProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
             buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${devProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
             buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${devProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
@@ -248,9 +268,9 @@ android {
             buildConfigField("String", "SENTRY_ENVIRONMENT", buildConfigString("production"))
 
             // Production environment (from local.properties)
-            buildConfigField("String", "SUPABASE_URL", buildConfigString(localProperties.getProperty("NUVIO_SUPABASE_URL", "")))
-            buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(localProperties.getProperty("NUVIO_SUPABASE_ANON_KEY", "")))
-            buildConfigField("String", "SUPABASE_FALLBACK_URL", buildConfigString(localProperties.getProperty("NUVIO_SUPABASE_FALLBACK_URL", "")))
+            buildConfigField("String", "SUPABASE_URL", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_URL", "SUPABASE_URL")))
+            buildConfigField("String", "SUPABASE_ANON_KEY", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_ANON_KEY", "SUPABASE_ANON_KEY")))
+            buildConfigField("String", "SUPABASE_FALLBACK_URL", buildConfigString(resolveSupabaseProperty("NUVIO_SUPABASE_FALLBACK_URL", "SUPABASE_FALLBACK_URL")))
             buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
             buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
             buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")

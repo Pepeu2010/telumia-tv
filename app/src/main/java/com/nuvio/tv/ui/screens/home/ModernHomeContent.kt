@@ -1083,6 +1083,19 @@ fun ModernHomeContent(
                         bottom = rowsViewportHeight + if (screenHeight < 480.dp) NuvioTheme.spacing.sm else NuvioTheme.spacing.lg)
                     .fillMaxWidth(MODERN_HERO_TEXT_WIDTH_FRACTION)
             }
+            val heroPrimaryAction: (() -> Unit)? = when (val payload = focusedCatalogSelection.value?.payload) {
+                is ModernPayload.Catalog -> {
+                    {
+                        onNavigateToDetail(payload.itemId, payload.itemType, payload.addonBaseUrl)
+                    }
+                }
+                is ModernPayload.CollectionFolder -> {
+                    {
+                        onNavigateToFolderDetail(payload.collectionId, payload.folderId)
+                    }
+                }
+                else -> null
+            }
 
             HeroTitleBlock(
                 previewProvider = {
@@ -1098,6 +1111,7 @@ fun ModernHomeContent(
                 showImdbRatings = uiState.homeImdbRatingsVisibility.showRatings,
                 mdbListShowOnHero = uiState.mdbListShowOnHero,
                 mdbListRatingOrder = uiState.mdbListRatingOrder,
+                onPrimaryAction = heroPrimaryAction,
                 trailerPlaying = {
                     if (isRapidHorizontalNav.value) false
                     else {

@@ -442,7 +442,8 @@
     <string name="about_update_channel_title">Update channel</string>
     <string name="about_update_channel_subtitle">Choose the type of app updates to receive</string>
     <string name="about_check_updates">Check for updates</string>
-    <string name="about_check_updates_subtitle">Download latest release</string>
+    <string name="about_check_updates_subtitle">Download the latest stable release</string>
+    <string name="about_latest_download_version">Latest version available to download: %1$s</string>
     <string name="update_channel_stable">Stable</string>
     <string name="update_channel_beta">Beta</string>
     <string name="update_channel_dialog_subtitle">Choose the type of updates you want to receive</string>
@@ -1529,6 +1530,7 @@
     <string name="qr_login_device_auth_failed">Failed to authenticate device</string>
     <string name="qr_login_scan_prompt">Scan QR and sign in on your phone</string>
     <string name="qr_login_start_failed">Failed to start QR login</string>
+    <string name="qr_login_service_not_configured">QR login is not configured in this build. Install the official release or configure the backend.</string>
     <string name="qr_login_signing_in">Signing you in…</string>
     <string name="qr_login_success">Signed in successfully</string>
     <string name="qr_login_exchange_failed">Could not complete QR sign in</string>

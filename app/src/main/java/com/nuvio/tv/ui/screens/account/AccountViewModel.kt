@@ -15,6 +15,7 @@ import com.nuvio.tv.core.logging.rawForLog
 import com.nuvio.tv.core.logging.urlForLog
 import com.nuvio.tv.core.plugin.PluginManager
 import com.nuvio.tv.core.profile.ProfileManager
+import com.nuvio.tv.core.qr.resolveDeviceLoginQrPayload
 import com.nuvio.tv.core.qr.QrCodeGenerator
 import com.nuvio.tv.core.sync.AddonSyncService
 import com.nuvio.tv.core.sync.LibrarySyncService
@@ -44,9 +45,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.time.OffsetDateTime
 import java.util.Base64
@@ -318,6 +322,23 @@ class AccountViewModel @Inject constructor(
                 )
             }
             Log.d(TAG, "QR_LOGIN[$traceId] start_device_login_session call begin")
+            if (serverConfiguration.backendUrl.isBlank() || serverConfiguration.publishableKey.isBlank()) {
+                val error = IllegalStateException("QR login backend configuration is missing")
+                Log.e(
+                    TAG,
+                    "QR_LOGIN[$traceId] start aborted: backendConfigured=${serverConfiguration.backendUrl.isNotBlank()} anonKeyConfigured=${serverConfiguration.publishableKey.isNotBlank()}"
+                )
+                diagnostics.finishFailure("qr_login_configuration_missing", QR_ENDPOINT_START, error = error)
+                activeQrLoginDiagnostics = null
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = context.getString(R.string.qr_login_service_not_configured),
+                        qrLoginStatus = context.getString(R.string.qr_login_start_failed)
+                    )
+                }
+                return@launch
+            }
             authManager.startDeviceLoginSession(
                 deviceNonce = nonce,
                 deviceName = Build.MODEL,
@@ -329,26 +350,43 @@ class AccountViewModel @Inject constructor(
             ).fold(
                 onSuccess = { result ->
                     val expiresAtMillis = parseTimestampMillis(result.expiresAt)
-                    if (result.deviceCode.isBlank() || result.userCode.isBlank() || result.verificationUriComplete.isBlank()) {
-                        Log.w(TAG, "QR_LOGIN[$traceId] start_device_login_session returned incomplete data deviceCodeBlank=${result.deviceCode.isBlank()} userCodeBlank=${result.userCode.isBlank()} urlBlank=${result.verificationUriComplete.isBlank()}")
+                    val completeVerificationUri = result.verificationUriComplete.orEmpty()
+                    if (result.deviceCode.isBlank() || result.userCode.isBlank() || completeVerificationUri.isBlank()) {
+                        Log.w(TAG, "QR_LOGIN[$traceId] start_device_login_session returned incomplete data deviceCodeBlank=${result.deviceCode.isBlank()} userCodeBlank=${result.userCode.isBlank()} urlBlank=${completeVerificationUri.isBlank()}")
                     }
+                    val qrPayload = resolveDeviceLoginQrPayload(
+                        verificationUriComplete = completeVerificationUri,
+                        verificationUri = result.verificationUri,
+                        configuredFallbackUri = serverConfiguration.deviceLoginWebBaseUrl
+                            ?: serverConfiguration.tvLoginWebBaseUrl,
+                    )
                     val qrStartedAtMs = SystemClock.elapsedRealtime()
-                    val qrBitmap = runCatching { QrCodeGenerator.generate(result.verificationUriComplete, 420, margin = 1) }
-                        .onFailure { e ->
-                            Log.e(TAG, "QR_LOGIN[$traceId] QR bitmap generation failed url=${result.verificationUriComplete.urlForLog()} urlLength=${result.verificationUriComplete.length} error=${e.diagnosticSummary()}")
+                    val qrBitmap = try {
+                        qrPayload?.let { payload ->
+                            withContext(Dispatchers.Default) {
+                                QrCodeGenerator.generate(payload, 420, margin = 4)
+                            }
                         }
-                        .getOrNull()
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (e: Exception) {
+                        Log.e(TAG, "QR_LOGIN[$traceId] QR bitmap generation failed url=${qrPayload?.urlForLog() ?: "-"} urlLength=${qrPayload?.length ?: 0} error=${e.diagnosticSummary()}")
+                        null
+                    }
+                    if (qrPayload == null) {
+                        Log.e(TAG, "QR_LOGIN[$traceId] no valid verification URL returned or configured")
+                    }
                     Log.d(
                         TAG,
-                        "QR_LOGIN[$traceId] start_device_login_session ok totalElapsedMs=${SystemClock.elapsedRealtime() - startedAtMs} deviceCode=${result.deviceCode.rawForLog()} userCode=${result.userCode.rawForLog()} url=${result.verificationUriComplete.urlForLog()} urlLength=${result.verificationUriComplete.length} legacy=${result.legacy} expiresAt=${result.expiresAt} expiresAtMs=${expiresAtMillis ?: "-"} pollInterval=${result.pollIntervalSeconds} qrBitmap=${qrBitmap != null} qrElapsedMs=${SystemClock.elapsedRealtime() - qrStartedAtMs}"
+                        "QR_LOGIN[$traceId] start_device_login_session ok totalElapsedMs=${SystemClock.elapsedRealtime() - startedAtMs} deviceCode=${result.deviceCode.rawForLog()} userCode=${result.userCode.rawForLog()} url=${qrPayload?.urlForLog() ?: "-"} urlLength=${qrPayload?.length ?: 0} legacy=${result.legacy} expiresAt=${result.expiresAt} expiresAtMs=${expiresAtMillis ?: "-"} pollInterval=${result.pollIntervalSeconds} qrBitmap=${qrBitmap != null} qrElapsedMs=${SystemClock.elapsedRealtime() - qrStartedAtMs}"
                     )
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             qrLoginCode = result.deviceCode,
                             qrLoginUserCode = result.userCode,
-                            qrLoginUrl = result.verificationUriComplete,
-                            qrLoginVerificationUri = result.verificationUri,
+                            qrLoginUrl = qrPayload,
+                            qrLoginVerificationUri = result.verificationUri.takeIf { it.isNotBlank() } ?: qrPayload,
                             qrLoginBitmap = qrBitmap,
                             qrLoginStatus = context.getString(R.string.qr_login_scan_prompt),
                             qrLoginExpiresAtMillis = expiresAtMillis,

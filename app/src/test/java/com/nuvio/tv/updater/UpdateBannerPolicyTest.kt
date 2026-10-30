@@ -33,6 +33,19 @@ class UpdateBannerPolicyTest {
     }
 
     @Test
+    fun `automatic check keeps the update banner hidden when disabled`() {
+        assertFalse(
+            UpdateBannerPolicy.shouldShow(
+                isRemoteNewer = true,
+                force = false,
+                bannerEnabled = false,
+                dismissedTag = null,
+                updateTag = "v1.2.0"
+            )
+        )
+    }
+
+    @Test
     fun `a newer tag is shown after the previous update was dismissed`() {
         assertTrue(
             UpdateBannerPolicy.shouldShow(

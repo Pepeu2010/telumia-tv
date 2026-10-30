@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -535,21 +536,33 @@ internal fun ModernRowSection(
             } else Modifier
         )
     ) {
-        val titleMediumStyle = MaterialTheme.typography.titleMedium
-        val rowTitleStyle = remember(titleMediumStyle) {
-            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold)
+        val titleLargeStyle = MaterialTheme.typography.titleLarge
+        val rowTitleStyle = remember(titleLargeStyle) {
+            titleLargeStyle.copy(fontWeight = FontWeight.SemiBold)
         }
         val rowTitle = row.title
         val textColor = NuvioTheme.colors.TextPrimary
         val textModifier = remember(rowTitleBottom) {
             Modifier.padding(start = 52.dp, bottom = rowTitleBottom)
         }
-        Text(
-            text = rowTitle,
-            style = rowTitleStyle.copy(textDirection = rowTitle.contentTextDirection()),
-            color = textColor,
-            modifier = textModifier
-        )
+        Row(
+            modifier = textModifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(23.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient))
+            )
+            Text(
+                text = rowTitle,
+                style = rowTitleStyle.copy(textDirection = rowTitle.contentTextDirection()),
+                color = textColor
+            )
+        }
 
         val rowListState = rowListStates.getOrPut(row.key) {
             // Resolved when the row is built, so a refresh that already moved the card is seen.

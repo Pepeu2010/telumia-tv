@@ -1416,6 +1416,7 @@
     <string name="qr_login_device_auth_failed">Falha ao autenticar dispositivo</string>
     <string name="qr_login_scan_prompt">Escaneie o QR e entre pelo celular</string>
     <string name="qr_login_start_failed">Falha ao iniciar login por QR</string>
+    <string name="qr_login_service_not_configured">O login por QR não está configurado nesta compilação. Instale a versão oficial ou configure o backend.</string>
     <string name="qr_login_signing_in">Entrando…</string>
     <string name="qr_login_success">Login realizado com sucesso</string>
     <string name="qr_login_exchange_failed">Não foi possível concluir login por QR</string>

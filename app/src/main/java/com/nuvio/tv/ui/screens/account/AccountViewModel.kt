@@ -322,6 +322,23 @@ class AccountViewModel @Inject constructor(
                 )
             }
             Log.d(TAG, "QR_LOGIN[$traceId] start_device_login_session call begin")
+            if (serverConfiguration.backendUrl.isBlank() || serverConfiguration.publishableKey.isBlank()) {
+                val error = IllegalStateException("QR login backend configuration is missing")
+                Log.e(
+                    TAG,
+                    "QR_LOGIN[$traceId] start aborted: backendConfigured=${serverConfiguration.backendUrl.isNotBlank()} anonKeyConfigured=${serverConfiguration.publishableKey.isNotBlank()}"
+                )
+                diagnostics.finishFailure("qr_login_configuration_missing", QR_ENDPOINT_START, error = error)
+                activeQrLoginDiagnostics = null
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = context.getString(R.string.qr_login_service_not_configured),
+                        qrLoginStatus = context.getString(R.string.qr_login_start_failed)
+                    )
+                }
+                return@launch
+            }
             authManager.startDeviceLoginSession(
                 deviceNonce = nonce,
                 deviceName = Build.MODEL,

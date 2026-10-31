@@ -126,7 +126,7 @@ internal fun isFlatSettingsStyle(): Boolean = NuvioTheme.settingsUiStyle != Sett
 
 @Composable
 @androidx.compose.runtime.ReadOnlyComposable
-internal fun settingsFocusFillColor(): Color = NuvioTheme.colors.TextPrimary.copy(alpha = 0.1f)
+internal fun settingsFocusFillColor(): Color = NuvioTheme.colors.FocusBackground
 
 @Composable
 @androidx.compose.runtime.ReadOnlyComposable
@@ -159,7 +159,13 @@ internal fun settingsRowBorder(
     contentAlpha: Float = 1f,
     shape: RoundedCornerShape = settingsRowShape()
 ): CardBorder = if (isFlatSettingsStyle()) {
-    CardDefaults.border(border = Border.None, focusedBorder = Border.None)
+    CardDefaults.border(
+        border = Border.None,
+        focusedBorder = Border(
+            border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs, alpha = contentAlpha),
+            shape = shape
+        )
+    )
 } else {
     CardDefaults.border(
         focusedBorder = Border(
@@ -412,14 +418,24 @@ internal fun SettingsRailButton(
             },
         colors = CardDefaults.colors(
             containerColor = when {
+                zen && isSelected -> NuvioTheme.colors.Secondary.copy(alpha = 0.14f)
                 zen -> Color.Transparent
                 isSelected -> NuvioTheme.colors.BackgroundCard
                 else -> NuvioTheme.colors.Background
             },
-            focusedContainerColor = if (zen) settingsFocusFillColor() else NuvioTheme.colors.BackgroundCard
+            focusedContainerColor = if (zen) NuvioTheme.colors.FocusBackground else NuvioTheme.colors.BackgroundCard
         ),
         border = if (zen) {
-            CardDefaults.border(border = Border.None, focusedBorder = Border.None)
+            CardDefaults.border(
+                border = if (isSelected) Border(
+                    border = NuvioTheme.focusRing.border(NuvioTheme.spacing.hairline),
+                    shape = railShape
+                ) else Border.None,
+                focusedBorder = Border(
+                    border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
+                    shape = railShape
+                )
+            )
         } else {
             CardDefaults.border(
                 border = if (isSelected) Border(
@@ -626,6 +642,7 @@ internal fun SettingsDetailHeader(
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = NuvioTheme.colors.TextPrimary
             )
+            SettingsAccentRule()
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
@@ -643,6 +660,7 @@ internal fun SettingsDetailHeader(
                 style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.SemiBold),
                 color = NuvioTheme.colors.TextPrimary
             )
+            SettingsAccentRule()
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
@@ -658,6 +676,7 @@ internal fun SettingsDetailHeader(
                 style = MaterialTheme.typography.headlineMedium,
                 color = NuvioTheme.colors.TextPrimary
             )
+            SettingsAccentRule()
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
@@ -665,6 +684,17 @@ internal fun SettingsDetailHeader(
             )
         }
     }
+}
+
+@Composable
+private fun SettingsAccentRule() {
+    Box(
+        modifier = Modifier
+            .width(42.dp)
+            .height(3.dp)
+            .clip(CircleShape)
+            .background(Brush.horizontalGradient(NuvioTheme.palette.accentGradient))
+    )
 }
 
 @Composable
@@ -703,6 +733,17 @@ internal fun SettingsGroupCard(
                     .fillMaxWidth()
                     .clip(SettingsHorizonGroupShape)
                     .background(NuvioTheme.colors.BackgroundCard.copy(alpha = 0.55f))
+                    .border(
+                        width = NuvioTheme.spacing.hairline,
+                        brush = Brush.linearGradient(
+                            listOf(
+                                NuvioTheme.colors.Border.copy(alpha = 0.62f),
+                                NuvioTheme.colors.Secondary.copy(alpha = 0.18f),
+                                NuvioTheme.colors.Border.copy(alpha = 0.42f)
+                            )
+                        ),
+                        shape = SettingsHorizonGroupShape
+                    )
                     .padding(NuvioTheme.spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xxs)
             ) {

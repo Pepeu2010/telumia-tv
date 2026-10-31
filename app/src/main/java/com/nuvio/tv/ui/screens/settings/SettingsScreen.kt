@@ -18,6 +18,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -87,6 +88,9 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -139,6 +143,46 @@ private const val NO_RAIL_FALLBACK = -1L
 private const val SETTINGS_TAB_FOCUS_SELECT_DELAY_MS = 140L
 private const val SETTINGS_DETAIL_ANIM_IN_DURATION_MS = 200
 private const val SETTINGS_DETAIL_ANIM_OUT_DURATION_MS = 180
+
+internal data class SettingsWorkspaceLayout(
+    val horizontalInset: Dp,
+    val railWidth: Dp,
+    val columnSpacing: Dp,
+    val detailMaxWidth: Dp,
+    val workspaceMaxWidth: Dp
+)
+
+/** Keeps the two-pane settings layout useful on compact TV viewports and balanced on 4K. */
+internal fun settingsWorkspaceLayout(width: Dp): SettingsWorkspaceLayout {
+    val compactRange = width < 1100.dp
+    val progress = if (compactRange) {
+        ((width.value - 640f) / 460f).coerceIn(0f, 1f)
+    } else {
+        ((width.value - 1100f) / 500f).coerceIn(0f, 1f)
+    }
+    fun interpolate(start: Dp, end: Dp): Dp = start + (end - start) * progress
+
+    return if (compactRange) {
+        SettingsWorkspaceLayout(
+            horizontalInset = interpolate(16.dp, 24.dp),
+            railWidth = interpolate(168.dp, 192.dp),
+            columnSpacing = interpolate(14.dp, 20.dp),
+            detailMaxWidth = interpolate(720.dp, 880.dp),
+            workspaceMaxWidth = width
+        )
+    } else {
+        SettingsWorkspaceLayout(
+            horizontalInset = interpolate(24.dp, 48.dp),
+            railWidth = interpolate(192.dp, 240.dp),
+            columnSpacing = interpolate(20.dp, 32.dp),
+            detailMaxWidth = interpolate(880.dp, 1200.dp),
+            workspaceMaxWidth = width.coerceAtMost(1600.dp)
+        )
+    }
+}
+
+internal fun Modifier.settingsCategorySelectionSemantics(isSelected: Boolean): Modifier =
+    semantics { selected = isSelected }
 
 // The focus window has two parts: SETTINGS_DETAIL_FOCUS_DELAY_MS before the first request, then
 // this long retrying once per frame, so a category has both added together before focus falls
@@ -402,19 +446,22 @@ fun SettingsScreen(
         pendingContentFocusCategory = null
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(NuvioTheme.colors.Background)
-            .padding(
-                start = NuvioTheme.spacing.xxl,
-                end = NuvioTheme.spacing.xxl,
-                top = if (showBuiltInHeader) NuvioTheme.spacing.xl else 68.dp,
-                bottom = NuvioTheme.spacing.xl
-            )
+            .background(NuvioTheme.colors.Background),
+        contentAlignment = Alignment.Center
     ) {
+        val workspaceLayout = settingsWorkspaceLayout(maxWidth)
         SettingsWorkspaceSurface(
             modifier = Modifier
+                .widthIn(max = workspaceLayout.workspaceMaxWidth)
+                .padding(
+                    start = workspaceLayout.horizontalInset,
+                    end = workspaceLayout.horizontalInset,
+                    top = if (showBuiltInHeader) NuvioTheme.spacing.xl else 68.dp,
+                    bottom = NuvioTheme.spacing.xl
+                )
                 .fillMaxSize()
         ) {
 
@@ -465,7 +512,7 @@ fun SettingsScreen(
 
                 Column(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
+                    verticalArrangement = Arrangement.spacedBy(workspaceLayout.columnSpacing)
                 ) {
                     Box(
                         modifier = Modifier
@@ -554,6 +601,9 @@ fun SettingsScreen(
                                         title = section.title,
                                         icon = section.icon,
                                         rawIconRes = section.rawIconRes,
+                                        modifier = Modifier.settingsCategorySelectionSemantics(
+                                            selectedCategory == section.category
+                                        ),
                                         isSelected = selectedCategory == section.category,
                                         focusRequester = railFocusRequesters[section.category],
                                         onClick = { onSectionClick(section) },
@@ -601,7 +651,7 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .align(Alignment.TopCenter)
                                 .fillMaxHeight()
-                                .widthIn(max = 880.dp)
+                                .widthIn(max = workspaceLayout.detailMaxWidth)
                                 .fillMaxWidth(),
                             transitionSpec = {
                                 val order = visibleSections.map { it.category }
@@ -648,11 +698,11 @@ fun SettingsScreen(
             } else {
             Row(
                 modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
+                horizontalArrangement = Arrangement.spacedBy(workspaceLayout.columnSpacing)
             ) {
                 Box(
                     modifier = Modifier
-                        .width(220.dp)
+                        .width(workspaceLayout.railWidth)
                         .fillMaxHeight()
                 ) {
                     LazyColumn(
@@ -727,6 +777,9 @@ fun SettingsScreen(
                                     title = section.title,
                                     icon = section.icon,
                                     rawIconRes = section.rawIconRes,
+                                    modifier = Modifier.settingsCategorySelectionSemantics(
+                                        selectedCategory == section.category
+                                    ),
                                     isSelected = selectedCategory == section.category,
                                     focusRequester = railFocusRequesters[section.category],
                                     onClick = { onSectionClick(section) }
@@ -740,49 +793,56 @@ fun SettingsScreen(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxHeight()
-                        .onKeyEvent { event ->
-                            val toRailKey = if (isRtl) Key.DirectionRight else Key.DirectionLeft
-                            if (event.type == KeyEventType.KeyDown && event.key == toRailKey) {
-                                val movedLeft = focusManager.moveFocus(if (isRtl) FocusDirection.Right else FocusDirection.Left)
-                                if (!movedLeft) {
-                                    allowDetailAutofocus = false
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .widthIn(max = workspaceLayout.detailMaxWidth)
+                            .fillMaxSize()
+                            .onKeyEvent { event ->
+                                val toRailKey = if (isRtl) Key.DirectionRight else Key.DirectionLeft
+                                if (event.type == KeyEventType.KeyDown && event.key == toRailKey) {
+                                    val movedLeft = focusManager.moveFocus(if (isRtl) FocusDirection.Right else FocusDirection.Left)
+                                    if (!movedLeft) {
+                                        allowDetailAutofocus = false
+                                        focusRailCategory(railFocusCategory)
+                                    }
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
+                            .onFocusChanged { state ->
+                                detailHasFocus = state.hasFocus
+                                if (state.hasFocus && !allowDetailAutofocus) {
                                     focusRailCategory(railFocusCategory)
                                 }
-                                true
-                            } else {
-                                false
                             }
-                        }
-                        .onFocusChanged { state ->
-                            detailHasFocus = state.hasFocus
-                            if (state.hasFocus && !allowDetailAutofocus) {
-                                focusRailCategory(railFocusCategory)
-                            }
-                        }
-                ) {
-                    SettingsDetailPane(
-                        selectedCategory = selectedCategory,
-                        isEssentialMode = isEssentialMode,
-                        allowDetailAutofocus = allowDetailAutofocus,
-                        contentFocusRequesters = contentFocusRequesters,
-                        experienceModeViewModel = experienceModeViewModel,
-                        phoneRemoteViewModel = phoneRemoteViewModel,
-                        integrationSection = integrationSection,
-                        onSelectIntegrationSection = { integrationSection = it },
-                        integrationHubFocusRequester = integrationHubFocusRequester,
-                        integrationDebridFocusRequester = integrationDebridFocusRequester,
-                        integrationTmdbFocusRequester = integrationTmdbFocusRequester,
-                        integrationMdbListFocusRequester = integrationMdbListFocusRequester,
-                        integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
-                        integrationPhoneRemoteFocusRequester = integrationPhoneRemoteFocusRequester,
-                        onNavigateToManageProfiles = onNavigateToManageProfiles,
-                        onNavigateToAddons = onNavigateToAddons,
-                        onNavigateToPlugins = onNavigateToPlugins,
-                        onNavigateToAuthQrSignIn = onNavigateToAuthQrSignIn,
-                        onNavigateToSupportersContributors = onNavigateToSupportersContributors,
-                        onNavigateToLicensesAttributions = onNavigateToLicensesAttributions
-                    )
+                    ) {
+                        SettingsDetailPane(
+                            selectedCategory = selectedCategory,
+                            isEssentialMode = isEssentialMode,
+                            allowDetailAutofocus = allowDetailAutofocus,
+                            contentFocusRequesters = contentFocusRequesters,
+                            experienceModeViewModel = experienceModeViewModel,
+                            phoneRemoteViewModel = phoneRemoteViewModel,
+                            integrationSection = integrationSection,
+                            onSelectIntegrationSection = { integrationSection = it },
+                            integrationHubFocusRequester = integrationHubFocusRequester,
+                            integrationDebridFocusRequester = integrationDebridFocusRequester,
+                            integrationTmdbFocusRequester = integrationTmdbFocusRequester,
+                            integrationMdbListFocusRequester = integrationMdbListFocusRequester,
+                            integrationAnimeSkipFocusRequester = integrationAnimeSkipFocusRequester,
+                            integrationPhoneRemoteFocusRequester = integrationPhoneRemoteFocusRequester,
+                            onNavigateToManageProfiles = onNavigateToManageProfiles,
+                            onNavigateToAddons = onNavigateToAddons,
+                            onNavigateToPlugins = onNavigateToPlugins,
+                            onNavigateToAuthQrSignIn = onNavigateToAuthQrSignIn,
+                            onNavigateToSupportersContributors = onNavigateToSupportersContributors,
+                            onNavigateToLicensesAttributions = onNavigateToLicensesAttributions
+                        )
+                    }
                 }
             }
             }

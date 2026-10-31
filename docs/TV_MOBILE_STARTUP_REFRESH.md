@@ -6,7 +6,7 @@
 
 ## O que mudou
 
-- O CTA “Go to details” agora tem largura e alinhamento definidos: 136 dp, centralizado no painel em TV; largura útil completa e texto centralizado em celular.
+- O CTA “Go to details” tem 136 dp e fica ancorado à esquerda do painel em TV, com o texto centralizado dentro do botão; em celular usa a largura útil completa e mantém o texto centralizado.
 - A tela inicial usa um breakpoint de 600 dp. Em celulares, o destaque usa a largura inteira, margens de 16 dp e 92% da área útil para o texto. O espaço das fileiras e os cards diminuem para caber melhor na tela.
 - A expansão de cards e a reprodução automática de trailers ficam desativadas no layout móvel. A imagem do logo do destaque recebe um tamanho de decodificação limitado à tela, reduzindo memória e trabalho de GPU.
 - Na restauração, uma sessão Nuvio armazenada passa a ser publicada para a interface antes da validação remota. Sessões inválidas continuam sendo encerradas; falhas temporárias mantêm a conta conectada.
@@ -23,6 +23,13 @@
 ## Limites da validação
 
 O AVD não tinha uma conta Nuvio autenticada. Portanto, a restauração de uma sessão real foi validada pela mudança do fluxo e pela compilação, mas não foi possível reproduzir com credenciais pessoais. A instalação estável preexistente é v1.0.0 e registrou uma tentativa antiga de conexão a `localhost`; a variante debug atual iniciou com os defaults oficiais Nuvio, sem essa falha. Nenhuma versão foi publicada.
+
+## Revalidação do startup — 31/10/2026
+
+- Os testes focados de `DiagnosticRedactionTest`, `ModernHomeLayoutMetricsTest`, `AuthSessionValidationPolicyTest`, `StartupAccountSurfaceSyncTest` e `AuthManagerStartupRestoreTest` passaram: 22 testes, 0 falhas. O novo teste mantém a validação remota pendente e confirma que a conta local já está disponível.
+- `:app:assembleFullDebug :app:assembleFullDebugAndroidTest` concluiu com sucesso.
+- No AVD Android TV API 33, `TelumiaHomeHeroTvTest` e `SettingsVisualTokensTest` passaram: 7 testes, 0 falhas em 1920×1080 e novamente 7 testes, 0 falhas em 1280×720. A seleção inclui a configuração de viewport móvel de 390 dp e valida o alvo amplo do botão.
+- O AVD foi restaurado para 1920×1080, 320 dpi. Não foi testada a abertura com uma sessão Nuvio persistida real. A mudança permanece local, fora das releases estáveis `v1.0.13` e prévia `v1.0.14-alpha.1`.
 
 ## Referências visuais e de navegação
 

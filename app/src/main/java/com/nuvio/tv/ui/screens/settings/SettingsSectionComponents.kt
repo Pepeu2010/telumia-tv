@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.settings
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,11 +23,15 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Border
@@ -84,7 +89,7 @@ internal fun SettingsSectionLabel(
     modifier: Modifier = Modifier,
     description: String? = null
 ) {
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
@@ -93,20 +98,33 @@ internal fun SettingsSectionLabel(
                 top = NuvioTheme.spacing.md,
                 bottom = NuvioTheme.spacing.xxs
             ),
-        verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xxs)
+        verticalAlignment = Alignment.Top
     ) {
-        Text(
-            text = text.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            letterSpacing = 1.2.sp,
-            color = NuvioTheme.colors.TextTertiary
+        Box(
+            modifier = Modifier
+                .padding(top = 2.dp)
+                .width(3.dp)
+                .height(16.dp)
+                .background(
+                    Brush.verticalGradient(NuvioTheme.palette.accentGradient),
+                    RoundedCornerShape(3.dp)
+                )
         )
-        if (!description.isNullOrBlank()) {
+        Spacer(modifier = Modifier.width(NuvioTheme.spacing.sm))
+        Column(verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xxs)) {
             Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = NuvioTheme.colors.TextTertiary
+                text = text.uppercase(),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                letterSpacing = 1.2.sp,
+                color = NuvioTheme.colors.TextSecondary
             )
+            if (!description.isNullOrBlank()) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = NuvioTheme.colors.TextTertiary
+                )
+            }
         }
     }
 }
@@ -117,14 +135,14 @@ internal fun SettingsNote(
     modifier: Modifier = Modifier,
     tone: SettingsNoteTone = SettingsNoteTone.Info
 ) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = when (tone) {
-            SettingsNoteTone.Info -> NuvioTheme.colors.TextSecondary
-            SettingsNoteTone.Warning -> NuvioTheme.colors.Warning
-            SettingsNoteTone.Danger -> NuvioTheme.colors.Error
-        },
+    val toneColor = when (tone) {
+        SettingsNoteTone.Info -> NuvioTheme.colors.TextSecondary
+        SettingsNoteTone.Warning -> NuvioTheme.colors.Warning
+        SettingsNoteTone.Danger -> NuvioTheme.colors.Error
+    }
+    val shape = RoundedCornerShape(12.dp)
+
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(
@@ -133,7 +151,26 @@ internal fun SettingsNote(
                 top = NuvioTheme.spacing.xxs,
                 bottom = NuvioTheme.spacing.xs
             )
-    )
+            .clip(shape)
+            .background(toneColor.copy(alpha = 0.08f))
+            .border(NuvioTheme.spacing.hairline, toneColor.copy(alpha = 0.2f), shape)
+            .padding(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(width = 3.dp, height = 24.dp)
+                .clip(RoundedCornerShape(3.dp))
+                .background(toneColor)
+        )
+        Spacer(modifier = Modifier.width(NuvioTheme.spacing.sm))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = toneColor,
+            modifier = Modifier.weight(1f)
+        )
+    }
 }
 
 @Composable
@@ -143,7 +180,17 @@ internal fun SettingsRailDivider() {
             .fillMaxWidth()
             .padding(start = SettingsRowContentInset, end = SettingsRowContentInset, bottom = 10.dp)
             .height(NuvioTheme.spacing.hairline)
-            .background(NuvioTheme.colors.Border)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(
+                        Color.Transparent,
+                        NuvioTheme.colors.Border.copy(alpha = 0.82f),
+                        NuvioTheme.colors.Secondary.copy(alpha = 0.38f),
+                        NuvioTheme.colors.Border.copy(alpha = 0.82f),
+                        Color.Transparent
+                    )
+                )
+            )
     )
 }
 

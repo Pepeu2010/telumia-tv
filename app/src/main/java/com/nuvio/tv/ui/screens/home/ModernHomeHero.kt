@@ -505,16 +505,17 @@ internal fun HeroTitleContent(
             }
         }
         onPrimaryAction?.let { action ->
-            val actionLayoutModifier = if (mobileLayout) {
-                Modifier.fillMaxWidth()
-            } else {
-                Modifier.width(136.dp).align(Alignment.CenterHorizontally)
-            }
             Button(
                 onClick = action,
                 modifier = Modifier
                     .height(48.dp)
-                    .then(actionLayoutModifier)
+                    .then(
+                        if (mobileLayout) {
+                            Modifier.fillMaxWidth()
+                        } else {
+                            Modifier.width(136.dp).align(Alignment.Start)
+                        }
+                    )
                     .graphicsLayer { alpha = metaAlpha }
                     .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
                 enabled = !trailerPlaying(),

@@ -206,7 +206,7 @@ private fun SliderSettingsItemLayout(
                 Text(
                     text = valueText,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = NuvioTheme.colors.Primary.copy(alpha = contentAlpha)
+                    color = NuvioTheme.colors.Secondary.copy(alpha = contentAlpha)
                 )
             }
 
@@ -237,7 +237,11 @@ private fun SliderSettingsItemLayout(
                             .fillMaxWidth(progressFraction.coerceIn(0f, 1f))
                             .height(NuvioTheme.spacing.sm)
                             .clip(RoundedCornerShape(NuvioTheme.radii.xs))
-                            .background(NuvioTheme.colors.Primary.copy(alpha = contentAlpha))
+                            .background(
+                                Brush.horizontalGradient(
+                                    NuvioTheme.palette.accentGradient.map { it.copy(alpha = contentAlpha) }
+                                )
+                            )
                     )
                 }
 
@@ -279,7 +283,13 @@ private fun SliderStepButton(
             focusedContainerColor = if (flat) settingsFocusFillColor() else NuvioTheme.colors.Background
         ),
         border = if (flat) {
-            CardDefaults.border(border = Border.None, focusedBorder = Border.None)
+            CardDefaults.border(
+                border = Border.None,
+                focusedBorder = Border(
+                    border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs, alpha = contentAlpha),
+                    shape = CircleShape
+                )
+            )
         } else {
             CardDefaults.border(
                 focusedBorder = Border(

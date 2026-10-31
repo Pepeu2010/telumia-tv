@@ -4,6 +4,7 @@ import android.util.Log
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
+import com.nuvio.tv.data.cache.BoundedTimedLruCache
 import com.nuvio.tv.data.repository.SimklIdResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -11,13 +12,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import com.nuvio.tv.domain.model.Meta
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "SimklRelatedService"
 private const val RELATED_LIMIT = 20
 private const val RELATED_CACHE_TTL_MS = 10 * 60_000L
+internal const val RELATED_CACHE_MAX_ENTRIES = 64
 
 private val SIMKL_REDIRECT_SOURCES = setOf(
     "tmdb", "tvdb", "mal", "anidb", "anilist", "kitsu", "simkl", "imdb"
@@ -61,10 +62,12 @@ class SimklRelatedService @Inject constructor(
     private val apiClient: SimklApiClient,
     private val simklIdResolver: SimklIdResolver
 ) {
-    private data class TimedCache(val items: List<MetaPreview>, val updatedAtMs: Long)
     private data class ResolvedTarget(val type: String, val simklId: Long)
 
-    private val cache = ConcurrentHashMap<String, TimedCache>()
+    private val cache = BoundedTimedLruCache<String, List<MetaPreview>>(
+        maxEntries = RELATED_CACHE_MAX_ENTRIES,
+        ttlMs = RELATED_CACHE_TTL_MS,
+    )
     private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun getRelated(
@@ -78,11 +81,7 @@ class SimklRelatedService @Inject constructor(
         val cacheKey = "${resolved.type}|${resolved.simklId}"
 
         if (!forceRefresh) {
-            cache[cacheKey]?.let { cached ->
-                if (System.currentTimeMillis() - cached.updatedAtMs <= RELATED_CACHE_TTL_MS) {
-                    return@withContext cached.items
-                }
-            }
+            cache.get(cacheKey, System.currentTimeMillis())?.let { return@withContext it }
         } else {
             cache.remove(cacheKey)
         }
@@ -99,13 +98,13 @@ class SimklRelatedService @Inject constructor(
         }.take(RELATED_LIMIT)
 
         if (rawItems.isEmpty()) {
-            cache[cacheKey] = TimedCache(emptyList(), System.currentTimeMillis())
+            cache.put(cacheKey, emptyList(), System.currentTimeMillis())
             return@withContext emptyList()
         }
 
         val items = rawItems.mapNotNull(::itemToMetaPreview)
             .distinctBy { "${it.rawType}:${it.id}" }
-        cache[cacheKey] = TimedCache(items, System.currentTimeMillis())
+        cache.put(cacheKey, items, System.currentTimeMillis())
         items
     }
 

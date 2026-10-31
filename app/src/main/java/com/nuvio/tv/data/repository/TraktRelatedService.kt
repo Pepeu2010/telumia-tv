@@ -3,6 +3,7 @@ package com.nuvio.tv.data.repository
 import com.nuvio.tv.core.trakt.traktBestBackdropUrl
 import com.nuvio.tv.core.trakt.traktBestLandscapeUrl
 import com.nuvio.tv.core.trakt.traktBestLogoUrl
+import com.nuvio.tv.data.cache.BoundedTimedLruCache
 import com.nuvio.tv.data.remote.api.TraktApi
 import com.nuvio.tv.data.remote.dto.trakt.TraktIdsDto
 import com.nuvio.tv.data.remote.dto.trakt.TraktImagesDto
@@ -13,12 +14,12 @@ import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val RELATED_LIMIT = 20
 private const val RELATED_CACHE_TTL_MS = 10 * 60_000L
+internal const val RELATED_CACHE_MAX_ENTRIES = 64
 
 internal enum class TraktRelatedType(val apiValue: String) {
     MOVIE("movie"),
@@ -36,12 +37,10 @@ class TraktRelatedService @Inject constructor(
     private val traktApi: TraktApi,
     private val traktAuthService: TraktAuthService
 ) {
-    private data class TimedCache(
-        val items: List<MetaPreview>,
-        val updatedAtMs: Long
+    private val cache = BoundedTimedLruCache<String, List<MetaPreview>>(
+        maxEntries = RELATED_CACHE_MAX_ENTRIES,
+        ttlMs = RELATED_CACHE_TTL_MS,
     )
-
-    private val cache = ConcurrentHashMap<String, TimedCache>()
 
     suspend fun getRelated(
         meta: Meta,
@@ -57,11 +56,7 @@ class TraktRelatedService @Inject constructor(
         }
 
         if (!forceRefresh) {
-            cache[cacheKey]?.let { cached ->
-                if (System.currentTimeMillis() - cached.updatedAtMs <= RELATED_CACHE_TTL_MS) {
-                    return cached.items
-                }
-            }
+            cache.get(cacheKey, System.currentTimeMillis())?.let { return it }
         } else {
             cache.remove(cacheKey)
         }
@@ -112,8 +107,8 @@ class TraktRelatedService @Inject constructor(
             }
         }
 
-        val distinctItems = items.distinctBy { "${it.apiType}:${it.id}" }
-        cache[cacheKey] = TimedCache(items = distinctItems, updatedAtMs = System.currentTimeMillis())
+        val distinctItems = items.distinctBy { "${it.apiType}:${it.id}" }.take(RELATED_LIMIT)
+        cache.put(cacheKey, distinctItems, System.currentTimeMillis())
         return distinctItems
     }
 

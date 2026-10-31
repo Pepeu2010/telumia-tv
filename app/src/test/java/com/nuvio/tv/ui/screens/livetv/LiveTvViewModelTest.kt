@@ -12,6 +12,9 @@ import com.nuvio.tv.data.local.LiveTvChannelStateStore
 import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvImportResult
 import com.nuvio.tv.domain.model.LiveTvSource
+import com.nuvio.tv.domain.repository.AddonRepository
+import com.nuvio.tv.domain.repository.CatalogRepository
+import com.nuvio.tv.domain.repository.StreamRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -45,7 +48,7 @@ class LiveTvViewModelTest {
         coEvery { guideCache.read(source.id) } returns null
         coEvery { guideCache.write(source.id, any()) } returns true
         coEvery { channelState.read() } returns LiveTvChannelState()
-        val viewModel = LiveTvViewModel(store, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(store, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.addSource("Brasil", source.playlistUrl, null)
@@ -79,7 +82,7 @@ class LiveTvViewModelTest {
         coEvery { channelState.read() } returns LiveTvChannelState()
         every { refreshScheduler.cancel() } returns Unit
         every { refreshScheduler.schedule() } throws IllegalStateException("WorkManager unavailable")
-        val viewModel = LiveTvViewModel(store, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(store, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.addSource("Brasil", source.playlistUrl, null)
@@ -101,7 +104,7 @@ class LiveTvViewModelTest {
         val source = LiveTvSource("source-1", "Brasil", "https://example.org/list.m3u", enabled = false)
         coEvery { store.list() } returns listOf(source)
         coEvery { channelState.read() } returns LiveTvChannelState()
-        val viewModel = LiveTvViewModel(store, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(store, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.refresh()
@@ -130,7 +133,7 @@ class LiveTvViewModelTest {
         coEvery { guideCache.read(source.id) } returns CachedLiveTvGuide(sourceId = source.id, updatedEpochMillis = 100L, result = cached)
         coEvery { importer.import(source) } throws IllegalStateException("offline")
         coEvery { channelState.read() } returns LiveTvChannelState()
-        val viewModel = LiveTvViewModel(store, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(store, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         assertEquals(listOf(channel), viewModel.state.value.channels)
@@ -154,7 +157,7 @@ class LiveTvViewModelTest {
         coEvery { sourceStore.list() } returns emptyList()
         coEvery { channelState.read() } returns LiveTvChannelState()
         coEvery { channelState.recordRecent(channelId) } returns LiveTvChannelState(recentChannelIds = listOf(channelId))
-        val viewModel = LiveTvViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.recordRecent(channelId)
@@ -175,7 +178,7 @@ class LiveTvViewModelTest {
         coEvery { sourceStore.list() } returns emptyList()
         coEvery { channelState.read() } returns LiveTvChannelState()
         coEvery { channelState.toggleFavorite(channelId) } returns LiveTvChannelState(favoriteChannelIds = listOf(channelId))
-        val viewModel = LiveTvViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.toggleFavorite(channelId)
@@ -195,7 +198,7 @@ class LiveTvViewModelTest {
         coEvery { sourceStore.list() } returns emptyList()
         coEvery { channelState.read() } returns LiveTvChannelState()
         coEvery { channelState.setTimeZone("America/Manaus") } returns LiveTvChannelState(timeZoneId = "America/Manaus")
-        val viewModel = LiveTvViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler, activeProfiles())
+        val viewModel = newViewModel(sourceStore, importer, guideCache, channelState, refreshScheduler)
 
         runCurrent()
         viewModel.setTimeZone("America/Manaus")
@@ -208,5 +211,25 @@ class LiveTvViewModelTest {
     private fun activeProfiles() = mockk<ProfileManager> {
         every { activeProfileId } returns MutableStateFlow(1)
     }
+
+    private fun newViewModel(
+        store: LiveTvSourceStore,
+        importer: LiveTvSourceImporter,
+        guideCache: LiveTvGuideCache,
+        channelState: LiveTvChannelStateStore,
+        refreshScheduler: LiveTvRefreshScheduler,
+    ) = LiveTvViewModel(
+        sourceStore = store,
+        importer = importer,
+        guideCache = guideCache,
+        channelStateStore = channelState,
+        refreshScheduler = refreshScheduler,
+        profileManager = activeProfiles(),
+        addonRepository = mockk<AddonRepository> {
+            every { getInstalledAddons() } returns MutableStateFlow(emptyList())
+        },
+        catalogRepository = mockk<CatalogRepository>(relaxed = true),
+        streamRepository = mockk<StreamRepository>(relaxed = true),
+    )
 }
 

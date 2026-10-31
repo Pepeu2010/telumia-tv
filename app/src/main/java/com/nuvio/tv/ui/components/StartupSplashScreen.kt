@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,12 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -67,15 +64,6 @@ fun StartupSplashScreen(
         if (motion.allowsSpatialEffects) delay(150L)
         revealLoader = true
     }
-    val ambientReveal by animateFloatAsState(
-        targetValue = if (revealBrand) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = motion.durationMillis(900),
-            easing = FastOutSlowInEasing
-        ),
-        label = "splashAmbientReveal"
-    )
-
     Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
         if (!profileBackgroundUrl.isNullOrBlank()) {
             val imageData: Any = if (profileBackgroundUrl.startsWith("file:")) {
@@ -98,67 +86,47 @@ fun StartupSplashScreen(
                 contentScale = ContentScale.Crop
             )
         } else if (!skipGradient) {
-            val baseBg = Color(0xFF121212)
-            val baseBgElevated = Color(0xFF1E1E1E)
-            val gradientTop = lerp(baseBgElevated, avatarColor, 0.3f)
-            val gradientMid = lerp(baseBg, avatarColor, 0.14f)
-            val halfFadeStrong = avatarColor.copy(alpha = 0.26f)
-            val halfFadeSoft = avatarColor.copy(alpha = 0.08f)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
-                    .background(
-                        brush = Brush.verticalGradient(
+                    .drawWithCache {
+                        val baseBg = Color(0xFF121212)
+                        val gradientTop = androidx.compose.ui.graphics.lerp(Color(0xFF1E1E1E), avatarColor, 0.3f)
+                        val gradientMid = androidx.compose.ui.graphics.lerp(baseBg, avatarColor, 0.14f)
+                        val vertical = Brush.verticalGradient(
                             colorStops = arrayOf(
                                 0f to gradientTop,
                                 0.42f to gradientMid,
                                 1f to baseBg
                             )
                         )
-                    )
-                    .background(
-                        brush = Brush.horizontalGradient(
+                        val horizontal = Brush.horizontalGradient(
                             colorStops = arrayOf(
-                                0f to halfFadeStrong,
-                                0.45f to halfFadeSoft,
-                                0.72f to Color.Transparent,
+                                0f to avatarColor.copy(alpha = 0.22f),
+                                0.45f to avatarColor.copy(alpha = 0.07f),
+                                0.74f to Color.Transparent,
                                 1f to Color.Transparent
                             )
                         )
-                    )
-            )
-        }
-
-        if (!skipGradient) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .drawBehind {
-                        val glowCenter = Offset(size.width * 0.5f, size.height * 0.43f)
-                        val radius = size.minDimension * (0.62f + ambientReveal * 0.08f)
-                        drawCircle(
-                            brush = Brush.radialGradient(
-                                colors = listOf(
-                                    accentColor.copy(alpha = 0.20f * ambientReveal),
-                                    avatarColor.copy(alpha = 0.08f * ambientReveal),
-                                    Color.Transparent
-                                ),
-                                center = glowCenter,
-                                radius = radius
-                            ),
-                            radius = radius,
-                            center = glowCenter
+                        val glow = Brush.radialGradient(
+                            colors = listOf(accentColor.copy(alpha = 0.18f), Color.Transparent),
+                            center = Offset(size.width * 0.5f, size.height * 0.43f),
+                            radius = size.minDimension * 0.72f
                         )
-                        drawRect(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Black.copy(alpha = 0.24f),
-                                    Color.Transparent,
-                                    Color.Black.copy(alpha = 0.36f)
-                                )
+                        val vignette = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.16f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.32f)
                             )
                         )
+                        onDrawBehind {
+                            drawRect(baseBg)
+                            drawRect(brush = vertical)
+                            drawRect(brush = horizontal)
+                            drawRect(brush = glow)
+                            drawRect(brush = vignette)
+                        }
                     }
             )
         }

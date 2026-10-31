@@ -223,11 +223,9 @@ fun CastSection(
             }
     ) {
         if (hasTitle) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = NuvioTheme.colors.TextPrimary,
-                modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxxl)
+            DetailSectionHeading(
+                title = title,
+                modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxxl),
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.md))
         }

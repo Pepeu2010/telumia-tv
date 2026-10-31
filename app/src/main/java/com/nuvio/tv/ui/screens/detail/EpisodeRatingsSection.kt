@@ -120,11 +120,11 @@ fun EpisodeRatingsSection(
             .padding(top = if (hasTitle) 14.dp else 6.dp, bottom = NuvioTheme.spacing.sm)
     ) {
         if (hasTitle) {
-            Text(
-                text = title,
+            DetailSectionHeading(
+                title = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = NuvioTheme.colors.TextPrimary,
-                modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxxl)
+                markerHeight = 20.dp,
+                modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxxl),
             )
         }
 

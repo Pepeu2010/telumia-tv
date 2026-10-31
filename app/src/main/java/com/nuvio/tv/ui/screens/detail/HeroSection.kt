@@ -87,6 +87,10 @@ import com.nuvio.tv.ui.util.contentTextDirection
 import java.util.Locale
 
 private const val MAX_VISIBLE_HERO_GENRES = 6
+private const val COMPACT_MOVIE_HERO_MAX_HEIGHT_DP = 600
+
+internal fun shouldUseCompactMovieHero(isMovie: Boolean, viewportHeightDp: Int): Boolean =
+    isMovie && viewportHeightDp < COMPACT_MOVIE_HERO_MAX_HEIGHT_DP
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -118,6 +122,7 @@ fun HeroContentSection(
     showFullReleaseDate: Boolean = true,
     isTrailerPlaying: Boolean = false,
     playButtonFocusRequester: FocusRequester? = null,
+    libraryButtonFocusRequester: FocusRequester? = null,
     restorePlayFocusToken: Int = 0,
     onHeroActionFocused: () -> Unit = {},
     onPlayFocusRestored: () -> Unit = {},
@@ -127,7 +132,10 @@ fun HeroContentSection(
     val context = LocalContext.current
     val isMovie = meta.apiType.equals("movie", ignoreCase = true)
     val viewportHeight = LocalConfiguration.current.screenHeightDp
-    val compactMovieHero = isMovie && viewportHeight < 480
+    // A 1080p TV viewport commonly measures about 540dp at 320dpi. Keep the
+    // movie hero compact there so late metadata loading cannot push its title
+    // above the visible area.
+    val compactMovieHero = shouldUseCompactMovieHero(isMovie, viewportHeight)
     val heroMinimumHeight = if (isMovie) (viewportHeight * 0.82f).coerceAtLeast(360f).dp else 540.dp
     val isSeriesApi = remember(meta.apiType) {
         meta.apiType.equals("series", ignoreCase = true) || meta.apiType.equals("tv", ignoreCase = true)
@@ -300,7 +308,8 @@ fun HeroContentSection(
                             contentDescription = if (isInLibrary) stringResource(R.string.hero_remove_from_library) else stringResource(R.string.hero_add_to_library),
                             onClick = onToggleLibrary,
                             onLongPress = onLibraryLongPress,
-                            onFocused = onHeroActionFocused
+                            onFocused = onHeroActionFocused,
+                            focusRequester = libraryButtonFocusRequester
                         )
 
                         if (meta.apiType == "movie") {
@@ -486,7 +495,9 @@ internal fun PlayButton(
             containerColor = androidx.compose.ui.graphics.Color.White,
             focusedContainerColor = androidx.compose.ui.graphics.Color.White,
             contentColor = androidx.compose.ui.graphics.Color.Black,
-            focusedContentColor = androidx.compose.ui.graphics.Color.Black
+            focusedContentColor = androidx.compose.ui.graphics.Color.Black,
+            disabledContainerColor = NuvioTheme.colors.BackgroundElevated,
+            disabledContentColor = NuvioTheme.colors.TextSecondary
         ),
         shape = ButtonDefaults.shape(
             shape = RoundedCornerShape(NuvioTheme.spacing.xxl)

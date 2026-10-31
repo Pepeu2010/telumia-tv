@@ -2002,6 +2002,11 @@ private fun ModernSidebarScaffold(
         animationSpec = tween(durationMillis = motionPolicy.durationMillis(if (isSidebarExpanded) 280 else 200), easing = animationEasing),
         label = "sidebarSurfaceAlpha"
     )
+    val sidebarScrimAlpha by animateFloatAsState(
+        targetValue = if (showSidebar && isSidebarExpanded) 0.20f else 0f,
+        animationSpec = tween(durationMillis = motionTokens.durations.fast),
+        label = "sidebarScrimAlpha"
+    )
     val shouldApplySidebarHaze = showSidebar && modernSidebarBlurEnabled
     val sidebarTransition = updateTransition(
         targetState = isSidebarExpanded,
@@ -2159,6 +2164,14 @@ private fun ModernSidebarScaffold(
             ) {
                 navigationContent(hideBuiltInHeaders)
             }
+        }
+
+        if (sidebarScrimAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = sidebarScrimAlpha))
+            )
         }
 
         if (showSidebar && (sidebarVisible || sidebarShowExpandedPanel)) {

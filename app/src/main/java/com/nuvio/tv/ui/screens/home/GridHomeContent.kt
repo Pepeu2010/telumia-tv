@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -869,13 +870,28 @@ private fun SectionDivider(
             .fillMaxWidth()
             .padding(top = NuvioTheme.spacing.xl, bottom = NuvioTheme.spacing.md)
     ) {
-        Text(
-            text = catalogName,
-            style = MaterialTheme.typography.headlineMedium.copy(
-                textDirection = catalogName.contentTextDirection()
-            ),
-            color = NuvioTheme.colors.TextPrimary
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(28.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+            )
+            Text(
+                text = catalogName,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    textDirection = catalogName.contentTextDirection()
+                ),
+                color = NuvioTheme.colors.TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -901,13 +917,28 @@ private fun StickyCategoryHeader(
             .background(headerGradient)
             .padding(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.md)
     ) {
-        Text(
-            text = sectionName,
-            style = MaterialTheme.typography.titleLarge.copy(
-                textDirection = sectionName.contentTextDirection()
-            ),
-            color = NuvioTheme.colors.TextPrimary
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(24.dp)
+                    .clip(RoundedCornerShape(50))
+                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+            )
+            Text(
+                text = sectionName,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    textDirection = sectionName.contentTextDirection()
+                ),
+                color = NuvioTheme.colors.TextPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 

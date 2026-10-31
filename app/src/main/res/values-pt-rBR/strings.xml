@@ -2343,6 +2343,11 @@
     <string name="live_tv_refresh">Atualizar fontes</string>
     <string name="live_tv_loading">Carregando canais e guia…</string>
     <string name="live_tv_sources">Suas fontes</string>
+    <string name="live_tv_addon_channels_loading">Carregando canais dos addons da sua conta…</string>
+    <string name="live_tv_addon_catalogs_empty">Nenhum addon instalado oferece um catálogo de canais de TV.</string>
+    <string name="live_tv_addon_channels_empty">Os catálogos de TV dos addons não retornaram canais.</string>
+    <string name="live_tv_addon_channels">Canais dos addons da conta (%1$d)</string>
+    <string name="live_tv_addon_catalog_errors">%1$d catálogo(s) de addon falharam ao carregar.</string>
     <string name="live_tv_disable">Desativar</string>
     <string name="live_tv_enable">Ativar</string>
     <string name="live_tv_remove">Remover</string>
@@ -2366,6 +2371,7 @@
     <string name="live_tv_empty_favorites">Seus canais favoritos aparecerão aqui.</string>
     <string name="live_tv_empty_recents">Os canais que você começar a assistir aparecerão aqui.</string>
     <string name="live_tv_watch">Assistir</string>
+    <string name="live_tv_opening_channel">Abrindo…</string>
     <string name="live_tv_updated">Atualizado %1$s</string>
 
     <string name="update_checking">Verificando atualizações…</string>

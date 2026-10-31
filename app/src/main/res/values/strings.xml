@@ -2480,6 +2480,11 @@
     <string name="live_tv_refresh">Refresh sources</string>
     <string name="live_tv_loading">Loading channels and guide…</string>
     <string name="live_tv_sources">Your sources</string>
+    <string name="live_tv_addon_channels_loading">Loading channels from your account addons…</string>
+    <string name="live_tv_addon_catalogs_empty">No installed addon provides a TV channel catalog.</string>
+    <string name="live_tv_addon_channels_empty">No channels were returned by the TV catalogs.</string>
+    <string name="live_tv_addon_channels">Account addon channels (%1$d)</string>
+    <string name="live_tv_addon_catalog_errors">%1$d addon catalog(s) failed to load.</string>
     <string name="live_tv_disable">Disable</string>
     <string name="live_tv_enable">Enable</string>
     <string name="live_tv_remove">Remove</string>
@@ -2503,6 +2508,7 @@
     <string name="live_tv_empty_favorites">Your favorite channels will appear here.</string>
     <string name="live_tv_empty_recents">Channels you start watching will appear here.</string>
     <string name="live_tv_watch">Watch</string>
+    <string name="live_tv_opening_channel">Opening…</string>
     <string name="live_tv_updated">Updated %1$s</string>
 
     <string name="update_checking">Checking for updates…</string>

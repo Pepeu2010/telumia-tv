@@ -122,12 +122,13 @@ fun CollectionSection(
             .padding(top = if (title.isNullOrBlank()) NuvioTheme.spacing.sm else 20.dp, bottom = NuvioTheme.spacing.sm)
     ) {
         if (!title.isNullOrBlank()) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = NuvioTheme.colors.TextPrimary,
-                modifier = Modifier
-                    .padding(start = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.sm)
+            DetailSectionHeading(
+                title = title,
+                modifier = Modifier.padding(
+                    start = NuvioTheme.spacing.xxxl,
+                    end = NuvioTheme.spacing.xxxl,
+                    bottom = NuvioTheme.spacing.sm,
+                ),
             )
         }
         LazyRow(

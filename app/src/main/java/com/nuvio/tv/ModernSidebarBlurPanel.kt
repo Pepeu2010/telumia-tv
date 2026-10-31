@@ -124,9 +124,11 @@ internal fun ModernSidebarBlurPanel(
     val panelBackgroundBrush = remember(effectiveBlurEnabled, isAmoledBlack, bgElevated, bgCard) {
         val baseColor = if (isAmoledBlack) Color.Black else bgElevated
         val alpha = when {
-            effectiveBlurEnabled -> 0.65f
+            // Keep the glass treatment, but let the panel carry the menu labels
+            // instead of allowing the focused Home art to compete with them.
+            effectiveBlurEnabled -> 0.92f
             isAmoledBlack -> 1f
-            else -> 0.97f
+            else -> 0.985f
         }
         Brush.verticalGradient(listOf(
             bgCard.copy(alpha = alpha),
@@ -134,7 +136,11 @@ internal fun ModernSidebarBlurPanel(
         ))
     }
     val panelBorderColor = remember(isAmoledBlack, effectiveBlurEnabled, borderBase) {
-        if (!effectiveBlurEnabled && isAmoledBlack) borderBase.copy(alpha = 0.9f) else Color.Transparent
+        when {
+            effectiveBlurEnabled -> borderBase.copy(alpha = 0.48f)
+            isAmoledBlack -> borderBase.copy(alpha = 0.9f)
+            else -> Color.Transparent
+        }
     }
 
     Column(

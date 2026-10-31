@@ -104,10 +104,10 @@ internal fun SettingsSectionLabel(
             modifier = Modifier
                 .padding(top = 2.dp)
                 .width(3.dp)
-                .height(16.dp)
+                .height(18.dp)
+                .clip(RoundedCornerShape(50))
                 .background(
                     Brush.verticalGradient(NuvioTheme.palette.accentGradient),
-                    RoundedCornerShape(3.dp)
                 )
         )
         Spacer(modifier = Modifier.width(NuvioTheme.spacing.sm))

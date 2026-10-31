@@ -66,6 +66,9 @@ fun LiveTvScreen(
         state.programs.groupBy { it.sourceId to it.channelId }
             .mapValues { (_, programs) -> programs.sortedBy(LiveTvProgram::startEpochMillis) }
     }
+    val allChannels = remember(state.channels, state.addonChannels) {
+        (state.channels + state.addonChannels).distinctBy(LiveTvChannel::id)
+    }
     var selectedMode by remember { mutableStateOf(LiveTvMode.NOW) }
     var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
@@ -85,23 +88,22 @@ fun LiveTvScreen(
         }
     }
 
-    val hasGuide = state.channels.any { channel ->
+    val hasGuide = allChannels.any { channel ->
         !channel.tvgId.isNullOrBlank() && !programsByChannel[channel.sourceId to channel.tvgId].isNullOrEmpty()
     }
-    val channelsById = remember(state.channels) { state.channels.associateBy(LiveTvChannel::id) }
+    val channelsById = remember(allChannels) { allChannels.associateBy(LiveTvChannel::id) }
     LaunchedEffect(hasGuide) {
         if (!hasGuide && selectedMode == LiveTvMode.GUIDE) selectedMode = LiveTvMode.NOW
     }
-    val visibleChannels = remember(state.channels, state.favoriteChannelIds, state.recentChannelIds, selectedMode) {
+    val visibleChannels = remember(allChannels, state.favoriteChannelIds, state.recentChannelIds, selectedMode) {
         when (selectedMode) {
-            LiveTvMode.FAVORITES -> state.channels.filter { it.id in state.favoriteChannelIds }
+            LiveTvMode.FAVORITES -> allChannels.filter { it.id in state.favoriteChannelIds }
             LiveTvMode.RECENTS -> state.recentChannelIds.mapNotNull(channelsById::get)
-            else -> state.channels
+            else -> allChannels
         }
     }
     fun playChannel(channel: LiveTvChannel) {
-        viewModel.recordRecent(channel.id)
-        onPlayChannel(channel)
+        viewModel.playChannel(channel, onPlayChannel)
     }
 
     LazyColumn(
@@ -179,6 +181,29 @@ fun LiveTvScreen(
                 }
             }
         }
+        if (state.isLoadingAddonChannels) {
+            item { Text(stringResource(R.string.live_tv_addon_channels_loading), color = NuvioTheme.colors.TextSecondary) }
+        } else if (state.addonCatalogCount == 0) {
+            item { Text(stringResource(R.string.live_tv_addon_catalogs_empty), color = NuvioTheme.colors.TextSecondary) }
+        } else if (state.addonChannels.isEmpty()) {
+            item { Text(stringResource(R.string.live_tv_addon_channels_empty), color = NuvioTheme.colors.TextSecondary) }
+        } else {
+            item {
+                Text(
+                    stringResource(R.string.live_tv_addon_channels, state.addonChannels.size),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = NuvioTheme.colors.TextSecondary,
+                )
+            }
+        }
+        if (state.addonCatalogErrorCount > 0) {
+            item {
+                Text(
+                    stringResource(R.string.live_tv_addon_catalog_errors, state.addonCatalogErrorCount),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.live_tv_channels, visibleChannels.size), style = MaterialTheme.typography.titleLarge)
@@ -192,9 +217,9 @@ fun LiveTvScreen(
                 }
             }
         }
-        if (!state.isLoading && visibleChannels.isEmpty()) {
+        if (!state.isLoading && !state.isLoadingAddonChannels && visibleChannels.isEmpty()) {
             val emptyMessage = when {
-                state.channels.isEmpty() -> R.string.live_tv_empty_channels
+                allChannels.isEmpty() -> R.string.live_tv_empty_channels
                 selectedMode == LiveTvMode.FAVORITES -> R.string.live_tv_empty_favorites
                 selectedMode == LiveTvMode.RECENTS -> R.string.live_tv_empty_recents
                 else -> R.string.live_tv_empty_channels
@@ -236,8 +261,8 @@ fun LiveTvScreen(
                     logoUrl = channel.logoUrl,
                     selectedChannel = false,
                     programs = rowPrograms,
-                    onChannelClick = channel.streamUrl?.let { { playChannel(channel) } },
-                    onProgramClick = { playChannel(channel) },
+                    onChannelClick = if (channel.isPlayable) ({ playChannel(channel) }) else null,
+                    onProgramClick = { if (channel.isPlayable) playChannel(channel) },
                     modifier = Modifier.fillMaxWidth(),
                     scrollState = rememberLazyListState(),
                     isFavorite = channel.id in state.favoriteChannelIds,
@@ -261,16 +286,24 @@ fun LiveTvScreen(
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         LiveTvChannelTile(channel.displayName, null, channel.logoUrl, false,
-                            channel.streamUrl?.let { { playChannel(channel) } })
-                        if (channel.streamUrl != null) Button(onClick = { playChannel(channel) }) {
-                            Text(stringResource(R.string.live_tv_watch))
+                            if (channel.isPlayable) ({ playChannel(channel) }) else null)
+                        if (channel.isPlayable) Button(
+                            onClick = { playChannel(channel) },
+                            enabled = channel.id !in state.resolvingChannelIds,
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (channel.id in state.resolvingChannelIds) R.string.live_tv_opening_channel
+                                    else R.string.live_tv_watch,
+                                ),
+                            )
                         }
                         FavoriteAction(channel.id in state.favoriteChannelIds, { viewModel.toggleFavorite(channel.id) })
                     }
                 }
             } else Surface(shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
                 Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                    if (channel.streamUrl != null) {
+                    if (channel.isPlayable) {
                         LiveTvChannelTile(channel.displayName, null, channel.logoUrl, false, { playChannel(channel) })
                     } else {
                         Text(channel.displayName, style = MaterialTheme.typography.titleMedium,
@@ -283,8 +316,18 @@ fun LiveTvScreen(
                         LiveTvNowNext(nowLabel, nextLabel, stringResource(R.string.live_tv_next), progress)
                     }
                     FavoriteAction(channel.id in state.favoriteChannelIds, { viewModel.toggleFavorite(channel.id) })
-                    if (channel.streamUrl != null) {
-                        Button(onClick = { playChannel(channel) }) { Text(stringResource(R.string.live_tv_watch)) }
+                    if (channel.isPlayable) {
+                        Button(
+                            onClick = { playChannel(channel) },
+                            enabled = channel.id !in state.resolvingChannelIds,
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (channel.id in state.resolvingChannelIds) R.string.live_tv_opening_channel
+                                    else R.string.live_tv_watch,
+                                ),
+                            )
+                        }
                     }
                 }
             }

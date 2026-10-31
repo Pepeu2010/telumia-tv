@@ -2,6 +2,7 @@ package com.nuvio.tv.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.nuvio.tv.core.diagnostics.redactDiagnosticText
 import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.core.network.safeApiCall
 import com.nuvio.tv.core.poster.withCustomPosterUrls
@@ -45,9 +46,10 @@ class CatalogRepositoryImpl @Inject constructor(
         emit(NetworkResult.Loading)
 
         val url = buildCatalogUrl(addonBaseUrl, type, catalogId, skip, extraArgs)
+        val safeUrlForLog = redactDiagnosticText(url)
         Log.d(
             TAG,
-            "Fetching catalog addonId=$addonId addonName=$addonName type=$type catalogId=$catalogId skip=$skip skipStep=$skipStep supportsSkip=$supportsSkip url=$url"
+            "Fetching catalog addonId=$addonId addonName=$addonName type=$type catalogId=$catalogId skip=$skip skipStep=$skipStep supportsSkip=$supportsSkip url=$safeUrlForLog"
         )
 
         when (val result = safeApiCall(context) { api.getCatalog(url) }) {
@@ -90,7 +92,7 @@ class CatalogRepositoryImpl @Inject constructor(
             is NetworkResult.Error -> {
                 Log.w(
                     TAG,
-                    "Catalog fetch failed addonId=$addonId type=$type catalogId=$catalogId code=${result.code} message=${result.message} url=$url"
+                    "Catalog fetch failed addonId=$addonId type=$type catalogId=$catalogId url=$safeUrlForLog"
                 )
                 emit(result)
             }

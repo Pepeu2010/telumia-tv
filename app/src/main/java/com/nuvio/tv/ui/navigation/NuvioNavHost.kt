@@ -1226,7 +1226,7 @@ private fun PlaybackNavHost(
                     Screen.Player.createRoute(
                         streamUrl = streamUrl,
                         title = channel.displayName,
-                        streamName = "Live TV",
+                        streamName = channel.addonDisplayName ?: "Live TV",
                         logo = channel.logoUrl,
                         liveTv = true,
                         liveTvChannelId = channel.id,

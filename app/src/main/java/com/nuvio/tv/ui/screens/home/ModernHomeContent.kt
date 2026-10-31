@@ -1089,7 +1089,11 @@ fun ModernHomeContent(
             val heroMetadataModifier = remember(rowHorizontalPadding, rowsViewportHeight, screenHeight, layoutMetrics.heroTextWidthFraction, mobileLayout) {
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = rowHorizontalPadding, end = if (mobileLayout) rowHorizontalPadding else NuvioTheme.spacing.xxxl,
+                    // Keep the featured title clear of the floating navigation pill.
+                    // Catalog rows retain their shared 52dp alignment below.
+                    .padding(
+                        start = rowHorizontalPadding + if (mobileLayout) 16.dp else 0.dp,
+                        end = if (mobileLayout) rowHorizontalPadding else NuvioTheme.spacing.xxxl,
                         bottom = rowsViewportHeight + if (screenHeight < 480.dp) NuvioTheme.spacing.sm else NuvioTheme.spacing.lg)
                     .fillMaxWidth(layoutMetrics.heroTextWidthFraction)
             }

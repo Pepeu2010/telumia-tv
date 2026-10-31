@@ -3,6 +3,7 @@ package com.nuvio.tv.ui.components
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -290,25 +292,39 @@ fun CatalogRowSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs)) {
-                Text(
-                    text = catalogTitle.ifBlank { " " },
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        textDirection = catalogTitle.contentTextDirection()
-                    ),
-                    color = if (catalogTitle.isBlank()) Color.Transparent else NuvioTheme.colors.TextPrimary,
-                    maxLines = 3,
-                    overflow = TextOverflow.Clip
-                )
-                if (showAddonName) {
-                    val addonText = if (catalogTitle.isBlank()) " " else stringResource(R.string.catalog_from_addon, catalogRow.addonName)
-                    Text(
-                        text = addonText,
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            textDirection = addonText.contentTextDirection()
-                        ),
-                        color = if (catalogTitle.isBlank()) Color.Transparent else NuvioTheme.colors.TextTertiary
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
+                verticalAlignment = Alignment.Top,
+            ) {
+                if (catalogTitle.isNotBlank()) {
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .height(30.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
                     )
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs)) {
+                    Text(
+                        text = catalogTitle.ifBlank { " " },
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            textDirection = catalogTitle.contentTextDirection()
+                        ),
+                        color = if (catalogTitle.isBlank()) Color.Transparent else NuvioTheme.colors.TextPrimary,
+                        maxLines = 3,
+                        overflow = TextOverflow.Clip
+                    )
+                    if (showAddonName) {
+                        val addonText = if (catalogTitle.isBlank()) " " else stringResource(R.string.catalog_from_addon, catalogRow.addonName)
+                        Text(
+                            text = addonText,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                textDirection = addonText.contentTextDirection()
+                            ),
+                            color = if (catalogTitle.isBlank()) Color.Transparent else NuvioTheme.colors.TextTertiary
+                        )
+                    }
                 }
             }
         }

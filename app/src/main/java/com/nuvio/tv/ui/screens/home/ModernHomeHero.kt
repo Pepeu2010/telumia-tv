@@ -230,7 +230,7 @@ internal fun ModernHeroGradientLayer(
             }
             .drawWithCache {
                 val fullScreen = isFullScreen()
-                val horizontalFadeEndX = size.width * if (fullScreen) 0.65f else 0.45f
+                val horizontalFadeEndX = size.width * if (fullScreen) 0.65f else 0.56f
                 val colorStops = if (fullScreen) {
                     arrayOf(
                         0.0f to bgColor,
@@ -242,9 +242,9 @@ internal fun ModernHeroGradientLayer(
                 } else {
                     arrayOf(
                         0.0f to bgColor,
-                        0.22f to bgColor.copy(alpha = 0.86f),
-                        0.46f to bgColor.copy(alpha = 0.56f),
-                        0.76f to bgColor.copy(alpha = 0.16f),
+                        0.22f to bgColor.copy(alpha = 0.90f),
+                        0.46f to bgColor.copy(alpha = 0.70f),
+                        0.76f to bgColor.copy(alpha = 0.24f),
                         1.0f to Color.Transparent
                     )
                 }
@@ -501,7 +501,7 @@ internal fun HeroTitleContent(
             }
             preview.description?.takeIf(String::isNotBlank)?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium.copy(textDirection = it.contentTextDirection()),
-                    color = colors.TextSecondary, maxLines = if (compact) 1 else 2,
+                    color = colors.TextSecondary, maxLines = if (shortViewport) 1 else 2,
                     overflow = TextOverflow.Ellipsis)
             }
         }

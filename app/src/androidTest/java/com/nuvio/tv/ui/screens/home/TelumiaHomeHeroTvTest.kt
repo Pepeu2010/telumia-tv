@@ -29,6 +29,8 @@ import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import java.io.File
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -89,6 +91,40 @@ class TelumiaHomeHeroTvTest {
         compose.onNodeWithText("IMDb", substring = true).assertDoesNotExist()
     }
 
+    @Test fun dpadCanEnterActivateAndLeaveThePrimaryAction() {
+        val rowFocus = FocusRequester()
+        var activations = 0
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            Column(Modifier.width(500.dp)) {
+                HeroTitleContent(
+                    previewProvider = { movie },
+                    portraitMode = false,
+                    showImdbRatings = true,
+                    onPrimaryAction = { activations++ },
+                )
+                Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
+                    .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
+            }
+            LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
+        } }
+
+        val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed()
+        val action = compose.onNodeWithText(actionLabel).fetchSemanticsNode().boundsInRoot
+        val label = compose.onNodeWithText(actionLabel, useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInRoot
+        assertTrue("Focused CTA label should stay centered horizontally", abs(label.center.x - action.center.x) < 2f)
+        assertTrue("Focused CTA label should stay centered vertically: label=$label action=$action", abs(label.center.y - action.center.y) < 2f)
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals("D-pad center should activate the CTA once", 1, activations) }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithText(actionLabel).assertIsFocused()
+    }
+
     @Test fun primaryActionIsAnchoredLeftAndItsLabelStaysCentered() {
         val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
         compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
@@ -112,6 +148,7 @@ class TelumiaHomeHeroTvTest {
         assertTrue("CTA should remain compact instead of spanning the panel", action.width < panel.width * 0.6f)
         assertTrue("CTA should sit near the panel's left edge", actionInset >= 0f && actionInset < action.width / 2f)
         assertTrue("CTA label should be centered inside its button", abs(label.center.x - action.center.x) < 2f)
+        assertActionContained(panel, action, label)
         compose.waitForIdle()
         val directory = instrumentation.targetContext.getExternalFilesDir(null)!!
         val screenshot = instrumentation.uiAutomation.takeScreenshot()
@@ -122,6 +159,74 @@ class TelumiaHomeHeroTvTest {
             file.outputStream().use { screenshot.compress(Bitmap.CompressFormat.PNG, 100, it) }
         }
         screenshot.recycle()
+    }
+
+    @Test fun dpadSkipsTheHiddenPrimaryActionDuringFullscreenTrailer() {
+        val rowFocus = FocusRequester()
+        val trailer = mutableStateOf(true)
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            Column(Modifier.width(500.dp)) {
+                HeroTitleContent(
+                    previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
+                    onPrimaryAction = {}, trailerPlaying = { trailer.value },
+                )
+                Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
+                    .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
+            }
+            LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
+        } }
+
+        val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        compose.onNodeWithText(actionLabel).assertDoesNotExist()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        compose.runOnIdle { trailer.value = false }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed()
+    }
+
+    @Test fun trailerStartingWhilePrimaryActionIsFocusedReleasesFocusAndKeepsDpadUsable() {
+        val rowFocus = FocusRequester()
+        val trailer = mutableStateOf(false)
+        var heroHasFocus = false
+        var activations = 0
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            Column(Modifier.width(500.dp)) {
+                Box(Modifier.onFocusChanged { heroHasFocus = it.hasFocus }) {
+                    HeroTitleContent(
+                        previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
+                        onPrimaryAction = { activations++ }, trailerPlaying = { trailer.value },
+                    )
+                }
+                Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
+                    .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
+            }
+            LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
+        } }
+
+        val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithText(actionLabel).assertIsFocused()
+        compose.runOnIdle {
+            assertTrue("Focus observer must see the focused CTA before hiding it", heroHasFocus)
+            trailer.value = true
+        }
+        compose.onNodeWithText(actionLabel).assertDoesNotExist()
+        compose.runOnIdle { assertFalse("Starting the trailer must release focus from the invisible CTA", heroHasFocus) }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithTag("content_row").assertIsFocused()
+        compose.runOnIdle {
+            assertEquals("The hidden CTA must not be activated", 0, activations)
+            trailer.value = false
+        }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
+        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals("The restored CTA must remain usable", 1, activations) }
     }
 
     @Test fun primaryActionAlignmentAlsoFitsACompactMobileViewport() {
@@ -155,6 +260,19 @@ class TelumiaHomeHeroTvTest {
         assertTrue("Mobile CTA should provide a wide touch target", action.width > panel.width * 0.8f)
         assertTrue("Mobile CTA should respect the panel's content inset", actionInset >= 0f && actionInset < panel.width * 0.1f)
         assertTrue("Mobile CTA label should be centered inside its button", abs(label.center.x - action.center.x) < 2f)
+        assertActionContained(panel, action, label)
+    }
+
+    private fun assertActionContained(
+        panel: androidx.compose.ui.geometry.Rect,
+        action: androidx.compose.ui.geometry.Rect,
+        label: androidx.compose.ui.geometry.Rect,
+    ) {
+        assertTrue("CTA must fit horizontally inside the panel", action.left >= panel.left && action.right <= panel.right)
+        assertTrue("CTA must fit vertically inside the viewport", action.top >= panel.top && action.bottom <= panel.bottom)
+        assertTrue("CTA label must fit inside the button", label.left >= action.left && label.right <= action.right &&
+            label.top >= action.top && label.bottom <= action.bottom)
+        assertTrue("CTA label should be vertically centered: label=$label action=$action", abs(label.center.y - action.center.y) < 2f)
     }
 
     @Test fun fullscreenPreviewHidesMetadataFromAccessibilityAndRestoresItAfterwards() {

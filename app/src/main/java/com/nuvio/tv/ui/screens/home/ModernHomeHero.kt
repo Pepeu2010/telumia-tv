@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -516,6 +517,7 @@ internal fun HeroTitleContent(
                             Modifier.width(136.dp).align(Alignment.Start)
                         }
                     )
+                    .focusProperties { canFocus = !trailerPlaying() }
                     .graphicsLayer { alpha = metaAlpha }
                     .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
                 enabled = !trailerPlaying(),
@@ -534,7 +536,7 @@ internal fun HeroTitleContent(
                     )
                 )
             ) {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = stringResource(R.string.cw_action_go_to_details),
                         style = MaterialTheme.typography.labelLarge,

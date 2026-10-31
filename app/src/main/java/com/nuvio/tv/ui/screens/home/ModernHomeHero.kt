@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -391,15 +390,18 @@ internal fun HeroTitleContent(
     val preview = previewProvider() ?: return
     val colors = NuvioTheme.colors
     val context = LocalContext.current
-    val shortViewport = LocalConfiguration.current.screenHeightDp < 480
-    val compact = LocalConfiguration.current.screenHeightDp < 600
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
+    val mobileLayout = configuration.screenWidthDp < 600
+    val shortViewport = configuration.screenHeightDp < 480
+    val compact = configuration.screenHeightDp < 600
     val motion = LocalUiMotion.current
     val metaAlpha by animateFloatAsState(
         targetValue = if (trailerPlaying()) 0f else 1f,
         animationSpec = tween(motion.durationMillis(180)), label = "telumiaHeroMetadata")
     val headline = MaterialTheme.typography.headlineLarge.copy(
-        fontSize = if (shortViewport) 22.sp else if (compact) 28.sp else if (portraitMode) 32.sp else 36.sp,
-        lineHeight = if (shortViewport) 25.sp else if (compact) 32.sp else 39.sp,
+        fontSize = if (shortViewport) 22.sp else if (mobileLayout) 25.sp else if (compact) 28.sp else if (portraitMode) 32.sp else 36.sp,
+        lineHeight = if (shortViewport) 25.sp else if (mobileLayout) 30.sp else if (compact) 32.sp else 39.sp,
         fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp,
         textDirection = preview.title.contentTextDirection())
     val contextLine = remember(preview.contentTypeText, preview.yearText, preview.runtimeText, preview.genres, context) {
@@ -428,16 +430,31 @@ internal fun HeroTitleContent(
         preview.languageText, preview.countryText).filter(String::isNotBlank).distinct()
     val imdb = preview.imdbText?.toFloatOrNull()?.takeIf { it.isFinite() && it in 0f..10f }
     var logoError by remember(preview.title, preview.logo) { mutableStateOf(false) }
-    val shape = RoundedCornerShape(if (compact) 16.dp else 22.dp)
+    val shape = RoundedCornerShape(if (mobileLayout || compact) 16.dp else 22.dp)
+    val panelPadding = if (shortViewport) 10.dp else if (mobileLayout || compact) 14.dp else 20.dp
+    val logoHeight = if (shortViewport) 48.dp else if (mobileLayout || compact) 64.dp else 96.dp
+    val logoRequest = remember(context, preview.logo, configuration.screenWidthDp, logoHeight, density, mobileLayout) {
+        preview.logo?.let {
+            val widthPx = with(density) {
+                (configuration.screenWidthDp.dp * if (mobileLayout) 0.84f else 0.42f).roundToPx()
+            }.coerceAtLeast(1)
+            val heightPx = with(density) { logoHeight.roundToPx() }.coerceAtLeast(1)
+            ImageRequest.Builder(context)
+                .data(it)
+                .size(width = widthPx, height = heightPx)
+                .crossfade(false)
+                .build()
+        }
+    }
 
     Column(Modifier.fillMaxWidth().clip(shape)
         .background(colors.Panel.copy(alpha = 0.88f))
         .border(1.dp, colors.TextPrimary.copy(alpha = 0.10f), shape)
-        .padding(if (shortViewport) 10.dp else if (compact) 14.dp else 20.dp),
-        verticalArrangement = Arrangement.spacedBy(if (shortViewport) 6.dp else if (compact) 9.dp else 14.dp)) {
+        .padding(panelPadding),
+        verticalArrangement = Arrangement.spacedBy(if (shortViewport) 6.dp else if (mobileLayout || compact) 9.dp else 14.dp)) {
         if (!preview.logo.isNullOrBlank() && !logoError) {
-            AsyncImage(model = preview.logo, contentDescription = preview.title,
-                modifier = Modifier.height(if (shortViewport) 48.dp else if (compact) 64.dp else 96.dp).fillMaxWidth(),
+            AsyncImage(model = logoRequest, contentDescription = preview.title,
+                modifier = Modifier.height(logoHeight).fillMaxWidth(),
                 contentScale = ContentScale.Fit, alignment = Alignment.CenterStart,
                 onError = { logoError = true })
         } else if (preview.title.isNotBlank()) {
@@ -488,10 +505,16 @@ internal fun HeroTitleContent(
             }
         }
         onPrimaryAction?.let { action ->
+            val actionLayoutModifier = if (mobileLayout) {
+                Modifier.fillMaxWidth()
+            } else {
+                Modifier.width(136.dp).align(Alignment.CenterHorizontally)
+            }
             Button(
                 onClick = action,
                 modifier = Modifier
                     .height(48.dp)
+                    .then(actionLayoutModifier)
                     .graphicsLayer { alpha = metaAlpha }
                     .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
                 enabled = !trailerPlaying(),
@@ -510,11 +533,15 @@ internal fun HeroTitleContent(
                     )
                 )
             ) {
-                Text(
-                    text = stringResource(R.string.cw_action_go_to_details),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.cw_action_go_to_details),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }

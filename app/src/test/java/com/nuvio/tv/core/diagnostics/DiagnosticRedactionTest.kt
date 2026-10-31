@@ -18,6 +18,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import java.net.SocketTimeoutException
 import com.nuvio.tv.core.auth.diagnostics.AuthDiagnosticsSession
+import com.nuvio.tv.core.auth.diagnostics.shouldUploadAuthDiagnosticReport
 import com.nuvio.tv.data.repository.AuthDiagnosticReportRepository
 import com.nuvio.tv.data.repository.AuthDiagnosticReportQueue
 import com.nuvio.tv.data.remote.dto.AuthDiagnosticReportRequestDto
@@ -32,6 +33,32 @@ import kotlinx.coroutines.test.runTest
 
 class DiagnosticRedactionTest {
     @get:Rule val directory = TemporaryFolder()
+
+    @Test
+    fun authDiagnosticReportsAreSkippedWhenNoEndpointIsConfigured() {
+        assertFalse(shouldUploadAuthDiagnosticReport(isCustomServer = false, reportsEndpointConfigured = false))
+        assertFalse(shouldUploadAuthDiagnosticReport(isCustomServer = true, reportsEndpointConfigured = true))
+        assertTrue(shouldUploadAuthDiagnosticReport(isCustomServer = false, reportsEndpointConfigured = true))
+    }
+
+    @Test
+    fun authDiagnosticSessionDoesNotQueueWhenReportsEndpointIsMissing() = runTest {
+        val repository = mockk<AuthDiagnosticReportRepository>()
+        val session = AuthDiagnosticsSession(
+            repository = repository,
+            flowType = "startup_auth",
+            serverConfiguration = ServerConfiguration(
+                backendUrl = "https://nuvio.test",
+                publishableKey = "unused-test-key",
+                capabilities = ServerCapabilities(emailPasswordAuth = false, tvLogin = true),
+                isCustom = false
+            ),
+            reportsEndpointConfigured = false
+        )
+
+        assertEquals("disabled", session.finishSuccess().getOrNull())
+        coVerify(exactly = 0) { repository.submit(any()) }
+    }
 
     @Test
     fun legacyQueueIsMigratedBeforeRetryAndNewWritesCannotStoreSecrets() = runTest {
@@ -98,6 +125,7 @@ class DiagnosticRedactionTest {
                 isCustom = false,
                 tvLoginWebBaseUrl = "https://nuvio.test/link?code=ABC-123",
             ),
+            reportsEndpointConfigured = true
         )
         session.recordRequest("start", "POST", "https://nuvio.test/link?nonce=private-nonce", mapOf("X-Unknown" to "bare-secret"), """{"nonce":"private-nonce"}""")
         session.recordResponse("start", "POST", "https://nuvio.test/link?code=ABC-123", 401, false, emptyMap(), "ABC-123", "application/json")

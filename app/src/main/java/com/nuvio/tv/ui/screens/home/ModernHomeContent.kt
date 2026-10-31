@@ -147,25 +147,37 @@ fun ModernHomeContent(
 ) {
     val context = LocalContext.current
     val performanceProfile = remember(context) { TvPerformanceProfile.detect(context) }
+    val localConfiguration = LocalConfiguration.current
+    val screenWidth = localConfiguration.screenWidthDp.dp
+    val screenHeight = localConfiguration.screenHeightDp.dp
     val onRowItemFocusedPassedDown = rememberUpdatedState(onRowItemFocusedCallback)
     val defaultBringIntoViewSpec = LocalBringIntoViewSpec.current
     val sidebarExpanded = LocalSidebarExpanded.current
     val isSidebarExpanded = remember(sidebarExpanded) { derivedStateOf { sidebarExpanded } }
     val lifecycleOwner = LocalLifecycleOwner.current
     val useLandscapePosters = uiState.modernLandscapePostersEnabled
+    val layoutMetrics = remember(localConfiguration.screenWidthDp, useLandscapePosters) {
+        modernHomeLayoutMetrics(
+            screenWidthDp = localConfiguration.screenWidthDp,
+            useLandscapePosters = useLandscapePosters
+        )
+    }
+    val mobileLayout = layoutMetrics.isMobile
     val alwaysShowLandscapeClearlogo = uiState.alwaysShowLandscapeClearlogo
     val fullScreenBackdrop = uiState.modernHeroFullScreenBackdropEnabled
     val trailerPlaybackTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget
     val effectiveAutoplayEnabled =
-        uiState.focusedPosterBackdropTrailerEnabled &&
+        layoutMetrics.focusEffectsEnabled &&
+            uiState.focusedPosterBackdropTrailerEnabled &&
             (useLandscapePosters || uiState.focusedPosterBackdropExpandEnabled)
     val landscapeExpandedCardMode =
         useLandscapePosters &&
             effectiveAutoplayEnabled &&
             trailerPlaybackTarget == FocusedPosterTrailerPlaybackTarget.EXPANDED_CARD
-    val effectiveExpandEnabled =
+    val effectiveExpandEnabled = layoutMetrics.focusEffectsEnabled && (
         (uiState.focusedPosterBackdropExpandEnabled && !useLandscapePosters) ||
             landscapeExpandedCardMode
+        )
     val shouldActivateFocusedPosterFlow =
         effectiveExpandEnabled ||
             (effectiveAutoplayEnabled &&
@@ -652,21 +664,21 @@ fun ModernHomeContent(
         }
     }
 
-    val portraitBaseWidth = uiState.posterCardWidthDp.dp
-    val portraitBaseHeight = uiState.posterCardHeightDp.dp
-    val portraitModernPosterScale = 1.08f
-    val landscapeModernPosterScale = 1.34f
+    val portraitBaseWidth = uiState.posterCardWidthDp.dp * layoutMetrics.posterScale
+    val portraitBaseHeight = uiState.posterCardHeightDp.dp * layoutMetrics.posterScale
+    val portraitModernPosterScale = if (mobileLayout) 0.96f else 1.08f
+    val landscapeModernPosterScale = if (mobileLayout) 1.08f else 1.34f
     val portraitCatalogCardWidth = portraitBaseWidth * 0.84f * portraitModernPosterScale
     val portraitCatalogCardHeight = portraitBaseHeight * 0.84f * portraitModernPosterScale
     val landscapeCatalogCardWidth = portraitBaseWidth * 1.24f * landscapeModernPosterScale
     val landscapeCatalogCardHeight = landscapeCatalogCardWidth / 1.77f
     // Poster style reuses the portrait catalog dimensions so its artwork matches the catalogs below it.
     val continueWatchingStyle = uiState.continueWatchingCardStyle
-    val continueWatchingScale = 1.34f
+    val continueWatchingScale = if (mobileLayout) 1f else 1.34f
     val continueWatchingCardWidth = when (continueWatchingStyle) {
         ContinueWatchingCardStyle.POSTER -> portraitCatalogCardWidth
         // Wide still scales with the poster width setting so it matches the rest of the row.
-        ContinueWatchingCardStyle.WIDE -> portraitBaseWidth * 2.1f
+        ContinueWatchingCardStyle.WIDE -> portraitBaseWidth * if (mobileLayout) 1.55f else 2.1f
         ContinueWatchingCardStyle.CARD -> portraitBaseWidth * 1.24f * continueWatchingScale
     }
     val continueWatchingCardHeight = when (continueWatchingStyle) {
@@ -675,13 +687,9 @@ fun ModernHomeContent(
         ContinueWatchingCardStyle.CARD -> continueWatchingCardWidth / 1.77f
     }
 
-    val localConfiguration = LocalConfiguration.current
-    val screenWidth = localConfiguration.screenWidthDp.dp
-    val screenHeight = localConfiguration.screenHeightDp.dp
-
     Box(modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background)) {
             val posterCardCornerRadius = remember(uiState.posterCardCornerRadiusDp) { uiState.posterCardCornerRadiusDp.dp }
-            val rowHorizontalPadding = 52.dp
+            val rowHorizontalPadding = layoutMetrics.safeHorizontalDp.dp
 
             val activeCarouselItemState = remember(carouselRows, rowByKey) {
                 derivedStateOf {
@@ -993,7 +1001,7 @@ fun ModernHomeContent(
             }
 
             val localDensity = LocalDensity.current
-            val rowsViewportHeightFraction = if (useLandscapePosters) 0.49f else 0.52f
+            val rowsViewportHeightFraction = layoutMetrics.rowsViewportHeightFraction
             val rowsViewportHeight = remember(screenHeight, rowsViewportHeightFraction) { screenHeight * rowsViewportHeightFraction }
             val rowTitleLineHeight = MaterialTheme.typography.titleMedium.lineHeight
             val rowTitleHeight = remember(rowTitleLineHeight, localDensity) {
@@ -1018,9 +1026,9 @@ fun ModernHomeContent(
                 }
             }
             val contentFocusRequester = LocalContentFocusRequester.current
-            val heroMediaWidthPx = remember(screenWidth, localDensity, fullScreenBackdrop) {
+            val heroMediaWidthPx = remember(screenWidth, localDensity, fullScreenBackdrop, mobileLayout) {
                 with(localDensity) {
-                    if (fullScreenBackdrop) screenWidth.roundToPx()
+                    if (fullScreenBackdrop || mobileLayout) screenWidth.roundToPx()
                     else (screenWidth * MODERN_HERO_MEDIA_WIDTH_FRACTION).roundToPx()
                 }.coerceAtLeast(1)
             }
@@ -1031,9 +1039,11 @@ fun ModernHomeContent(
                 }.coerceAtLeast(1)
             }
 
-            val heroMediaModifier = remember(heroBackdropHeight, screenHeight, fullScreenBackdrop) {
+            val heroMediaModifier = remember(heroBackdropHeight, screenHeight, fullScreenBackdrop, mobileLayout) {
                 if (fullScreenBackdrop) {
                     Modifier.align(Alignment.TopStart).fillMaxWidth().height(screenHeight)
+                } else if (mobileLayout) {
+                    Modifier.align(Alignment.TopStart).fillMaxWidth().height(heroBackdropHeight)
                 } else {
                     Modifier.align(Alignment.TopEnd).offset(x = NuvioTheme.spacing.huge).fillMaxWidth(MODERN_HERO_MEDIA_WIDTH_FRACTION).height(heroBackdropHeight)
                 }
@@ -1076,12 +1086,12 @@ fun ModernHomeContent(
             val shouldPlayTrailerLambda = remember { { shouldPlayCatalogHeroTrailerUpdated || shouldPlayCollectionHeroVideoUpdated } }
             val heroTrailerRenderedLambda = remember { { heroTrailerFirstFrameRenderedUpdated } }
 
-            val heroMetadataModifier = remember(rowHorizontalPadding, rowsViewportHeight, screenHeight) {
+            val heroMetadataModifier = remember(rowHorizontalPadding, rowsViewportHeight, screenHeight, layoutMetrics.heroTextWidthFraction, mobileLayout) {
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = rowHorizontalPadding, end = NuvioTheme.spacing.xxxl,
+                    .padding(start = rowHorizontalPadding, end = if (mobileLayout) rowHorizontalPadding else NuvioTheme.spacing.xxxl,
                         bottom = rowsViewportHeight + if (screenHeight < 480.dp) NuvioTheme.spacing.sm else NuvioTheme.spacing.lg)
-                    .fillMaxWidth(MODERN_HERO_TEXT_WIDTH_FRACTION)
+                    .fillMaxWidth(layoutMetrics.heroTextWidthFraction)
             }
             val heroPrimaryAction: (() -> Unit)? = when (val payload = focusedCatalogSelection.value?.payload) {
                 is ModernPayload.Catalog -> {

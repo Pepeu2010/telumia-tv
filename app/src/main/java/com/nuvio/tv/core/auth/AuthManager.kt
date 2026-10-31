@@ -132,12 +132,17 @@ class AuthManager @Inject constructor(
                             if (user.email.isNullOrBlank()) {
                                 clearInvalidRemoteSession()
                                 finishStartupAuthDiagnostics("signed_out", "authenticated_session_missing_email")
-                            } else if (!validateAuthenticatedSession(force = false)) {
-                                finishStartupAuthDiagnostics("signed_out", "authenticated_session_invalid")
                             } else {
+                                // Restore the locally cached Nuvio account before checking the
+                                // network. A slow or temporarily unavailable server must not
+                                // hold the app at its signed-out/loading startup surface.
                                 _authState.value = AuthState.FullAccount(userId = user.id, email = user.email!!)
                                 authSessionNoticeDataStore.markNuvioAuthenticated()
-                                finishStartupAuthDiagnostics("success", "authenticated_session_validated")
+                                if (!validateAuthenticatedSession(force = false)) {
+                                    finishStartupAuthDiagnostics("signed_out", "authenticated_session_invalid")
+                                } else {
+                                    finishStartupAuthDiagnostics("success", "authenticated_session_validated")
+                                }
                             }
                         } else {
                             clearInvalidRemoteSession()

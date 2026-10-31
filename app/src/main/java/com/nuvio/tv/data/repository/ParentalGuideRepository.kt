@@ -1,9 +1,10 @@
 package com.nuvio.tv.data.repository
 
 import android.util.Log
+import com.nuvio.tv.core.storage.TtlLruCache
 import com.nuvio.tv.data.remote.api.ImdbApiParentsGuideCategory
 import com.nuvio.tv.data.remote.api.ParentalGuideApi
-import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,27 +20,61 @@ data class ParentalGuideResult(
     val frightening: String? = null
 )
 
+internal data class ParentalGuideCacheLimits(
+    val entries: Int = DEFAULT_ENTRIES,
+    val ttlMillis: Long = DEFAULT_TTL_MILLIS,
+) {
+    init {
+        require(entries > 0) { "Parental guide cache capacity must be positive" }
+        require(ttlMillis > 0L) { "Parental guide cache TTL must be positive" }
+    }
+
+    companion object {
+        const val DEFAULT_ENTRIES = 128
+        const val DEFAULT_TTL_MILLIS = 12L * 60L * 60L * 1_000L
+    }
+}
+
+/** Small in-memory cache for public IMDb parental-guide summaries. */
+internal class ParentalGuideCache(
+    limits: ParentalGuideCacheLimits = ParentalGuideCacheLimits(),
+    nowMillis: () -> Long = System::currentTimeMillis,
+) {
+    private val entries = TtlLruCache<String, ParentalGuideResult>(
+        capacity = limits.entries,
+        ttlMillis = limits.ttlMillis,
+        nowMillis = nowMillis,
+    )
+
+    fun get(imdbId: String): ParentalGuideResult? = entries.get(imdbId)
+
+    fun put(imdbId: String, result: ParentalGuideResult) = entries.put(imdbId, result)
+
+    val size: Int get() = entries.size
+}
+
 @Singleton
 class ParentalGuideRepository @Inject constructor(
     private val api: ParentalGuideApi
 ) {
-    private val cache = ConcurrentHashMap<String, ParentalGuideResult>()
+    private val cache = ParentalGuideCache()
 
     suspend fun getParentalGuide(imdbId: String): ParentalGuideResult? {
         if (!imdbId.startsWith("tt")) return null
 
-        cache[imdbId]?.let { return it }
+        cache.get(imdbId)?.let { return it }
 
         return try {
             val response = api.getParentsGuide(imdbId)
-            if (response.isSuccessful && !response.body()?.parentsGuide.isNullOrEmpty()) {
-                val categories = response.body()!!.parentsGuide!!
-                val result = mapToResult(categories)
-                cache[imdbId] = result
-                result
-            } else {
-                null
-            }
+            if (!response.isSuccessful) return null
+            val categories = response.body()?.parentsGuide.orEmpty()
+            if (categories.isEmpty()) return null
+
+            val result = mapToResult(categories)
+            cache.put(imdbId, result)
+            result
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("ParentalGuide", "Failed to fetch parental guide for $imdbId", e)
             null

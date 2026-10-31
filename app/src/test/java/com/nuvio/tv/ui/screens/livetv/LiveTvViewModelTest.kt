@@ -11,12 +11,14 @@ import com.nuvio.tv.data.local.LiveTvChannelState
 import com.nuvio.tv.data.local.LiveTvChannelStateStore
 import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvImportResult
+import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.domain.model.LiveTvSource
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,10 +27,14 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class LiveTvViewModelTest {
     @get:Rule val mainDispatcher = MainDispatcherRule()
+    @get:Rule val temporaryFolder = TemporaryFolder()
 
     @Test
     fun addingSourcePersistsConfigurationAndPublishesImportedChannels() = runTest(mainDispatcher.dispatcher) {
@@ -139,6 +145,75 @@ class LiveTvViewModelTest {
         runCurrent()
 
         assertEquals(listOf(channel), viewModel.state.value.channels)
+        assertEquals("offline", viewModel.state.value.sourceErrors[source.id])
+        assertFalse(viewModel.state.value.isLoading)
+    }
+
+    @Test
+    fun persistedReadOnlyGuideIsShownAtStartupAndSurvivesRefreshWhenOffline() = runTest(mainDispatcher.dispatcher) {
+        val source = LiveTvSource("source-offline", "Brasil", "https://example.org/list.m3u")
+        val channel = LiveTvChannel(
+            "source-offline:channel",
+            source.id,
+            "Canal Brasil",
+            "https://example.org/live.m3u8",
+            tvgId = "canal-brasil",
+        )
+        val program = LiveTvProgram(
+            sourceId = source.id,
+            channelId = "canal-brasil",
+            title = "Jornal da Noite",
+            startEpochMillis = 1_000L,
+            endEpochMillis = 2_000L,
+            description = "Edição nacional",
+        )
+        val expected = LiveTvImportResult(channels = listOf(channel), programs = listOf(program))
+        val cacheDirectory = temporaryFolder.newFolder("persisted-guide")
+        val onlineCache = LiveTvGuideCache(
+            cacheDirectory,
+            quotaBytes = 1024L * 1024L,
+            writesEnabled = true,
+            atomicReplace = { temporary, target ->
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING,
+                )
+                true
+            },
+        )
+        assertTrue(onlineCache.write(source.id, expected, updatedEpochMillis = 1234L))
+
+        // Reopen the real persisted cache in read-only mode, as happens when offline or over quota.
+        val readOnlyCache = LiveTvGuideCache(
+            cacheDirectory,
+            quotaBytes = 1024L * 1024L,
+            writesEnabled = false,
+        )
+        assertEquals(expected, readOnlyCache.read(source.id)?.result)
+        val store = mockk<LiveTvSourceStore>()
+        val importer = mockk<LiveTvSourceImporter>()
+        val channelState = mockk<LiveTvChannelStateStore>()
+        val refreshScheduler = mockk<LiveTvRefreshScheduler>(relaxed = true)
+        coEvery { store.list() } returns listOf(source)
+        coEvery { importer.import(source) } throws IllegalStateException("offline")
+        coEvery { channelState.read() } returns LiveTvChannelState()
+        val viewModel = LiveTvViewModel(store, importer, readOnlyCache, channelState, refreshScheduler, activeProfiles())
+
+        runCurrent()
+        viewModel.state.first { !it.isLoading }
+        assertEquals(listOf(channel), viewModel.state.value.channels)
+        assertEquals(listOf(program), viewModel.state.value.programs)
+        assertEquals(mapOf(source.id to 1234L), viewModel.state.value.lastUpdatedEpochMillis)
+
+        viewModel.refresh()
+        runCurrent()
+        viewModel.state.first { !it.isLoading }
+
+        assertEquals(listOf(channel), viewModel.state.value.channels)
+        assertEquals(listOf(program), viewModel.state.value.programs)
+        assertEquals(mapOf(source.id to 1234L), viewModel.state.value.lastUpdatedEpochMillis)
         assertEquals("offline", viewModel.state.value.sourceErrors[source.id])
         assertFalse(viewModel.state.value.isLoading)
     }

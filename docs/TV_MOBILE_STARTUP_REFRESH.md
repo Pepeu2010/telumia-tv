@@ -31,6 +31,13 @@ O AVD não tinha uma conta Nuvio autenticada. Portanto, a restauração de uma s
 - No AVD Android TV API 33, `TelumiaHomeHeroTvTest` e `SettingsVisualTokensTest` passaram: 7 testes, 0 falhas em 1920×1080 e novamente 7 testes, 0 falhas em 1280×720. A seleção inclui a configuração de viewport móvel de 390 dp e valida o alvo amplo do botão.
 - O AVD foi restaurado para 1920×1080, 320 dpi. Não foi testada a abertura com uma sessão Nuvio persistida real. A mudança permanece local, fora das releases estáveis `v1.0.13` e prévia `v1.0.14-alpha.1`.
 
+## Central de Configurações para TV — 31/10/2026
+
+- A área de Configurações agora ajusta margens, largura do trilho e espaçamento de forma contínua pela largura em dp. Em telas largas, limita e centraliza a superfície de trabalho; a navegação anuncia semanticamente qual categoria está selecionada.
+- `SettingsWorkspaceLayoutTest` cobre fixtures a 320 dpi: 1280×720 px → 640×360 dp, 1920×1080 px → 960×540 dp e 3840×2160 px → 1920×1080 dp, além da continuidade entre breakpoints.
+- No AVD Android TV API 33 disponível (1920×1080 px, 320 dpi), `SettingsVisualTokensTest` passou 2/2; verificou semântica de seleção e navegação D-pad no exemplo compartilhado de trilho/opções sob os estilos Zen e Horizon.
+- A instrumentação compõe os componentes de Configurações, não a `SettingsScreen` completa. As resoluções 720p e 4K foram verificadas pelas fixtures JVM; não houve medição da tela completa nessas resoluções nem em hardware físico. O AVD permaneceu em 1920×1080, sem alteração de tamanho ou densidade.
+
 ## Referências visuais e de navegação
 
 - [Android TV: sistema de foco](https://developer.android.com/design/ui/tv/guides/styles/focus-system)

@@ -134,6 +134,7 @@ internal fun measureTvMediaCacheOccupancy(
     cacheDirectory: Path,
     filesDirectory: Path,
     codeCacheDirectory: Path? = null,
+    sharedPreferencesDirectory: Path? = null,
 ): MediaCacheOccupancy {
     val directCacheFiles = DirectCacheFileOccupancy.measure(cacheDirectory, maxMillis = 25)
     val staleVodCaches = discoverStaleVodCacheRoots(cacheDirectory)
@@ -161,7 +162,21 @@ internal fun measureTvMediaCacheOccupancy(
     val codeCaches = codeCacheDirectory?.let {
         OwnedMediaCacheOccupancy.measure(it, listOf(listOf("cs_dex_cache")))
     } ?: MediaCacheOccupancy(0, 0, true)
-    val totalBytes = listOf(directCacheFiles.bytes, currentCaches.bytes, legacyFilesCaches.bytes, codeCaches.bytes)
+    // AddonRepositoryImpl stores its offline manifest snapshot in a named SharedPreferences file,
+    // outside cacheDir/filesDir/codeCacheDir. Count only that cache and its atomic-write backup.
+    val addonManifestCache = sharedPreferencesDirectory?.let {
+        OwnedMediaCacheOccupancy.measure(
+            it,
+            listOf(listOf("addon_manifest_cache.xml"), listOf("addon_manifest_cache.xml.bak")),
+        )
+    } ?: MediaCacheOccupancy(0, 0, true)
+    val totalBytes = listOf(
+        directCacheFiles.bytes,
+        currentCaches.bytes,
+        legacyFilesCaches.bytes,
+        codeCaches.bytes,
+        addonManifestCache.bytes,
+    )
         .fold(0L) { total, bytes ->
             if (total > Long.MAX_VALUE - bytes) Long.MAX_VALUE else total + bytes
         }
@@ -170,6 +185,7 @@ internal fun measureTvMediaCacheOccupancy(
         currentCaches.visitedEntries,
         legacyFilesCaches.visitedEntries,
         codeCaches.visitedEntries,
+        addonManifestCache.visitedEntries,
     )
         .sumOf { it.toLong() }
         .coerceAtMost(Int.MAX_VALUE.toLong())
@@ -178,7 +194,7 @@ internal fun measureTvMediaCacheOccupancy(
         totalBytes,
         visitedEntries,
         directCacheFiles.complete && currentCaches.complete && legacyFilesCaches.complete && codeCaches.complete &&
-            staleVodCaches.complete && pluginCodeCaches.complete,
+            addonManifestCache.complete && staleVodCaches.complete && pluginCodeCaches.complete,
     )
 }
 
@@ -206,6 +222,7 @@ class TvMediaCache @Inject constructor(@param:ApplicationContext context: Contex
                     app.cacheDir.toPath(),
                     app.filesDir.toPath(),
                     app.codeCacheDir.toPath(),
+                    File(app.applicationInfo.dataDir, "shared_prefs").toPath(),
                 )
             },
             executor = occupancyExecutor,

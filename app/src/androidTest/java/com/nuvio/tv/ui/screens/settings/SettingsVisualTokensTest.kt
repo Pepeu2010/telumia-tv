@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollTo
@@ -84,7 +85,9 @@ class SettingsVisualTokensTest {
                                 title = "Aparência",
                                 isSelected = true,
                                 onClick = {},
-                                modifier = Modifier.testTag("settings_visual_rail"),
+                                modifier = Modifier
+                                    .testTag("settings_visual_rail")
+                                    .settingsCategorySelectionSemantics(isSelected = true),
                                 focusRequester = railFocusRequester
                             )
                         }
@@ -143,6 +146,7 @@ class SettingsVisualTokensTest {
         compose.onNodeWithText("Intensidade do cartão").assertIsDisplayed()
         compose.onNodeWithText("As alterações são aplicadas ao perfil ativo.").assertIsDisplayed()
         compose.onNodeWithTag("settings_visual_rail").assertIsFocused()
+        compose.onNodeWithTag("settings_visual_rail").assertIsSelected()
 
         val context = instrumentation.targetContext
         val configuration = context.resources.configuration

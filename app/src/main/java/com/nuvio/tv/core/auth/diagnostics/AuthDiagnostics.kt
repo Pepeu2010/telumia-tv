@@ -47,6 +47,12 @@ import java.util.UUID
 import javax.net.ssl.SSLException
 
 private const val TAG = "AuthDiagnostics"
+
+internal fun shouldUploadAuthDiagnosticReport(
+    isCustomServer: Boolean,
+    reportsEndpointConfigured: Boolean
+): Boolean = !isCustomServer && reportsEndpointConfigured
+
 private const val EXCLUDED_CREDENTIAL = "[excluded-credential]"
 private val credentialKeyRegex = Regex("(authorization|cookie|token|secret|password|apikey|api_key|accesskey|session|refresh|bearer|nonce|code|verification|redirect|location|email|user.?id)", RegexOption.IGNORE_CASE)
 private val authDiagnosticsJson = Json { ignoreUnknownKeys = true }
@@ -56,7 +62,8 @@ class AuthDiagnosticsSession(
     private val flowType: String,
     private val qrTraceId: Long? = null,
     private val serverConfiguration: ServerConfiguration,
-    private val attemptId: String = UUID.randomUUID().toString()
+    private val attemptId: String = UUID.randomUUID().toString(),
+    private val reportsEndpointConfigured: Boolean = BuildConfig.PLAYBACK_REPORTS_BASE_URL.isNotBlank()
 ) {
     private val startedAtMs = System.currentTimeMillis()
     private val startedElapsedMs = SystemClock.elapsedRealtime()
@@ -229,8 +236,9 @@ class AuthDiagnosticsSession(
             )
         }
         if (payload == null) return Result.failure(IllegalStateException("Auth diagnostics session already finished"))
-        if (serverConfiguration.isCustom) {
-            Log.d(TAG, "attempt=$attemptId flow=$flowType upload=disabled")
+        if (!shouldUploadAuthDiagnosticReport(serverConfiguration.isCustom, reportsEndpointConfigured)) {
+            val reason = if (serverConfiguration.isCustom) "custom_server" else "endpoint_not_configured"
+            Log.d(TAG, "attempt=$attemptId flow=$flowType upload=disabled reason=$reason")
             return Result.success("disabled")
         }
         val result = repository.submit(payload)

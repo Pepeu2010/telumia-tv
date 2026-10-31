@@ -24,7 +24,6 @@ import com.nuvio.tv.ui.util.StableSet
 import com.nuvio.tv.ui.util.asStable
 
 internal val YEAR_REGEX = Regex("""\b(19|20)\d{2}\b""")
-internal const val MODERN_HERO_TEXT_WIDTH_FRACTION = 0.42f
 internal const val MODERN_HERO_MEDIA_WIDTH_FRACTION = 0.72f
 internal const val MODERN_TRAILER_OVERSCAN_ZOOM = 1.35f
 internal const val MODERN_HERO_FOCUS_DEBOUNCE_MS = 450L

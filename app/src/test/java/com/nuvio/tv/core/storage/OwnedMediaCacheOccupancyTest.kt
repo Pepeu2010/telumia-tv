@@ -135,6 +135,27 @@ class OwnedMediaCacheOccupancyTest {
         assertEquals(11L, Files.size(filesDirectory.resolve("scene-bookmarks-v1/bookmarks.json")))
     }
 
+    @Test fun addonManifestSharedPreferencesCacheAndBackupCountWithoutIncludingOtherPreferences() = fixture { root ->
+        val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
+        val filesDirectory = root.resolve("files").also(Files::createDirectories)
+        val sharedPreferencesDirectory = root.resolve("shared_prefs").also(Files::createDirectories)
+        write(sharedPreferencesDirectory, "addon_manifest_cache.xml", 37)
+        write(sharedPreferencesDirectory, "addon_manifest_cache.xml.bak", 19)
+        write(sharedPreferencesDirectory, "player_settings.xml", 23)
+        val manifestBytes = Files.readAllBytes(sharedPreferencesDirectory.resolve("addon_manifest_cache.xml"))
+
+        val result = measureTvMediaCacheOccupancy(
+            cacheDirectory,
+            filesDirectory,
+            sharedPreferencesDirectory = sharedPreferencesDirectory,
+        )
+
+        assertTrue(result.complete)
+        assertEquals(56L, result.bytes)
+        assertArrayEquals(manifestBytes, Files.readAllBytes(sharedPreferencesDirectory.resolve("addon_manifest_cache.xml")))
+        assertEquals(23L, Files.size(sharedPreferencesDirectory.resolve("player_settings.xml")))
+    }
+
     @Test fun profilePluginCodeCachesCountWithoutIncludingDurableFilesOrUnrecognizedFolders() = fixture { root ->
         val cacheDirectory = root.resolve("cache").also(Files::createDirectories)
         val filesDirectory = root.resolve("files").also(Files::createDirectories)

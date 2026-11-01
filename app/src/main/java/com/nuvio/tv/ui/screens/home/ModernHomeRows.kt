@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentVerticalBrush
 
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.animation.core.AnimationSpec
@@ -555,7 +556,7 @@ internal fun ModernRowSection(
                     .width(3.dp)
                     .height(23.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient))
+                    .background(NuvioTheme.palette.accentVerticalBrush())
             )
             Text(
                 text = rowTitle,

@@ -3,6 +3,8 @@
 package com.nuvio.tv.ui.screens.settings
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentHorizontalBrush
+import com.nuvio.tv.ui.theme.accentVerticalBrush
 
 import androidx.annotation.RawRes
 import androidx.compose.animation.animateColorAsState
@@ -299,7 +301,7 @@ internal fun SettingsBrandPanel(
                 .width(68.dp)
                 .height(3.dp)
                 .clip(CircleShape)
-                .background(Brush.horizontalGradient(NuvioTheme.palette.accentGradient))
+                .background(NuvioTheme.palette.accentHorizontalBrush())
         )
 
         Spacer(modifier = Modifier.height(26.dp))
@@ -695,7 +697,7 @@ private fun SettingsAccentRule() {
             .width(42.dp)
             .height(3.dp)
             .clip(CircleShape)
-            .background(Brush.horizontalGradient(NuvioTheme.palette.accentGradient))
+            .background(NuvioTheme.palette.accentHorizontalBrush())
     )
 }
 
@@ -714,7 +716,7 @@ private fun SettingsDetailTitle(
                 .width(4.dp)
                 .height(30.dp)
                 .clip(RoundedCornerShape(50))
-                .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+                .background(NuvioTheme.palette.accentVerticalBrush()),
         )
         Text(
             text = title,
@@ -817,7 +819,7 @@ private fun SettingsGroupTitle(
                 .width(3.dp)
                 .height(if (compact) 14.dp else 18.dp)
                 .clip(RoundedCornerShape(50))
-                .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+                .background(NuvioTheme.palette.accentVerticalBrush()),
         )
         Text(
             text = if (compact) title.uppercase() else title,

@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentVerticalBrush
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.State
@@ -879,7 +880,7 @@ private fun SectionDivider(
                     .width(4.dp)
                     .height(28.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+                    .background(NuvioTheme.palette.accentVerticalBrush()),
             )
             Text(
                 text = catalogName,
@@ -926,7 +927,7 @@ private fun StickyCategoryHeader(
                     .width(4.dp)
                     .height(24.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+                    .background(NuvioTheme.palette.accentVerticalBrush()),
             )
             Text(
                 text = sectionName,

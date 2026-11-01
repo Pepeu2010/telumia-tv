@@ -128,9 +128,15 @@ class FocusRingStyleTest {
     fun emptyAccentGradientFallsBackToThemeSecondaryColor() {
         val palette = ThemeColors.Telumia.copy(accentGradient = emptyList())
 
-        val brush = palette.accentBrush()
+        val brushes = listOf(
+            palette.accentBrush(),
+            palette.accentHorizontalBrush(),
+            palette.accentVerticalBrush()
+        )
 
-        assertTrue("An empty accent gradient must use a solid brush", brush is SolidColor)
-        assertEquals(palette.secondary, (brush as SolidColor).value)
+        brushes.forEach { brush ->
+            assertTrue("An empty accent gradient must use a solid brush", brush is SolidColor)
+            assertEquals(palette.secondary, (brush as SolidColor).value)
+        }
     }
 }

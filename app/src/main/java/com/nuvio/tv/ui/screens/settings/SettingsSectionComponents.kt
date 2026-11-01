@@ -43,6 +43,7 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentVerticalBrush
 
 internal val SettingsRowContentInset = 18.dp
 
@@ -107,7 +108,7 @@ internal fun SettingsSectionLabel(
                 .height(18.dp)
                 .clip(RoundedCornerShape(50))
                 .background(
-                    Brush.verticalGradient(NuvioTheme.palette.accentGradient),
+                    NuvioTheme.palette.accentVerticalBrush(),
                 )
         )
         Spacer(modifier = Modifier.width(NuvioTheme.spacing.sm))

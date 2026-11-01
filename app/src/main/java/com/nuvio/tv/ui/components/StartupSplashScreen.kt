@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.nuvio.tv.ui.theme.accentHorizontalBrush
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -159,7 +160,7 @@ fun StartupSplashScreen(
                             .width(68.dp)
                             .height(3.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(Brush.horizontalGradient(NuvioTheme.palette.accentGradient))
+                            .background(NuvioTheme.palette.accentHorizontalBrush())
                     )
                 }
             }

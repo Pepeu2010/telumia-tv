@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.settings
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentHorizontalBrush
 
 import android.view.KeyEvent
 import androidx.compose.foundation.background
@@ -237,11 +238,7 @@ private fun SliderSettingsItemLayout(
                             .fillMaxWidth(progressFraction.coerceIn(0f, 1f))
                             .height(NuvioTheme.spacing.sm)
                             .clip(RoundedCornerShape(NuvioTheme.radii.xs))
-                            .background(
-                                Brush.horizontalGradient(
-                                    NuvioTheme.palette.accentGradient.map { it.copy(alpha = contentAlpha) }
-                                )
-                            )
+                            .background(NuvioTheme.palette.accentHorizontalBrush(alpha = contentAlpha))
                     )
                 }
 

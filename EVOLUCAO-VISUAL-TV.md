@@ -55,14 +55,15 @@ Capturas QA mantidas em `artifacts/settings-visual/`:
 ## Compatibilidade MXQ e evolução da Home — preparo da 1.1.1
 
 - Diagnóstico feito diretamente na MXQ Pro (`rk322x_box`, Android 7.1.2/API 25, ARMv7). O processo da v1.1.0 encerrou ao desenhar um `LinearGradient`; a exceção no log era `colors must have length of at least 2`.
-- O criador compartilhado de pincéis de tema agora transforma uma lista de gradiente vazia em cor sólida semântica (cor de foco ou acento do tema). Listas de uma cor continuam sólidas e gradientes válidos preservam suas cores. Isso evita enviar uma paleta vazia ao shader Compose no Android antigo.
+- O criador compartilhado de pincéis de tema transforma listas de gradiente vazias em cores sólidas semânticas (cor de foco ou acento do tema). Home, splash e configurações passaram a usar as variantes horizontal/vertical desse helper; listas de uma cor continuam sólidas e gradientes válidos preservam as cores. Isso evita enviar uma paleta vazia ao shader Compose no Android antigo, inclusive quando um tema personalizado não tem cores de acento.
+- A MXQ mostra dois pacotes diferentes: `io.github.pepeu2010.telumia.tv` (app principal, v1.1.0, que reproduziu o crash) e `io.github.pepeu2010.telumia.box` (atalho Telumia Box, cuja HomeActivity permaneceu aberta). O pacote temporário `.tv.debug` usado no diagnóstico foi removido.
 - Na hero da Home, a nota IMDb passou a usar uma cápsula âmbar de alto contraste com o token de avaliação existente. A mudança não adiciona animação, camada de blur ou imagem adicional e mantém a navegação D-pad no mesmo alvo.
 - Evidência visual do componente em 1280 × 720, renderizada pela própria MXQ:
 
 ![Hero da Home com nota em cápsula âmbar na MXQ](visual-proof-tv/telumia-home-rating-pill-tv.png)
 
-- `:app:testFullDebugUnitTest --tests com.nuvio.tv.ui.theme.FocusRingStyleTest` primeiro falhou nos dois casos de gradiente vazio e passou após o ajuste (6 testes, 0 falhas).
-- `:app:assembleFullDebug` e `:app:assembleFullDebugAndroidTest` — compilação bem-sucedida.
+- `:app:testFullDebugUnitTest --tests com.nuvio.tv.ui.theme.FocusRingStyleTest` — 6 testes, 0 falhas; a regressão cobre as variantes linear, horizontal e vertical.
+- `:app:assembleFullDebug` — compilação bem-sucedida após ampliar a correção. A suíte unitária completa foi executada: 2.176 testes, 13 falhas em testes de outras áreas (datasource HTTP, allocator, probes Matroska, fetch de plugins, resolução de posters, catálogo, Trakt, pós-play e seleção de tracks). Essas falhas não tocaram os arquivos alterados; ainda não há comparação com uma execução baseline limpa.
 - `TelumiaHomeHeroTvTest#carouselRatingRemainsVisibleInsideTheNewContrastPill` executado na MXQ física (Android 7.1.2) — 1 teste, 0 falhas. O APK de depuração abriu na tela de login QR sem encerrar; a instalação estável v1.1.0 e os dados existentes foram preservados.
 - A publicação estável da correção ainda depende do workflow do repositório principal. O APK de depuração usado na validação não é distribuível e não substitui o release assinado.
 

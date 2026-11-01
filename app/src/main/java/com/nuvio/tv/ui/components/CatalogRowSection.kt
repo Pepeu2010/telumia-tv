@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.accentVerticalBrush
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -302,7 +303,7 @@ fun CatalogRowSection(
                             .width(4.dp)
                             .height(30.dp)
                             .clip(RoundedCornerShape(50))
-                            .background(Brush.verticalGradient(NuvioTheme.palette.accentGradient)),
+                            .background(NuvioTheme.palette.accentVerticalBrush()),
                     )
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs)) {

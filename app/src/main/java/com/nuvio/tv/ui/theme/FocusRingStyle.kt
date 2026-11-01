@@ -30,13 +30,47 @@ class NuvioFocusRingStyle internal constructor(
     }
 }
 
-fun ThemeColorPalette.accentBrush(): Brush = createThemeBrush(accentGradient, secondary)
+fun ThemeColorPalette.accentBrush(alpha: Float = 1f): Brush =
+    createThemeBrush(accentGradient(alpha), secondary.copy(alpha = secondary.alpha * alpha.coerceIn(0f, 1f)))
 
-internal fun createThemeBrush(colors: List<Color>, fallbackColor: Color): Brush {
+fun ThemeColorPalette.accentHorizontalBrush(alpha: Float = 1f): Brush =
+    createThemeBrush(
+        colors = accentGradient(alpha),
+        fallbackColor = secondary.copy(alpha = secondary.alpha * alpha.coerceIn(0f, 1f)),
+        orientation = ThemeBrushOrientation.HORIZONTAL
+    )
+
+fun ThemeColorPalette.accentVerticalBrush(alpha: Float = 1f): Brush =
+    createThemeBrush(
+        colors = accentGradient(alpha),
+        fallbackColor = secondary.copy(alpha = secondary.alpha * alpha.coerceIn(0f, 1f)),
+        orientation = ThemeBrushOrientation.VERTICAL
+    )
+
+private fun ThemeColorPalette.accentGradient(alpha: Float): List<Color> {
+    val normalizedAlpha = alpha.coerceIn(0f, 1f)
+    return accentGradient.map { color -> color.copy(alpha = color.alpha * normalizedAlpha) }
+}
+
+private enum class ThemeBrushOrientation {
+    LINEAR,
+    HORIZONTAL,
+    VERTICAL
+}
+
+private fun createThemeBrush(
+    colors: List<Color>,
+    fallbackColor: Color,
+    orientation: ThemeBrushOrientation = ThemeBrushOrientation.LINEAR
+): Brush {
     return when (colors.size) {
         0 -> SolidColor(fallbackColor)
         1 -> SolidColor(colors.first())
-        else -> Brush.linearGradient(colors)
+        else -> when (orientation) {
+            ThemeBrushOrientation.LINEAR -> Brush.linearGradient(colors)
+            ThemeBrushOrientation.HORIZONTAL -> Brush.horizontalGradient(colors)
+            ThemeBrushOrientation.VERTICAL -> Brush.verticalGradient(colors)
+        }
     }
 }
 

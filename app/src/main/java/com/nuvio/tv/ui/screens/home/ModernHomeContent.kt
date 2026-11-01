@@ -166,10 +166,13 @@ fun ModernHomeContent(
     val alwaysShowLandscapeClearlogo = uiState.alwaysShowLandscapeClearlogo
     val fullScreenBackdrop = uiState.modernHeroFullScreenBackdropEnabled
     val trailerPlaybackTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget
-    val effectiveAutoplayEnabled =
-        layoutMetrics.focusEffectsEnabled &&
-            uiState.focusedPosterBackdropTrailerEnabled &&
-            (useLandscapePosters || uiState.focusedPosterBackdropExpandEnabled)
+    val effectiveAutoplayEnabled = shouldEnableFocusedTrailerPreview(
+        focusEffectsEnabled = layoutMetrics.focusEffectsEnabled,
+        preferenceEnabled = uiState.focusedPosterBackdropTrailerEnabled,
+        playbackTarget = trailerPlaybackTarget,
+        landscapePosters = useLandscapePosters,
+        expandedCards = uiState.focusedPosterBackdropExpandEnabled,
+    )
     val landscapeExpandedCardMode =
         useLandscapePosters &&
             effectiveAutoplayEnabled &&

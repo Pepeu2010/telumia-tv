@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-01",
+  "status": "focused_milestone_passed_with_previous_broad_tv_failures_open",
+  "bases": {
+    "desktop": "bfc2b80c",
+    "tv": "6347e6159"
+  },
+  "desktop": {
+    "unitAndUi": {
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "name": "WindowsHeroTrailerPlayerSurfaceTest[desktop]",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomeHeroNativePreviewTest[desktop]",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomeHeroSectionTest[desktop]",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomePosterHoverLifecycleTest[desktop]",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomePosterPreviewPolicyTest[desktop]",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomePreviewAudioControlTest[desktop]",
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "HomeHeroPagerTest[desktop]",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "task": ":composeApp:desktopTest",
+    "packageTask": ":composeApp:createDistributable",
+    "packageResult": "passed",
+    "finalLog": "cinematic-preview-desktop-composed-ui-final.log",
+    "environment": {
+      "profile": "isolated APPDATA fixture",
+      "locale": "en-US",
+      "backend": "public official configuration from existing release workflow"
+    },
+    "nativeEvidence": [
+      "Actual red/blue AVI pixels displayed in hovered card",
+      "Hero native video stays beside visible title/actions and below audio action",
+      "Native first frame can precede Compose repaint; test waits for both",
+      "Mute/unmute does not reattach source; one ready callback",
+      "Leaving hover releases player ownership; original media fixture deleted after decoder teardown"
+    ],
+    "capture": "cinematic-previews-2026-11-01/windows-native-hover.png"
+  },
+  "tv": {
+    "unit": {
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": [
+        {
+          "name": "com.nuvio.tv.core.runtime.TvPerformanceProfileTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.nuvio.tv.data.local.LayoutPreferenceDataStoreTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.nuvio.tv.ui.screens.home.HomeTrailerPreviewLifecycleTest",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "name": "com.nuvio.tv.ui.screens.home.HomeTrailerPreviewPolicyTest",
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "buildTasks": [
+      ":app:assembleFullDebug",
+      ":app:assembleFullDebugAndroidTest"
+    ],
+    "buildResult": "passed",
+    "buildLog": "cinematic-preview-tv-settings-build.log",
+    "instrumentation": {
+      "tests": 16,
+      "failures": 0,
+      "log": "cinematic-preview-tv-settings-ui.log",
+      "serial": "emulator-5554",
+      "androidApi": 30,
+      "display": "1920x1080, density 320",
+      "classes": [
+        "LayoutFocusedTrailerSettingsTvTest",
+        "HomePreviewPlaybackBadgeTvTest",
+        "HomeHeroNativePreviewTvTest",
+        "TelumiaHomeHeroTvTest",
+        "TrailerPlayerPoolTvTest"
+      ]
+    },
+    "nativeEvidence": [
+      "Production hero and pool play locally encoded AVC",
+      "Indicator requires first frame and never takes focus",
+      "Owner released when preview stops",
+      "Remote DirectionCenter disables autoplay without expanding cards"
+    ],
+    "crashBuffer": "empty after focused instrumentation",
+    "capture": "cinematic-previews-2026-11-01/tv-native-hero.png"
+  },
+  "previousBroadRun": {
+    "source": "VISUAL_QA_RESULTS.json",
+    "desktopTests": 1718,
+    "desktopFailures": 0,
+    "desktopSkipped": 1,
+    "tvUnitTests": 2177,
+    "tvUnitFailuresStillOpen": 11,
+    "rerunInThisMilestone": false
+  },
+  "limits": [
+    "No physical MXQ testing",
+    "No public release, MSI or signed user APK published",
+    "No manual end-to-end login with personal account",
+    "Remote trailer provider availability not guaranteed",
+    "Windows separate-audio-track unmute continues to fall back to artwork; no muxing added",
+    "Not a performance benchmark for all Android architectures or hardware",
+    "Whole-app visual goal remains active"
+  ]
+}

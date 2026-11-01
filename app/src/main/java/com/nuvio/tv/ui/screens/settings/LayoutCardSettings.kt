@@ -176,7 +176,7 @@ internal fun LayoutFocusedPosterSection(
     val isLandscapeActive = uiState.modernLandscapePostersEnabled
     val isModernLandscape = isModern && isLandscapeActive
     val showAutoplayRow = AppFeaturePolicy.inAppTrailerPlaybackEnabled &&
-        (uiState.focusedPosterBackdropExpandEnabled || isModernLandscape)
+        (isModern || uiState.focusedPosterBackdropExpandEnabled)
 
     if (!isModernLandscape) {
         SettingsToggleRow(
@@ -231,6 +231,10 @@ internal fun LayoutFocusedPosterSection(
                 ModernTrailerPlaybackTargetRow(
                     selectedTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget,
                     onTargetSelected = { target ->
+                        if (target == FocusedPosterTrailerPlaybackTarget.EXPANDED_CARD &&
+                            !isModernLandscape && !uiState.focusedPosterBackdropExpandEnabled) {
+                            onEvent(LayoutSettingsEvent.SetFocusedPosterBackdropExpandEnabled(true))
+                        }
                         onEvent(LayoutSettingsEvent.SetFocusedPosterBackdropTrailerPlaybackTarget(target))
                     }
                 )

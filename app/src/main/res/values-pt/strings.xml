@@ -46,4 +46,7 @@
     <string name="studio_avatar_decrease">Diminuir %1$s</string>
     <string name="studio_avatar_increase">Aumentar %1$s</string>
     <string name="studio_avatar_save_error">Não foi possível alterar o avatar. A seleção anterior foi mantida.</string>
+
+    <string name="home_preview_muted">Trailer • sem som</string>
+    <string name="home_preview_with_sound">Trailer • com som</string>
 </resources>

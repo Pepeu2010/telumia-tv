@@ -290,7 +290,7 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     val focusedPosterBackdropTrailerEnabled: Flow<Boolean> = profileFlow { prefs ->
-        prefs[focusedPosterBackdropTrailerEnabledKey] ?: false
+        prefs[focusedPosterBackdropTrailerEnabledKey] ?: true
     }
 
     val focusedPosterBackdropTrailerMuted: Flow<Boolean> = profileFlow { prefs ->
@@ -631,10 +631,6 @@ class LayoutPreferenceDataStore @Inject constructor(
     suspend fun setFocusedPosterBackdropExpandEnabled(enabled: Boolean) {
         store().edit { prefs ->
             prefs[focusedPosterBackdropExpandEnabledKey] = enabled
-            if (!enabled) {
-                prefs[focusedPosterBackdropTrailerEnabledKey] = false
-                prefs[focusedPosterBackdropTrailerMutedKey] = true
-            }
         }
     }
 

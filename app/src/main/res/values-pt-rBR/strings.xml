@@ -3351,4 +3351,7 @@
     <string name="live_tv_timezone_rio_branco">Rio Branco</string>
     <string name="live_tv_timezone_noronha">Fernando de Noronha</string>
     <string name="live_tv_timezone_utc">UTC</string>
+
+    <string name="home_preview_muted">Trailer • sem som</string>
+    <string name="home_preview_with_sound">Trailer • com som</string>
 </resources>

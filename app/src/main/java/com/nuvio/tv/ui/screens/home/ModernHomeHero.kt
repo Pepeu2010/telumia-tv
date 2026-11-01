@@ -135,9 +135,10 @@ internal fun ModernHeroMediaLayer(
 ) {
     val shouldPlay by remember { derivedStateOf { shouldPlayHeroTrailer() } }
     val trailerRendered by remember { derivedStateOf { heroTrailerFirstFrameRendered() } }
+    val motion = LocalUiMotion.current
     val transitionProgressState = animateFloatAsState(
         targetValue = if (shouldPlay && trailerRendered) 1f else 0f,
-        animationSpec = tween(durationMillis = 480),
+        animationSpec = tween(durationMillis = motion.durationMillis(480)),
         label = "heroBackdropTrailerCrossfadeProgress"
     )
     val localContext = LocalContext.current
@@ -171,7 +172,7 @@ internal fun ModernHeroMediaLayer(
     Box(modifier = modifier) {
         androidx.compose.animation.Crossfade(
             targetState = imageModel,
-            animationSpec = tween(durationMillis = NuvioMotion.tokens.durations.overlay),
+            animationSpec = tween(durationMillis = motion.durationMillis(NuvioMotion.tokens.durations.overlay)),
             label = "heroBackdropCrossfade"
         ) { model ->
             AsyncImage(
@@ -210,6 +211,11 @@ internal fun ModernHeroMediaLayer(
                 )
             }
         }
+        HomePreviewPlaybackBadge(
+            visible = shouldPlay && trailerRendered,
+            muted = muted(),
+            modifier = Modifier.align(Alignment.TopEnd).padding(top = 88.dp, end = 32.dp),
+        )
     }
 }
 

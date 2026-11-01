@@ -12,14 +12,17 @@ class NuvioFocusRingStyle internal constructor(
     val solidColor: Color,
     private val gradientColors: List<Color>
 ) {
-    private val fullBrush = createThemeBrush(gradientColors)
+    private val fullBrush = createThemeBrush(gradientColors, solidColor)
 
     fun brush(alpha: Float = 1f): Brush {
         val normalizedAlpha = alpha.coerceIn(0f, 1f)
         if (normalizedAlpha == 1f) return fullBrush
-        return createThemeBrush(gradientColors.map { color ->
-            color.copy(alpha = color.alpha * normalizedAlpha)
-        })
+        return createThemeBrush(
+            colors = gradientColors.map { color ->
+                color.copy(alpha = color.alpha * normalizedAlpha)
+            },
+            fallbackColor = solidColor.copy(alpha = solidColor.alpha * normalizedAlpha)
+        )
     }
 
     fun border(width: Dp, alpha: Float = 1f): BorderStroke {
@@ -27,13 +30,13 @@ class NuvioFocusRingStyle internal constructor(
     }
 }
 
-fun ThemeColorPalette.accentBrush(): Brush = createThemeBrush(accentGradient)
+fun ThemeColorPalette.accentBrush(): Brush = createThemeBrush(accentGradient, secondary)
 
-internal fun createThemeBrush(colors: List<Color>): Brush {
-    return if (colors.size == 1) {
-        SolidColor(colors.first())
-    } else {
-        Brush.linearGradient(colors)
+internal fun createThemeBrush(colors: List<Color>, fallbackColor: Color): Brush {
+    return when (colors.size) {
+        0 -> SolidColor(fallbackColor)
+        1 -> SolidColor(colors.first())
+        else -> Brush.linearGradient(colors)
     }
 }
 

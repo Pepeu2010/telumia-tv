@@ -357,18 +357,25 @@ private fun HeroCarouselSlide(
                                 } else {
                                     if (trailingMetadata.isNotEmpty()) HeroCarouselMetaDivider()
                                     Row(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(percent = 50))
+                                            .background(NuvioTheme.colors.Rating)
+                                            .padding(
+                                                horizontal = NuvioTheme.spacing.sm,
+                                                vertical = NuvioTheme.spacing.xxs
+                                            ),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs)
                                     ) {
                                         ImdbRatingSourceLabel(
                                             logoModifier = Modifier.size(NuvioTheme.spacing.xl),
                                             textStyle = MaterialTheme.typography.labelMedium,
-                                            textColor = NuvioTheme.colors.TextSecondary
+                                            textColor = NuvioTheme.colors.TextInverse
                                         )
                                         Text(
                                             text = ratingText,
                                             style = MaterialTheme.typography.labelMedium,
-                                            color = NuvioTheme.colors.TextSecondary,
+                                            color = NuvioTheme.colors.TextInverse,
                                             maxLines = 1
                                         )
                                     }

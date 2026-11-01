@@ -23,7 +23,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.tv.material3.Button
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
+import com.nuvio.tv.domain.model.ContentType
+import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.NavigationMotion
+import com.nuvio.tv.domain.model.PosterShape
+import com.nuvio.tv.ui.components.HeroCarousel
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
@@ -261,6 +265,43 @@ class TelumiaHomeHeroTvTest {
         assertTrue("Mobile CTA should respect the panel's content inset", actionInset >= 0f && actionInset < panel.width * 0.1f)
         assertTrue("Mobile CTA label should be centered inside its button", abs(label.center.x - action.center.x) < 2f)
         assertActionContained(panel, action, label)
+    }
+
+    @Test fun carouselRatingRemainsVisibleInsideTheNewContrastPill() {
+        val preview = MetaPreview(
+            id = "mxq-hero-rating",
+            type = ContentType.MOVIE,
+            name = "Uma viagem extraordinária",
+            poster = null,
+            posterShape = PosterShape.LANDSCAPE,
+            background = null,
+            logo = null,
+            description = "Uma história para toda a família.",
+            releaseInfo = "2026",
+            imdbRating = 8.1f,
+            genres = listOf("Drama"),
+            runtime = "124 min"
+        )
+
+        compose.setContent {
+            NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+                Box(Modifier.fillMaxSize().background(NuvioTheme.colors.Background)) {
+                    HeroCarousel(
+                        items = StableList(listOf(preview)),
+                        onItemClick = {},
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
+        }
+
+        compose.onNodeWithText(String.format("%.1f", preview.imdbRating)).assertIsDisplayed()
+        compose.onNodeWithText(preview.name).assertIsDisplayed()
+        compose.waitForIdle()
+        val directory = instrumentation.targetContext.getExternalFilesDir(null)!!
+        File(directory, "telumia-home-rating-pill-tv.png").outputStream().use {
+            instrumentation.uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
     }
 
     private fun assertActionContained(

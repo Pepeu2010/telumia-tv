@@ -52,6 +52,20 @@ Capturas QA mantidas em `artifacts/settings-visual/`:
 - `telumia-settings-zen-640x360dp-top.png` e `telumia-settings-horizon-640x360dp-top.png` (posição inicial com o título completo).
 - `telumia-settings-zen-640x360dp.png` e `telumia-settings-horizon-640x360dp.png` (posição após rolar até o aviso).
 
+## Compatibilidade MXQ e evolução da Home — preparo da 1.1.1
+
+- Diagnóstico feito diretamente na MXQ Pro (`rk322x_box`, Android 7.1.2/API 25, ARMv7). O processo da v1.1.0 encerrou ao desenhar um `LinearGradient`; a exceção no log era `colors must have length of at least 2`.
+- O criador compartilhado de pincéis de tema agora transforma uma lista de gradiente vazia em cor sólida semântica (cor de foco ou acento do tema). Listas de uma cor continuam sólidas e gradientes válidos preservam suas cores. Isso evita enviar uma paleta vazia ao shader Compose no Android antigo.
+- Na hero da Home, a nota IMDb passou a usar uma cápsula âmbar de alto contraste com o token de avaliação existente. A mudança não adiciona animação, camada de blur ou imagem adicional e mantém a navegação D-pad no mesmo alvo.
+- Evidência visual do componente em 1280 × 720, renderizada pela própria MXQ:
+
+![Hero da Home com nota em cápsula âmbar na MXQ](visual-proof-tv/telumia-home-rating-pill-tv.png)
+
+- `:app:testFullDebugUnitTest --tests com.nuvio.tv.ui.theme.FocusRingStyleTest` primeiro falhou nos dois casos de gradiente vazio e passou após o ajuste (6 testes, 0 falhas).
+- `:app:assembleFullDebug` e `:app:assembleFullDebugAndroidTest` — compilação bem-sucedida.
+- `TelumiaHomeHeroTvTest#carouselRatingRemainsVisibleInsideTheNewContrastPill` executado na MXQ física (Android 7.1.2) — 1 teste, 0 falhas. O APK de depuração abriu na tela de login QR sem encerrar; a instalação estável v1.1.0 e os dados existentes foram preservados.
+- A publicação estável da correção ainda depende do workflow do repositório principal. O APK de depuração usado na validação não é distribuível e não substitui o release assinado.
+
 ## Referências de design
 
 - [Android TV: design para TV](https://developer.android.com/design/ui/tv/guides/foundations/design-for-tv) — leitura à distância e apresentação de conteúdo na tela da TV.

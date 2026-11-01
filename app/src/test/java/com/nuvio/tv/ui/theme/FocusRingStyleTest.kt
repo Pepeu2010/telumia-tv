@@ -113,4 +113,24 @@ class FocusRingStyleTest {
             assertEquals(expectedGradient, palette.focusRingGradient)
         }
     }
+
+    @Test
+    fun emptyFocusGradientFallsBackToThemeFocusColor() {
+        val palette = ThemeColors.Telumia.copy(focusRingGradient = emptyList())
+
+        val brush = createFocusRingStyle(palette).brush()
+
+        assertTrue("An empty focus gradient must use a solid brush", brush is SolidColor)
+        assertEquals(palette.focusRing, (brush as SolidColor).value)
+    }
+
+    @Test
+    fun emptyAccentGradientFallsBackToThemeSecondaryColor() {
+        val palette = ThemeColors.Telumia.copy(accentGradient = emptyList())
+
+        val brush = palette.accentBrush()
+
+        assertTrue("An empty accent gradient must use a solid brush", brush is SolidColor)
+        assertEquals(palette.secondary, (brush as SolidColor).value)
+    }
 }

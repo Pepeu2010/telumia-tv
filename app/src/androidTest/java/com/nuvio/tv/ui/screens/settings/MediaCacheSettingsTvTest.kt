@@ -37,6 +37,8 @@ class MediaCacheSettingsTvTest {
     private val context by lazy { object : ContextWrapper(instrumentation.targetContext) {
         override fun getApplicationContext(): Context = this
         override fun getCacheDir(): File = fixtureDirectory
+        override fun getFilesDir(): File = File(fixtureDirectory, "files").apply { mkdirs() }
+        override fun getCodeCacheDir(): File = File(fixtureDirectory, "code-cache").apply { mkdirs() }
         override fun getSharedPreferences(name: String, mode: Int): SharedPreferences =
             baseContext.getSharedPreferences(fixtureId + "_" + name, mode)
     } }

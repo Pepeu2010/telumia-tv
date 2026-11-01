@@ -211,9 +211,9 @@ class NuvioColorScheme(
         imageScrim = ImageScrim,
         posterFallback = PosterFallback,
         videoControlsScrim = VideoControlsScrim,
-        glassPanelTop = Color(0xD64A4F59),
-        glassPanelMiddle = Color(0xCC3F454F),
-        glassPanelBottom = Color(0xC640474F),
+        glassPanelTop = BackgroundCard.copy(alpha = 0.94f),
+        glassPanelMiddle = BackgroundElevated.copy(alpha = 0.96f),
+        glassPanelBottom = Background.copy(alpha = 0.98f),
         glow = FocusRing.copy(alpha = 0.32f)
     )
 

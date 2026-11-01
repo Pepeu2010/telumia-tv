@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-01",
+  "status": "visual_milestone_validated_with_known_tv_unit_failures",
+  "bases": {
+    "desktop": "6f39382ba91ab6ec5d98a7b2bff685a4015f5053",
+    "tv": "d14cd6324bcf16aa5b6951a0c45f7756dc26c39a"
+  },
+  "desktop": {
+    "task": ":composeApp:desktopTest",
+    "environment": {
+      "APPDATA": "isolated fixture directory",
+      "NUVIO_ENHANCED_ISOLATED_THEME_TEST": "1",
+      "locale": "en-US"
+    },
+    "results": {
+      "tests": 1718,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "packageTask": ":composeApp:createDistributable",
+    "packageResult": "passed",
+    "backendConfig": "Same public official backend configuration as desktop-release.yml; initial unconfigured local build tried localhost and was rebuilt.",
+    "startup": {
+      "backend": "official public workflow configuration",
+      "observation": "Isolated process stayed alive and responsive for16seconds; no Error/Exception entries in stderr. Launched hidden; no manual window or account validation."
+    }
+  },
+  "tv": {
+    "unitTask": ":app:testFullDebugUnitTest",
+    "unitTests": 2177,
+    "unitFailures": [
+      {
+        "suite": "androidx.media3.datasource.LocalhostZeroCopyDataSourceTest",
+        "test": "testHttpError404",
+        "message": "java.lang.AssertionError: unexpected exception type thrown; expected:<androidx.media3.datasource.HttpDataSource.InvalidResponseCodeException> but was:<androidx.media3.datasource.HttpDataSource.HttpDataSourceException>"
+      },
+      {
+        "suite": "androidx.media3.exoplayer.upstream.DefaultAllocatorTest",
+        "test": "testLateReleasedAllocationsMemoryLeak",
+        "message": "java.lang.AssertionError: expected:<0> but was:<196608>"
+      },
+      {
+        "suite": "com.nuvio.tv.core.player.FrameRateUtilsMkvSparseTracksTest",
+        "test": "sparse Tracks fetch terminates the probe file with a stub Cluster",
+        "message": "Probe file must end with a stub Cluster after the sparse Tracks fetch: arrays first differed at element [0]; expected:<31> but was:<0>"
+      },
+      {
+        "suite": "com.nuvio.tv.core.player.MatroskaAfrProbeTest",
+        "test": "stub Cluster terminates Cluster-less head and resizes Segment",
+        "message": "arrays first differed at element [0]; expected:<31> but was:<0>"
+      },
+      {
+        "suite": "com.nuvio.tv.core.plugin.PluginBinaryFetchTest",
+        "test": "text request remains UTF8 encoded",
+        "message": "java.lang.NoSuchMethodException: com.nuvio.tv.core.plugin.PluginRuntime.performNativeFetch(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Set)"
+      },
+      {
+        "suite": "com.nuvio.tv.core.plugin.PluginBinaryFetchTest",
+        "test": "binary request and response preserve exact bytes",
+        "message": "java.lang.NoSuchMethodException: com.nuvio.tv.core.plugin.PluginRuntime.performNativeFetch(java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.lang.String,java.util.Set)"
+      },
+      {
+        "suite": "com.nuvio.tv.core.poster.CustomPosterUrlResolverTest",
+        "test": "resolve BetterPosters returns null when IMDb id is missing",
+        "message": "java.lang.AssertionError: expected null, but was:<https://btttr.cc/poster/tmdb/poster-default/series-1396.jpg>"
+      },
+      {
+        "suite": "com.nuvio.tv.core.poster.CustomPosterUrlResolverTest",
+        "test": "resolve pattern without any placeholders returns as-is",
+        "message": "java.lang.AssertionError: expected:<https://example.com/static-poster.jpg> but was:<null>"
+      },
+      {
+        "suite": "com.nuvio.tv.data.repository.CatalogRepositoryTypeTest",
+        "test": "initial and paginated requests retain advertised Series type",
+        "message": "io.mockk.MockKException: no answer found for LayoutPreferenceDataStore(#1558).getCustomPosterEnabledScreens() among the configured answers: (LayoutPreferenceDataStore(#1558).getCustomPosterUrlPattern()))"
+      },
+      {
+        "suite": "com.nuvio.tv.data.repository.TraktAuthServiceTest",
+        "test": "refresh token 400 clears credentials and prevents another refresh",
+        "message": "java.lang.AssertionError: Verification failed: call 1 of 1: TraktApi(#1976).refreshToken(any(), any())) was not called"
+      },
+      {
+        "suite": "com.nuvio.tv.ui.screens.player.TrackSelectionInvestigationTest",
+        "test": "testBuildStreamInfoDataWithActiveVideoFormat",
+        "message": "java.lang.ClassCastException: class java.lang.Object cannot be cast to class com.nuvio.tv.ui.screens.player.PlaybackTimelineState (java.lang.Object is in module java.base of loader 'bootstrap'; com.nuvio.tv.ui.screens.player.PlaybackTimelineState is in unnamed"
+      }
+    ],
+    "instrumentation": {
+      "device": "Android TV API30 x86 emulator, 1920x1080, density320",
+      "initialRun": {
+        "tests": 102,
+        "failures": 1
+      },
+      "affectedClassRerun": {
+        "class": "MediaCacheSettingsTvTest",
+        "tests": 10,
+        "failures": 0
+      },
+      "correction": "Isolate cacheDir, filesDir and codeCacheDir for the occupancy fixture; production cache behavior unchanged. All102 cases have passing results across the two runs, not a single102/102 run."
+    },
+    "buildTasks": [
+      ":app:assembleFullDebug",
+      ":app:assembleFullDebugAndroidTest"
+    ],
+    "buildResult": "passed",
+    "startup": {
+      "observation": "Final APK process alive; UI hierarchy reached Home with catalog content; crash log empty. am start -W reported a wait timeout, so no startup latency claim."
+    }
+  },
+  "limitations": [
+    "Physical MXQ excluded as requested",
+    "No completed real-account sign-in or account migration in this pass",
+    "Third-party streams/providers not exhaustively played",
+    "No production performance benchmark or release publication in this pass",
+    "Screenshots show deterministic fixtures, not personal account data"
+  ]
+}

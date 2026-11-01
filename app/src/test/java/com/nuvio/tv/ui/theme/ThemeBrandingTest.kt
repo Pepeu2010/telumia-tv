@@ -45,6 +45,6 @@ class ThemeBrandingTest {
         assertEquals(Color(0xFFEC7460), palette.secondaryVariant)
         assertEquals(Color(0xFF151819), palette.onSecondary)
         assertEquals(Color(0xFFFFD295), palette.focusRing)
-        assertEquals(Color(0xFF0C1418), palette.background)
+        assertEquals(Color(0xFF090D12), palette.background)
     }
 }

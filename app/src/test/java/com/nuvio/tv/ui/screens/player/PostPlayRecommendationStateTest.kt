@@ -14,6 +14,11 @@ import org.junit.Test
 
 class PostPlayRecommendationStateTest {
     @Test
+    fun `empty post play state allows normal playback completion`() {
+        assertFalse(PostPlayRecommendationUiState().blocksNaturalCompletion)
+    }
+
+    @Test
     fun `prefetches in final ten minutes`() {
         assertTrue(
             shouldPrefetchPostPlayRecommendation(

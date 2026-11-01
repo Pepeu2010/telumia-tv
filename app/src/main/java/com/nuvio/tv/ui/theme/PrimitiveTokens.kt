@@ -56,7 +56,7 @@ object NuvioPrimitives {
     val telumiaCoral = Color(0xFFEC7460)
     val telumiaFocus = Color(0xFFFFD295)
     val telumiaFocusBackground = Color(0xFF3A2721)
-    val telumiaBackground = Color(0xFF0C1418)
-    val telumiaElevated = Color(0xFF142127)
-    val telumiaCard = Color(0xFF1A2A30)
+    val telumiaBackground = Color(0xFF090D12)
+    val telumiaElevated = Color(0xFF131B24)
+    val telumiaCard = Color(0xFF1B2632)
 }

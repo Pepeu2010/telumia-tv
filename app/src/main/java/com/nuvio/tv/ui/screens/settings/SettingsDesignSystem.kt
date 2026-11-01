@@ -758,7 +758,10 @@ internal fun SettingsGroupCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(SettingsHorizonGroupShape)
-                    .background(NuvioTheme.colors.BackgroundCard.copy(alpha = 0.55f))
+                    .background(Brush.verticalGradient(listOf(
+                        NuvioTheme.colors.BackgroundCard,
+                        NuvioTheme.colors.BackgroundElevated
+                    )))
                     .border(
                         width = NuvioTheme.spacing.hairline,
                         brush = Brush.linearGradient(
@@ -780,7 +783,10 @@ internal fun SettingsGroupCard(
             modifier = modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(SettingsSecondaryCardRadius))
-                .background(NuvioTheme.colors.BackgroundCard)
+                .background(Brush.verticalGradient(listOf(
+                    NuvioTheme.colors.BackgroundCard,
+                    NuvioTheme.colors.BackgroundElevated
+                )))
                 .border(
                     width = NuvioTheme.spacing.hairline,
                     color = NuvioTheme.colors.Border,

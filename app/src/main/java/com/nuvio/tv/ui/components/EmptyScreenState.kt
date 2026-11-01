@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,8 +44,10 @@ fun EmptyScreenState(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = NuvioTheme.colors.TextTertiary
+                modifier = Modifier.size(88.dp)
+                    .background(NuvioTheme.colors.Secondary.copy(alpha = 0.10f), CircleShape)
+                    .padding(22.dp),
+                tint = NuvioTheme.colors.Secondary
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xl))
         }
@@ -48,7 +55,9 @@ fun EmptyScreenState(
         Text(
             text = title,
             style = MaterialTheme.typography.headlineSmall,
-            color = NuvioTheme.colors.TextPrimary
+            color = NuvioTheme.colors.TextPrimary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 680.dp).padding(horizontal = NuvioTheme.spacing.xl)
         )
 
         if (subtitle != null) {
@@ -56,7 +65,9 @@ fun EmptyScreenState(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = NuvioTheme.colors.TextSecondary
+                color = NuvioTheme.colors.TextSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(max = 560.dp).padding(horizontal = NuvioTheme.spacing.xl)
             )
         }
     }

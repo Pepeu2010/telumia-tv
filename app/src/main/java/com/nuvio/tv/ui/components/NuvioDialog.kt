@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,10 +59,15 @@ fun NuvioDialog(
     content: @Composable ColumnScope.() -> Unit
 ) {
     var isReady by remember { mutableStateOf(!suppressFirstKeyUp) }
-    val maxDialogHeight = (LocalConfiguration.current.screenHeightDp.dp - NuvioTheme.spacing.xxxl).coerceAtLeast(320.dp)
+    val configuration = LocalConfiguration.current
+    val maxDialogHeight = (configuration.screenHeightDp.dp - NuvioTheme.spacing.xxxl).coerceAtLeast(1.dp)
+    val maxDialogWidth = (configuration.screenWidthDp.dp - NuvioTheme.spacing.xl * 2).coerceAtLeast(1.dp)
     val containerShape = RoundedCornerShape(containerCornerRadius)
     val backgroundModifier = if (containerBrush == null) {
-        Modifier.background(NuvioTheme.colors.BackgroundElevated, containerShape)
+        Modifier.background(Brush.verticalGradient(listOf(
+            NuvioTheme.colors.BackgroundCard,
+            NuvioTheme.colors.BackgroundElevated
+        )), containerShape)
     } else {
         Modifier.background(containerBrush, containerShape)
     }
@@ -72,6 +78,7 @@ fun NuvioDialog(
     ) {
         Box(
             modifier = Modifier
+                .widthIn(max = maxDialogWidth)
                 .width(width)
                 .heightIn(max = maxDialogHeight)
                 .clip(containerShape)
@@ -110,7 +117,7 @@ fun NuvioDialog(
                         color = NuvioTheme.colors.TextPrimary,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = titleTextAlign,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }

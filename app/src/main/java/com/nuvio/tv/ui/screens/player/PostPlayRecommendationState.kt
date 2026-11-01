@@ -61,7 +61,9 @@ data class PostPlayRecommendationUiState(
         get() = isVisible && !isTrailerPlaying && !hasAutoPlayedTrailer
 
     val blocksNaturalCompletion: Boolean
-        get() = isVisible || (isLoadingRecommendation && !hasReturnedToPlayer)
+        // Keep the player alive between loading a recommendation and showing its overlay,
+        // and after the user explicitly chooses to return to the finished movie.
+        get() = isVisible || isLoadingRecommendation || recommendation != null || hasReturnedToPlayer
 }
 
 internal fun PostPlayRecommendationUiState.returnToPlayer(): PostPlayRecommendationUiState {

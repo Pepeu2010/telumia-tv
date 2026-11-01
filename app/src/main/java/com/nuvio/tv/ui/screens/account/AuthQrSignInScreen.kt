@@ -825,12 +825,12 @@ private fun Modifier.authGradientBackground(): Modifier = drawWithCache {
     )
     val brush = Brush.linearGradient(
         colorStops = arrayOf(
-            0f to Color(0xFF21113B),
-            0.14f to Color(0xFF21113B),
-            0.26f to Color(0xFF1A0E2F),
-            0.36f to Color(0xFF130A23),
-            0.48f to Color(0xFF0A060F),
-            0.60f to Color(0xFF050408),
+            0f to Color(0xFF202B38),
+            0.14f to Color(0xFF202B38),
+            0.26f to Color(0xFF182330),
+            0.36f to Color(0xFF121B25),
+            0.48f to Color(0xFF0C121A),
+            0.60f to Color(0xFF090D12),
             0.70f to Color.Black,
             1f to Color.Black
         ),

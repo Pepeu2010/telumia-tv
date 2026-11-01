@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text as CoreText
 import androidx.compose.runtime.Composable
@@ -48,7 +50,8 @@ fun ErrorState(
             text = displayMessage,
             style = MaterialTheme.typography.bodyLarge,
             color = NuvioTheme.colors.TextSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = Modifier.widthIn(max = 680.dp).padding(horizontal = NuvioTheme.spacing.xl)
         )
         Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
         Button(
@@ -57,7 +60,7 @@ fun ErrorState(
                 containerColor = NuvioTheme.colors.BackgroundCard,
                 contentColor = NuvioTheme.colors.TextPrimary,
                 focusedContainerColor = NuvioTheme.colors.FocusBackground,
-                focusedContentColor = NuvioTheme.colors.Primary
+                focusedContentColor = NuvioTheme.colors.TextPrimary
             ),
             shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md))
         ) {

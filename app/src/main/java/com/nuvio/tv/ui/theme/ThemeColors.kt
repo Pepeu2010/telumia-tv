@@ -103,11 +103,11 @@ object ThemeColors {
         background = NuvioPrimitives.telumiaBackground,
         backgroundElevated = NuvioPrimitives.telumiaElevated,
         backgroundCard = NuvioPrimitives.telumiaCard,
-        surface = Color(0xFF17262C),
-        surfaceVariant = Color(0xFF203238),
+        surface = NuvioPrimitives.telumiaElevated,
+        surfaceVariant = NuvioPrimitives.telumiaCard,
         panel = NuvioPrimitives.telumiaElevated,
-        field = Color(0xFF18292F),
-        menu = Color(0xFF17262C),
+        field = NuvioPrimitives.telumiaCard,
+        menu = NuvioPrimitives.telumiaElevated,
         modal = NuvioPrimitives.telumiaElevated
     )
 

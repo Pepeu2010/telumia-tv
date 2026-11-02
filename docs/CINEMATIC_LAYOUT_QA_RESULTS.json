@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-01",
+  "desktop": {
+    "focusedTests": 38,
+    "failures": 0,
+    "build": "passed",
+    "report": "visual-desktop-final-validated.log"
+  },
+  "android": {
+    "unitTests": 5,
+    "unitFailures": 0,
+    "instrumentationTests": 18,
+    "instrumentationFailures": 0,
+    "device": "emulator-5554 Android API 30, 1920x1080",
+    "build": "passed",
+    "manualChecks": [
+      "Home navigation bottom=130px, title top=160px",
+      "D-pad opens TV and transfers focus to Your sources",
+      "D-pad opens existing source configuration form"
+    ],
+    "report": "visual-tv-focus-tests.log",
+    "previousBroadSuiteFailures": 11
+  },
+  "limitations": [
+    "No physical MXQ used",
+    "No end-to-end personal account or external-provider validation",
+    "Desktop QA screenshot used image placeholders",
+    "Previous broad TV unit failures remain open"
+  ]
+}

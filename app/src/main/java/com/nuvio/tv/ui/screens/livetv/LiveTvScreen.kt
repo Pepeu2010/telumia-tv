@@ -56,6 +56,7 @@ fun LiveTvScreen(
     var name by remember { mutableStateOf("") }
     var playlistUrl by remember { mutableStateOf("") }
     var epgUrl by remember { mutableStateOf("") }
+    var showSourceManager by remember { mutableStateOf(false) }
     val selectedZone = remember(state.timeZoneId) {
         if (state.timeZoneId == LiveTvChannelStateStore.DEFAULT_TIME_ZONE_ID) ZoneId.systemDefault()
         else runCatching { ZoneId.of(state.timeZoneId) }.getOrDefault(ZoneId.systemDefault())
@@ -111,72 +112,74 @@ fun LiveTvScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Column(Modifier.padding(top = 24.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.live_tv_title), style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
-                Text(stringResource(R.string.live_tv_description), style = MaterialTheme.typography.bodyLarge,
-                    color = NuvioTheme.colors.TextSecondary)
-            }
-        }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.live_tv_timezone), style = MaterialTheme.typography.titleMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(LIVE_TV_TIME_ZONES, key = { it.id }) { option ->
-                        Button(onClick = { viewModel.setTimeZone(option.id) }, enabled = state.timeZoneId != option.id) {
-                            Text(stringResource(option.label))
-                        }
-                    }
-                }
-            }
-        }
-        item {
-            Surface(shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(stringResource(R.string.live_tv_add_source), style = MaterialTheme.typography.titleLarge)
-                    OutlinedTextField(value = name, onValueChange = { name = it.take(80) },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_source_name)) }, singleLine = true)
-                    OutlinedTextField(value = playlistUrl, onValueChange = { playlistUrl = it.take(4096) },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_playlist_url)) }, singleLine = true)
-                    OutlinedTextField(value = epgUrl, onValueChange = { epgUrl = it.take(4096) },
-                        modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_epg_url)) }, singleLine = true)
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Button(onClick = {
-                            viewModel.addSource(name, playlistUrl, epgUrl.ifBlank { null })
-                        }, enabled = !state.isLoading && playlistUrl.isNotBlank()) {
-                            Text(stringResource(R.string.live_tv_save_source))
-                        }
-                        Button(onClick = viewModel::refresh, enabled = !state.isLoading && state.sources.any { it.enabled }) {
-                            Text(stringResource(R.string.live_tv_refresh))
-                        }
-                    }
-                }
-            }
+            LiveTvOverviewHeader(
+                onManageSources = { showSourceManager = !showSourceManager },
+                onRefresh = { viewModel.refresh() },
+                refreshEnabled = !state.isLoading && state.sources.any { it.enabled },
+            )
         }
         if (state.isLoading) item { Text(stringResource(R.string.live_tv_loading), color = NuvioTheme.colors.TextSecondary) }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
         if (state.backgroundRefreshUnavailable) {
             item { Text(stringResource(R.string.live_tv_refresh_schedule_unavailable), color = NuvioTheme.colors.TextSecondary) }
         }
-        if (state.sources.isNotEmpty()) {
-            item { Text(stringResource(R.string.live_tv_sources), style = MaterialTheme.typography.titleLarge) }
-            items(state.sources, key = { "source:${it.id}" }) { source ->
-                Surface(shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Column(Modifier.weight(1f)) {
-                            Text(source.name, style = MaterialTheme.typography.titleMedium)
-                            val sourceStatus = state.sourceErrors[source.id]
-                                ?: state.lastUpdatedEpochMillis[source.id]?.let { timestamp ->
-                                    stringResource(R.string.live_tv_updated, sourceDateFormatter.format(java.time.Instant.ofEpochMilli(timestamp)))
-                                }
-                                ?: source.playlistUrl.hostForDisplay()
-                            Text(sourceStatus,
-                                style = MaterialTheme.typography.bodySmall, color = NuvioTheme.colors.TextSecondary, maxLines = 1)
+        if (showSourceManager) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.live_tv_timezone), style = MaterialTheme.typography.titleMedium)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(LIVE_TV_TIME_ZONES, key = { it.id }) { option ->
+                            Button(onClick = { viewModel.setTimeZone(option.id) }, enabled = state.timeZoneId != option.id) {
+                                Text(stringResource(option.label))
+                            }
                         }
-                        Button(onClick = { viewModel.setSourceEnabled(source, !source.enabled) }) {
-                            Text(if (source.enabled) stringResource(R.string.live_tv_disable) else stringResource(R.string.live_tv_enable))
+                    }
+                }
+            }
+            item {
+                Surface(shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text(stringResource(R.string.live_tv_add_source), style = MaterialTheme.typography.titleLarge)
+                        OutlinedTextField(value = name, onValueChange = { name = it.take(80) },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_source_name)) }, singleLine = true)
+                        OutlinedTextField(value = playlistUrl, onValueChange = { playlistUrl = it.take(4096) },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_playlist_url)) }, singleLine = true)
+                        OutlinedTextField(value = epgUrl, onValueChange = { epgUrl = it.take(4096) },
+                            modifier = Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.live_tv_epg_url)) }, singleLine = true)
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Button(onClick = {
+                                viewModel.addSource(name, playlistUrl, epgUrl.ifBlank { null })
+                            }, enabled = !state.isLoading && playlistUrl.isNotBlank()) {
+                                Text(stringResource(R.string.live_tv_save_source))
+                            }
+                            Button(onClick = viewModel::refresh, enabled = !state.isLoading && state.sources.any { it.enabled }) {
+                                Text(stringResource(R.string.live_tv_refresh))
+                            }
                         }
-                        Button(onClick = { viewModel.removeSource(source) }) { Text(stringResource(R.string.live_tv_remove)) }
+                    }
+                }
+            }
+            if (state.sources.isNotEmpty()) {
+                item { Text(stringResource(R.string.live_tv_sources), style = MaterialTheme.typography.titleLarge) }
+                items(state.sources, key = { "source:${it.id}" }) { source ->
+                    Surface(shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth()) {
+                        Row(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Column(Modifier.weight(1f)) {
+                                Text(source.name, style = MaterialTheme.typography.titleMedium)
+                                val sourceStatus = state.sourceErrors[source.id]
+                                    ?: state.lastUpdatedEpochMillis[source.id]?.let { timestamp ->
+                                        stringResource(R.string.live_tv_updated, sourceDateFormatter.format(java.time.Instant.ofEpochMilli(timestamp)))
+                                    }
+                                    ?: source.playlistUrl.hostForDisplay()
+                                Text(sourceStatus,
+                                    style = MaterialTheme.typography.bodySmall, color = NuvioTheme.colors.TextSecondary, maxLines = 1)
+                            }
+                            Button(onClick = { viewModel.setSourceEnabled(source, !source.enabled) }) {
+                                Text(if (source.enabled) stringResource(R.string.live_tv_disable) else stringResource(R.string.live_tv_enable))
+                            }
+                            Button(onClick = { viewModel.removeSource(source) }) { Text(stringResource(R.string.live_tv_remove)) }
+                        }
                     }
                 }
             }

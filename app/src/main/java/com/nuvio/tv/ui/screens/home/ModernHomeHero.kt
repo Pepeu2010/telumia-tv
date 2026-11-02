@@ -404,11 +404,11 @@ internal fun HeroTitleContent(
     val compact = configuration.screenHeightDp < 600
     val motion = LocalUiMotion.current
     val metaAlpha by animateFloatAsState(
-        targetValue = if (trailerPlaying()) 0f else 1f,
+        targetValue = if (trailerPlaying()) 0.84f else 1f,
         animationSpec = tween(motion.durationMillis(180)), label = "telumiaHeroMetadata")
     val headline = MaterialTheme.typography.headlineLarge.copy(
-        fontSize = if (shortViewport) 22.sp else if (mobileLayout) 25.sp else if (compact) 28.sp else if (portraitMode) 32.sp else 36.sp,
-        lineHeight = if (shortViewport) 25.sp else if (mobileLayout) 30.sp else if (compact) 32.sp else 39.sp,
+        fontSize = if (shortViewport) 24.sp else if (mobileLayout) 28.sp else if (compact) 34.sp else 40.sp,
+        lineHeight = if (shortViewport) 28.sp else if (mobileLayout) 33.sp else if (compact) 38.sp else 44.sp,
         fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp,
         textDirection = preview.title.contentTextDirection())
     val contextLine = remember(preview.contentTypeText, preview.yearText, preview.runtimeText, preview.genres, context) {
@@ -438,8 +438,8 @@ internal fun HeroTitleContent(
     val imdb = preview.imdbText?.toFloatOrNull()?.takeIf { it.isFinite() && it in 0f..10f }
     var logoError by remember(preview.title, preview.logo) { mutableStateOf(false) }
     val shape = RoundedCornerShape(if (mobileLayout || compact) 16.dp else 22.dp)
-    val panelPadding = if (shortViewport) 10.dp else if (mobileLayout || compact) 14.dp else 20.dp
-    val logoHeight = if (shortViewport) 48.dp else if (mobileLayout || compact) 64.dp else 96.dp
+    val panelPadding = if (mobileLayout) 14.dp else 0.dp
+    val logoHeight = if (shortViewport) 32.dp else if (mobileLayout) 64.dp else if (compact) 72.dp else 104.dp
     val logoRequest = remember(context, preview.logo, configuration.screenWidthDp, logoHeight, density, mobileLayout) {
         preview.logo?.let {
             val widthPx = with(density) {
@@ -454,9 +454,9 @@ internal fun HeroTitleContent(
         }
     }
 
-    Column(Modifier.fillMaxWidth().clip(shape)
-        .background(colors.Panel.copy(alpha = 0.88f))
-        .border(1.dp, colors.TextPrimary.copy(alpha = 0.10f), shape)
+    Column(Modifier.fillMaxWidth()
+        .then(if (mobileLayout) Modifier.clip(shape)
+            .background(colors.Background.copy(alpha = 0.58f)) else Modifier)
         .padding(panelPadding),
         verticalArrangement = Arrangement.spacedBy(if (shortViewport) 6.dp else if (mobileLayout || compact) 9.dp else 14.dp)) {
         if (!preview.logo.isNullOrBlank() && !logoError) {
@@ -466,7 +466,7 @@ internal fun HeroTitleContent(
                 onError = { logoError = true })
         } else if (preview.title.isNotBlank()) {
             Text(preview.title, style = headline, color = colors.TextPrimary,
-                maxLines = 2, overflow = TextOverflow.Ellipsis)
+                maxLines = if (shortViewport) 1 else 2, overflow = TextOverflow.Ellipsis)
         }
         Column(Modifier.graphicsLayer { alpha = metaAlpha }
             .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
@@ -475,7 +475,7 @@ internal fun HeroTitleContent(
                 Text(contextLine, style = MaterialTheme.typography.labelMedium,
                     color = colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            if (secondary.isNotEmpty() || (compact && showImdbRatings && (imdb != null || preview.mdbListRatings?.isEmpty() == false))) {
+            if (!shortViewport && (secondary.isNotEmpty() || (compact && showImdbRatings && (imdb != null || preview.mdbListRatings?.isEmpty() == false)))) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp), maxLines = if (compact) 1 else 2) {
                     if (compact && showImdbRatings) {
@@ -487,7 +487,7 @@ internal fun HeroTitleContent(
                                 colors.TextSecondary, 14.dp, 4.dp)
                         }
                     }
-                    secondary.forEach { value ->
+                    (if (compact) secondary.take(2) else secondary).forEach { value ->
                         Box(Modifier.clip(RoundedCornerShape(6.dp)).background(colors.TextPrimary.copy(alpha = 0.08f))
                             .padding(horizontal = 7.dp, vertical = 3.dp)) {
                             Text(value, style = MaterialTheme.typography.labelSmall,
@@ -505,7 +505,7 @@ internal fun HeroTitleContent(
                         colors.TextSecondary, 16.dp, 6.dp)
                 }
             }
-            preview.description?.takeIf(String::isNotBlank)?.let {
+            preview.description?.takeIf { !shortViewport && it.isNotBlank() }?.let {
                 Text(it, style = MaterialTheme.typography.bodyMedium.copy(textDirection = it.contentTextDirection()),
                     color = colors.TextSecondary, maxLines = if (shortViewport) 1 else 2,
                     overflow = TextOverflow.Ellipsis)
@@ -515,22 +515,18 @@ internal fun HeroTitleContent(
             Button(
                 onClick = action,
                 modifier = Modifier
-                    .height(48.dp)
+                    .height(if (shortViewport) 40.dp else 48.dp)
                     .then(
                         if (mobileLayout) {
                             Modifier.fillMaxWidth()
                         } else {
                             Modifier.width(136.dp).align(Alignment.Start)
                         }
-                    )
-                    .focusProperties { canFocus = !trailerPlaying() }
-                    .graphicsLayer { alpha = metaAlpha }
-                    .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
-                enabled = !trailerPlaying(),
-                shape = ButtonDefaults.shape(RoundedCornerShape(if (compact) 12.dp else 14.dp)),
+                    ),
+                shape = ButtonDefaults.shape(RoundedCornerShape(24.dp)),
                 colors = ButtonDefaults.colors(
-                    containerColor = colors.Secondary,
-                    contentColor = colors.OnSecondary,
+                    containerColor = colors.TextPrimary,
+                    contentColor = colors.Background,
                     focusedContainerColor = colors.Secondary,
                     focusedContentColor = colors.OnSecondary
                 ),
@@ -538,7 +534,7 @@ internal fun HeroTitleContent(
                     border = Border.None,
                     focusedBorder = androidx.tv.material3.Border(
                         border = BorderStroke(2.dp, colors.FocusRing),
-                        shape = RoundedCornerShape(if (compact) 12.dp else 14.dp)
+                        shape = RoundedCornerShape(24.dp)
                     )
                 )
             ) {

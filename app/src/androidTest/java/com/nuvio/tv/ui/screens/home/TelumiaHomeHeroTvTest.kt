@@ -165,72 +165,49 @@ class TelumiaHomeHeroTvTest {
         screenshot.recycle()
     }
 
-    @Test fun dpadSkipsTheHiddenPrimaryActionDuringFullscreenTrailer() {
+    @Test fun dpadCanOpenDetailsWhileTheTrailerIsPlaying() {
         val rowFocus = FocusRequester()
-        val trailer = mutableStateOf(true)
-        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
-            Column(Modifier.width(500.dp)) {
-                HeroTitleContent(
-                    previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
-                    onPrimaryAction = {}, trailerPlaying = { trailer.value },
-                )
-                Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
-                    .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
-            }
-            LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
-        } }
-
-        val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
-        compose.onNodeWithTag("content_row").assertIsFocused()
-        compose.onNodeWithText(actionLabel).assertDoesNotExist()
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-        compose.onNodeWithTag("content_row").assertIsFocused()
-        compose.runOnIdle { trailer.value = false }
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed()
-    }
-
-    @Test fun trailerStartingWhilePrimaryActionIsFocusedReleasesFocusAndKeepsDpadUsable() {
-        val rowFocus = FocusRequester()
-        val trailer = mutableStateOf(false)
-        var heroHasFocus = false
         var activations = 0
         compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
             Column(Modifier.width(500.dp)) {
-                Box(Modifier.onFocusChanged { heroHasFocus = it.hasFocus }) {
-                    HeroTitleContent(
-                        previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
-                        onPrimaryAction = { activations++ }, trailerPlaying = { trailer.value },
-                    )
-                }
+                HeroTitleContent(previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
+                    onPrimaryAction = { activations++ }, trailerPlaying = { true })
                 Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
                     .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
             }
             LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
         } }
-
         val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
-        compose.onNodeWithTag("content_row").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-        compose.onNodeWithText(actionLabel).assertIsFocused()
-        compose.runOnIdle {
-            assertTrue("Focus observer must see the focused CTA before hiding it", heroHasFocus)
-            trailer.value = true
-        }
-        compose.onNodeWithText(actionLabel).assertDoesNotExist()
-        compose.runOnIdle { assertFalse("Starting the trailer must release focus from the invisible CTA", heroHasFocus) }
+        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed().assertIsEnabled()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, activations) }
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
         compose.onNodeWithTag("content_row").assertIsFocused()
+    }
+
+    @Test fun trailerStartingKeepsThePrimaryActionFocusedAndUsable() {
+        val rowFocus = FocusRequester()
+        val trailer = mutableStateOf(false)
+        var activations = 0
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            Column(Modifier.width(500.dp)) {
+                HeroTitleContent(previewProvider = { movie }, portraitMode = false, showImdbRatings = true,
+                    onPrimaryAction = { activations++ }, trailerPlaying = { trailer.value })
+                Button(onClick = {}, modifier = Modifier.padding(top = 24.dp)
+                    .focusRequester(rowFocus).testTag("content_row")) { Text("01") }
+            }
+            LaunchedEffect(Unit) { rowFocus.requestFocusAfterFrames() }
+        } }
+        val actionLabel = instrumentation.targetContext.getString(R.string.cw_action_go_to_details)
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-        compose.onNodeWithTag("content_row").assertIsFocused()
-        compose.runOnIdle {
-            assertEquals("The hidden CTA must not be activated", 0, activations)
-            trailer.value = false
-        }
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsDisplayed()
+        compose.onNodeWithText(actionLabel).assertIsFocused()
+        compose.runOnIdle { trailer.value = true }
+        compose.onNodeWithText(actionLabel).assertIsFocused().assertIsEnabled()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals("The restored CTA must remain usable", 1, activations) }
+        compose.runOnIdle { assertEquals(1, activations) }
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+        compose.onNodeWithTag("content_row").assertIsFocused()
     }
 
     @Test fun primaryActionAlignmentAlsoFitsACompactMobileViewport() {
@@ -316,7 +293,7 @@ class TelumiaHomeHeroTvTest {
         assertTrue("CTA label should be vertically centered: label=$label action=$action", abs(label.center.y - action.center.y) < 2f)
     }
 
-    @Test fun fullscreenPreviewHidesMetadataFromAccessibilityAndRestoresItAfterwards() {
+    @Test fun previewKeepsMetadataReadableAndAccessibleBeforeDuringAndAfterPlayback() {
         val trailer = mutableStateOf(false)
         compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
             HeroTitleBlock(previewProvider = { movie }, portraitMode = true, showImdbRatings = true,
@@ -324,7 +301,7 @@ class TelumiaHomeHeroTvTest {
         } }
         compose.onNodeWithText("2026", substring = true).assertIsDisplayed()
         compose.runOnIdle { trailer.value = true }
-        compose.onNodeWithText("2026", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("2026", substring = true).assertIsDisplayed()
         compose.onNodeWithText(movie.title).assertIsDisplayed()
         compose.runOnIdle { trailer.value = false }
         compose.onNodeWithText("2026", substring = true).assertIsDisplayed()

@@ -1097,6 +1097,7 @@ fun ModernHomeContent(
                     .padding(
                         start = rowHorizontalPadding + if (mobileLayout) 16.dp else 0.dp,
                         end = if (mobileLayout) rowHorizontalPadding else NuvioTheme.spacing.xxxl,
+                        top = if (mobileLayout) 0.dp else 80.dp,
                         bottom = rowsViewportHeight + if (screenHeight < 480.dp) NuvioTheme.spacing.sm else NuvioTheme.spacing.lg)
                     .fillMaxWidth(layoutMetrics.heroTextWidthFraction)
             }

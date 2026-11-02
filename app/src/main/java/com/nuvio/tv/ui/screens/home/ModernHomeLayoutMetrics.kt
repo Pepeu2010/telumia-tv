@@ -29,7 +29,7 @@ internal fun modernHomeLayoutMetrics(
             isMobile = false,
             safeHorizontalDp = 52,
             heroTextWidthFraction = 0.42f,
-            rowsViewportHeightFraction = if (useLandscapePosters) 0.49f else 0.52f,
+            rowsViewportHeightFraction = if (useLandscapePosters) 0.40f else 0.41f,
             posterScale = 1f,
             focusEffectsEnabled = true
         )

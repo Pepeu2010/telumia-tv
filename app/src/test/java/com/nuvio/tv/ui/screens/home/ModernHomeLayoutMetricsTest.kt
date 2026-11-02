@@ -16,7 +16,7 @@ class ModernHomeLayoutMetricsTest {
         assertFalse(metrics.isMobile)
         assertEquals(52, metrics.safeHorizontalDp)
         assertEquals(0.42f, metrics.heroTextWidthFraction)
-        assertEquals(0.52f, metrics.rowsViewportHeightFraction)
+        assertEquals(0.41f, metrics.rowsViewportHeightFraction)
         assertEquals(1f, metrics.posterScale)
         assertTrue(metrics.focusEffectsEnabled)
     }

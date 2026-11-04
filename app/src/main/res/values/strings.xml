@@ -2066,7 +2066,7 @@
 
 
     <string name="search_keyboard_hint">Press Done on the keyboard to search</string>
-    <string name="search_placeholder">Search movies &amp; series</string>
+    <string name="search_placeholder">Search movies, series &amp; companies</string>
     <string name="search_start_title">Start Searching</string>
     <string name="search_start_subtitle">Enter at least 2 characters</string>
     <string name="search_start_subtitle_no_discover">Discover is disabled. Enter at least 2 characters</string>
@@ -3543,4 +3543,6 @@
 
     <string name="home_preview_muted">Trailer • muted</string>
     <string name="home_preview_with_sound">Trailer • sound on</string>
+    <string name="search_production_companies">Production companies</string>
+    <string name="search_tv_networks">TV networks</string>
 </resources>

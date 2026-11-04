@@ -5,7 +5,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +32,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -41,6 +44,8 @@ import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.theme.LocalUiMotion
 import kotlinx.coroutines.delay
+import kotlin.math.PI
+import kotlin.math.sin
 
 @Composable
 fun StartupSplashScreen(
@@ -65,6 +70,11 @@ fun StartupSplashScreen(
         if (motion.allowsSpatialEffects) delay(150L)
         revealLoader = true
     }
+    val revealPhase by animateFloatAsState(
+        targetValue = if (revealBrand) 1f else 0f,
+        animationSpec = tween(motion.durationMillis(1_800), easing = FastOutSlowInEasing),
+        label = "startupBeamReveal",
+    )
     Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
         if (!profileBackgroundUrl.isNullOrBlank()) {
             val imageData: Any = if (profileBackgroundUrl.startsWith("file:")) {
@@ -130,6 +140,27 @@ fun StartupSplashScreen(
                         }
                     }
             )
+        }
+
+        if (motion.allowsSpatialEffects) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                if (size.width <= 0f || size.height <= 0f) return@Canvas
+                val opacity = sin(PI * revealPhase).toFloat().coerceIn(0f, 1f)
+                val startX = size.width * (-1.05f + revealPhase * 1.9f)
+                val endX = startX + size.width * 0.7f
+                drawLine(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, accentColor.copy(alpha = 0.52f), Color.White.copy(alpha = 0.32f), Color.Transparent),
+                        startX = startX,
+                        endX = endX,
+                    ),
+                    start = Offset(startX, size.height * 0.67f),
+                    end = Offset(endX, size.height * 0.46f),
+                    strokeWidth = size.minDimension * 0.035f,
+                    cap = StrokeCap.Round,
+                    alpha = opacity,
+                )
+            }
         }
 
         Column(

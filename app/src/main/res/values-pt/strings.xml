@@ -49,4 +49,6 @@
 
     <string name="home_preview_muted">Trailer • sem som</string>
     <string name="home_preview_with_sound">Trailer • com som</string>
+    <string name="search_production_companies">Produtoras</string>
+    <string name="search_tv_networks">Emissoras</string>
 </resources>

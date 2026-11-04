@@ -24,6 +24,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.theme.NuvioTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -56,6 +57,18 @@ class CinematicRootNavigationBarTest {
         compose.onNodeWithTag("content").assertIsFocused()
         tv.assertIsSelected()
     }
+    @Test fun activeNavigationLabelIsVerticallyCenteredInsideItsButton() {
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            CinematicRootNavigationBar(
+                items = listOf(DrawerItem("home", "Início", icon = Icons.Default.Home)),
+                selectedRoute = "home", onNavigate = {}, onExpandSidebar = {},
+            )
+        } }
+        val button = compose.onNodeWithContentDescription("Início").fetchSemanticsNode().boundsInRoot
+        val label = compose.onNodeWithText("Início", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertTrue("The label must be centered vertically", kotlin.math.abs(button.center.y - label.center.y) < 2f)
+    }
+
     @Test fun downFromTvNavigationFocusesTheRealSourceAction() {
         val contentFocus = FocusRequester()
         var opened = 0

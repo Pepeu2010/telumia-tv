@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -113,6 +115,9 @@ import com.nuvio.tv.domain.model.stableKey
 import android.view.inputmethod.CompletionInfo
 import android.view.inputmethod.InputMethodManager
 import androidx.compose.ui.platform.LocalView
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -136,11 +141,40 @@ private val NAVIGATION_KEYS = setOf(
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
+    companyViewModel: CompanySearchViewModel = hiltViewModel(),
+    onNavigateToCompany: (Int, String) -> Unit = { _, _ -> },
+    onNavigateToNetwork: (Int, String) -> Unit = { _, _ -> },
     onNavigateToDetail: (String, String, String) -> Unit,
     onNavigateToSeeAll: (catalogId: String, addonId: String, type: String) -> Unit = { _, _, _ -> },
     onOpenDiscover: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var companies by remember { mutableStateOf<List<com.nuvio.tv.data.remote.api.TmdbCompanySearchResult>>(emptyList()) }
+    val companyFocusRequester = remember { FocusRequester() }
+    val networkFocusRequester = remember { FocusRequester() }
+    var networks by remember { mutableStateOf<List<TvNetworkMatch>>(emptyList()) }
+    LaunchedEffect(uiState.query) {
+        networks = emptyList()
+        val query = uiState.query.trim()
+        if (query.length >= 2) {
+            delay(250)
+            networks = withContext(Dispatchers.Default) { TvNetworkDirectory.search(query) }
+        }
+    }
+    LaunchedEffect(uiState.query) {
+        companies = emptyList()
+        val query = uiState.query.trim()
+        if (query.length >= 2) {
+            delay(500)
+            companies = try {
+                companyViewModel.search(query)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                emptyList()
+            }
+        }
+    }
     val watchedMovieIds by viewModel.watchedMovieIds.collectAsState()
     val watchedSeriesIds by viewModel.watchedSeriesIds.collectAsState()
     val context = LocalContext.current
@@ -388,13 +422,15 @@ fun SearchScreen(
         isDiscoverMode,
         uiState.discoverResults,
         trimmedSubmittedQuery,
-        uiState.catalogRows
+        uiState.catalogRows,
+        companies,
+        networks
     ) {
         if (isDiscoverMode) {
             false
         } else {
             trimmedSubmittedQuery.length >= MIN_SEARCH_QUERY_LENGTH &&
-                uiState.catalogRows.any { it.items.isNotEmpty() }
+                (uiState.catalogRows.any { it.items.isNotEmpty() } || companies.isNotEmpty() || networks.isNotEmpty())
         }
     }
     val submitCurrentQuery: (String) -> Unit = { submittedQuery ->
@@ -487,6 +523,20 @@ fun SearchScreen(
         pendingFocusMoveToResultsQuery = null
         pendingFocusMoveSawSearching = false
         pendingFocusMoveHadExistingSearchRows = false
+    }
+
+    LaunchedEffect(focusResults, companies, isDiscoverMode) {
+        if (focusResults && !isDiscoverMode && companies.isNotEmpty()) {
+            repeat(2) { withFrameNanos { } }
+            if (runCatching { companyFocusRequester.requestFocus() }.getOrDefault(false)) focusResults = false
+        }
+    }
+
+    LaunchedEffect(focusResults, companies, networks, isDiscoverMode) {
+        if (focusResults && !isDiscoverMode && companies.isEmpty() && networks.isNotEmpty()) {
+            repeat(2) { withFrameNanos { } }
+            if (runCatching { networkFocusRequester.requestFocus() }.getOrDefault(false)) focusResults = false
+        }
     }
 
     val initialFocusRequester = topInputFocusRequester
@@ -662,6 +712,39 @@ fun SearchScreen(
                 )
             }
 
+            if (!isDiscoverMode && companies.isNotEmpty()) {
+                item(key = "company_search_results") {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 52.dp)) {
+                        Text(stringResource(R.string.search_production_companies))
+                        Spacer(Modifier.height(10.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(companies, key = { it.id }) { company ->
+                                val name = company.name.orEmpty()
+                                Button(
+                                    onClick = { onNavigateToCompany(company.id, name) },
+                                    modifier = if (company.id == companies.first().id) Modifier.focusRequester(companyFocusRequester) else Modifier,
+                                ) { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                            }
+                        }
+                    }
+                }
+            }
+            if (!isDiscoverMode && networks.isNotEmpty()) {
+                item(key = "network_search_results") {
+                    Column(Modifier.fillMaxWidth().padding(horizontal = 52.dp)) {
+                        Text(stringResource(R.string.search_tv_networks))
+                        Spacer(Modifier.height(10.dp))
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(networks, key = { it.id }) { network ->
+                                Button(
+                                    onClick = { onNavigateToNetwork(network.id, network.name) },
+                                    modifier = if (network.id == networks.first().id) Modifier.focusRequester(networkFocusRequester) else Modifier,
+                                ) { Text(network.name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                            }
+                        }
+                    }
+                }
+            }
             if (isDiscoverMode) {
                 if (showRecentSearches) {
                     item(key = "recent_searches") {
@@ -780,7 +863,7 @@ fun SearchScreen(
                         }
                     }
 
-                    !uiState.isSearching && !hasPendingUnsubmittedQuery && visibleCatalogRows.isEmpty() -> {
+                    !uiState.isSearching && !hasPendingUnsubmittedQuery && visibleCatalogRows.isEmpty() && companies.isEmpty() && networks.isEmpty() -> {
                         item {
                             EmptyScreenState(
                                 title = stringResource(R.string.search_no_results_title),

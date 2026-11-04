@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.settings
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.LocalUiMotion
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RawRes
@@ -76,6 +77,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -256,6 +258,7 @@ fun SettingsScreen(
     }
     val visibleSections = visibleCategories.map { category -> settingsSectionSpec(category) }
 
+    val motionPolicy = LocalUiMotion.current
     val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     val isHorizonStyle = NuvioTheme.settingsUiStyle == SettingsUiStyle.HORIZON
     var selectedCategory by rememberSaveable {
@@ -449,7 +452,13 @@ fun SettingsScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(NuvioTheme.colors.Background),
+            .background(
+                Brush.linearGradient(listOf(
+                    NuvioTheme.colors.BackgroundElevated,
+                    NuvioTheme.colors.Background,
+                    NuvioTheme.colors.BackgroundCard.copy(alpha = 0.94f),
+                ))
+            ),
         contentAlignment = Alignment.Center
     ) {
         val workspaceLayout = settingsWorkspaceLayout(maxWidth)
@@ -658,14 +667,14 @@ fun SettingsScreen(
                                 val forward = order.indexOf(targetState) >= order.indexOf(initialState)
                                 val toStart = forward != isRtl
                                 (slideInHorizontally(
-                                    animationSpec = tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS, easing = FastOutSlowInEasing)
-                                ) { fullWidth -> if (toStart) fullWidth / 4 else -fullWidth / 4 } +
-                                    fadeIn(tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS)))
+                                    animationSpec = tween(motionPolicy.durationMillis(SETTINGS_DETAIL_ANIM_IN_DURATION_MS), easing = FastOutSlowInEasing)
+                                ) { fullWidth -> if (!motionPolicy.allowsSpatialEffects) 0 else if (toStart) fullWidth / 8 else -fullWidth / 8 } +
+                                    fadeIn(tween(motionPolicy.durationMillis(SETTINGS_DETAIL_ANIM_IN_DURATION_MS))))
                                     .togetherWith(
                                         slideOutHorizontally(
-                                            animationSpec = tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS, easing = FastOutSlowInEasing)
-                                        ) { fullWidth -> if (toStart) -fullWidth / 4 else fullWidth / 4 } +
-                                            fadeOut(tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS))
+                                            animationSpec = tween(motionPolicy.durationMillis(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS), easing = FastOutSlowInEasing)
+                                        ) { fullWidth -> if (!motionPolicy.allowsSpatialEffects) 0 else if (toStart) -fullWidth / 8 else fullWidth / 8 } +
+                                            fadeOut(tween(motionPolicy.durationMillis(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS)))
                                     )
                             },
                             label = "settingsDetailTransition"
@@ -820,10 +829,19 @@ fun SettingsScreen(
                                 }
                             }
                     ) {
+                        AnimatedContent(
+                            targetState = selectedCategory,
+                            transitionSpec = {
+                                fadeIn(tween(motionPolicy.durationMillis(180))).togetherWith(
+                                    fadeOut(tween(motionPolicy.durationMillis(120)))
+                                )
+                            },
+                            label = "settingsRailDetailTransition",
+                        ) { animatedCategory ->
                         SettingsDetailPane(
-                            selectedCategory = selectedCategory,
+                            selectedCategory = animatedCategory,
                             isEssentialMode = isEssentialMode,
-                            allowDetailAutofocus = allowDetailAutofocus,
+                            allowDetailAutofocus = allowDetailAutofocus && animatedCategory == selectedCategory,
                             contentFocusRequesters = contentFocusRequesters,
                             experienceModeViewModel = experienceModeViewModel,
                             phoneRemoteViewModel = phoneRemoteViewModel,
@@ -842,6 +860,7 @@ fun SettingsScreen(
                             onNavigateToSupportersContributors = onNavigateToSupportersContributors,
                             onNavigateToLicensesAttributions = onNavigateToLicensesAttributions
                         )
+                        }
                     }
                 }
             }

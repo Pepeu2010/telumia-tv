@@ -166,8 +166,7 @@ internal class PlayerTimelineFrames(
                                 if (candidate.decodedMs != center.decodedMs && neighbors.none { it.decodedMs == candidate.decodedMs }) neighbors += candidate
                             }
                             if (current(request)) mutable.value = TimelineFrameState.Ready(center,
-                                neighbors.distinctBy { it.decodedMs }.sortedBy { abs(it.decodedMs - center.decodedMs) }
-                                    .take(4).sortedBy { it.decodedMs })
+                                selectFilmstripNeighbors(center.decodedMs, neighbors, { it.decodedMs }))
                         }
                     } catch (cancelled: CancellationException) {
                         if (!kotlinx.coroutines.currentCoroutineContext().isActive) throw cancelled
@@ -194,10 +193,11 @@ internal class PlayerTimelineFrames(
 
     private fun current(request: Request) = !closed && session === request.session && revision == request.revision
     private fun sameSession(request: Request) = !closed && session === request.session
-    private fun nearbyCached(center: TimelineFrameImage) = cache.values
-        .filter { it.decodedMs != center.decodedMs && abs(it.decodedMs - center.decodedMs) <= 60000 }
-        .distinctBy { it.decodedMs }.sortedBy { abs(it.decodedMs - center.decodedMs) }.take(4)
-        .sortedBy { it.decodedMs }
+    private fun nearbyCached(center: TimelineFrameImage) = selectFilmstripNeighbors(
+        center.decodedMs,
+        cache.values.filter { abs(it.decodedMs - center.decodedMs) <= 60000 },
+        { it.decodedMs },
+    )
     private suspend fun frame(request: Request, position: Long): TimelineFrameImage {
         val bucket = position / 250
         cache[bucket]?.takeIf { abs(it.decodedMs - position) <= 1250 }?.let { return it.copy(requestedMs = position) }

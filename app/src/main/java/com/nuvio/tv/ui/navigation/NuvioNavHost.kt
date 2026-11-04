@@ -1240,6 +1240,12 @@ private fun PlaybackNavHost(
                 androidx.hilt.navigation.compose.hiltViewModel(backStackEntry)
             SearchScreen(
                 viewModel = searchViewModel,
+                onNavigateToNetwork = { id, name ->
+                    navController.navigate(Screen.TmdbEntityBrowse.createRoute("network", id, name, "tv"))
+                },
+                onNavigateToCompany = { id, name ->
+                    navController.navigate(Screen.TmdbEntityBrowse.createRoute("company", id, name, "movie"))
+                },
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
                     val heroBackdrop = HeroBackdropState.consumeAndClear()
                     navController.navigate(

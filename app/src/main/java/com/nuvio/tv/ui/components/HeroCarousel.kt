@@ -38,8 +38,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.key.Key
@@ -452,9 +450,6 @@ internal fun HeroCarouselBackdrop(
 
     Box(
         modifier = modifier
-            .graphicsLayer {
-                compositingStrategy = CompositingStrategy.Offscreen
-            }
             .drawWithCache {
             val bottomStartFraction = if (fullPage) 0.55f else 0.30f
             val leftEndFraction = if (fullPage) 0.66f else 0.72f
@@ -471,8 +466,8 @@ internal fun HeroCarouselBackdrop(
                 } else {
                     arrayOf(
                         0.0f to Color.Transparent,
-                        0.4286f to bgColor.copy(alpha = 0.5f),
-                        0.7143f to bgColor.copy(alpha = 0.85f),
+                        0.4286f to bgColor.copy(alpha = 0.34f),
+                        0.7143f to bgColor.copy(alpha = 0.72f),
                         1.0f to bgColor
                     )
                 },
@@ -491,8 +486,8 @@ internal fun HeroCarouselBackdrop(
                 } else {
                     arrayOf(
                         0.0f to bgColor.copy(alpha = 0.98f),
-                        0.2222f to bgColor.copy(alpha = 0.88f),
-                        0.4722f to bgColor.copy(alpha = 0.56f),
+                        0.2222f to bgColor.copy(alpha = 0.86f),
+                        0.4722f to bgColor.copy(alpha = 0.48f),
                         0.7778f to bgColor.copy(alpha = 0.20f),
                         1.0f to Color.Transparent
                     )

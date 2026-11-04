@@ -25,7 +25,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.*
-import com.nuvio.tv.ui.theme.LocalUiMotion
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 /** Uses the real drawer destinations, including TV; the remote can enter and leave each tab. */
@@ -38,19 +37,18 @@ internal fun CinematicRootNavigationBar(
     val colors = NuvioTheme.colors
     val mobile = LocalConfiguration.current.screenWidthDp < 600
     val shape = RoundedCornerShape(50)
-    val motion = LocalUiMotion.current
     val menuLabel = stringResource(R.string.cd_expand_sidebar)
     Row(modifier.onPreviewKeyEvent { event ->
         event.type == KeyEventType.KeyDown && event.key == Key.DirectionDown && onEnterContent()
-    }.widthIn(max = 620.dp).fillMaxWidth(if (mobile) 0.96f else 0.80f)
+    }.widthIn(max = 540.dp).fillMaxWidth(if (mobile) 0.96f else 0.76f)
         .testTag("cinematic-root-navigation")
-        .clip(shape).background(colors.Background.copy(alpha = 0.88f))
-        .border(1.dp, Color.White.copy(alpha = 0.18f), shape).padding(5.dp),
+        .clip(shape).background(colors.Background.copy(alpha = 0.78f))
+        .border(1.dp, Color.White.copy(alpha = 0.14f), shape).padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
         items.forEach { item ->
             val active = item.route == selectedRoute
             Button(onClick = { onNavigate(item.route) }, modifier = Modifier
-                .weight(if (active && !mobile) 1.75f else 1f).height(40.dp)
+                .weight(if (active && !mobile) 1.4f else 1f).height(40.dp)
                 .semantics { selected = active; contentDescription = item.label },
                 contentPadding = PaddingValues(horizontal = 8.dp),
                 shape = ButtonDefaults.shape(shape),
@@ -58,11 +56,17 @@ internal fun CinematicRootNavigationBar(
                     containerColor = if (active) colors.TextPrimary.copy(alpha = 0.12f) else Color.Transparent,
                     contentColor = colors.TextPrimary,
                     focusedContainerColor = colors.TextPrimary, focusedContentColor = colors.Background),
-                scale = ButtonDefaults.scale(focusedScale = motion.scale(1.03f))) {
-                DrawerItemIcon(item.iconRes, item.icon, Modifier.size(20.dp), tint = LocalContentColor.current)
-                if (active && !mobile) {
-                    Spacer(Modifier.width(8.dp))
-                    Text(item.label, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                scale = ButtonDefaults.scale(focusedScale = 1f)) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    DrawerItemIcon(item.iconRes, item.icon, Modifier.size(20.dp), tint = LocalContentColor.current)
+                    if (active && !mobile) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(item.label, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
                 }
             }
         }

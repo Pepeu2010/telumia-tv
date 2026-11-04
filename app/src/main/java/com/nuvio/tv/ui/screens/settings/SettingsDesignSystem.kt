@@ -363,9 +363,9 @@ internal fun SettingsWorkspaceSurface(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            NuvioTheme.colors.BackgroundElevated,
-                            NuvioTheme.colors.BackgroundCard.copy(alpha = 0.72f),
-                            NuvioTheme.colors.BackgroundElevated
+                            NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.94f),
+                            NuvioTheme.colors.Background.copy(alpha = 0.96f),
+                            NuvioTheme.colors.BackgroundCard.copy(alpha = 0.88f)
                         )
                     )
                 )
@@ -428,10 +428,10 @@ internal fun SettingsRailButton(
             containerColor = when {
                 zen && isSelected -> NuvioTheme.colors.Secondary.copy(alpha = 0.14f)
                 zen -> Color.Transparent
-                isSelected -> NuvioTheme.colors.FocusBackground
-                else -> NuvioTheme.colors.BackgroundElevated
+                isSelected -> NuvioTheme.colors.Secondary.copy(alpha = 0.17f)
+                else -> NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.42f)
             },
-            focusedContainerColor = if (zen) NuvioTheme.colors.FocusBackground else NuvioTheme.colors.BackgroundCard
+            focusedContainerColor = NuvioTheme.colors.FocusBackground
         ),
         border = if (zen) {
             CardDefaults.border(

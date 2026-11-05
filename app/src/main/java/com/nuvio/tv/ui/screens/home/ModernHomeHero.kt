@@ -170,6 +170,7 @@ internal fun ModernHeroMediaLayer(
     }
 
     Box(modifier = modifier) {
+        ModernHeroFallback(Modifier.fillMaxSize())
         androidx.compose.animation.Crossfade(
             targetState = imageModel,
             animationSpec = tween(durationMillis = motion.durationMillis(NuvioMotion.tokens.durations.overlay)),
@@ -217,6 +218,53 @@ internal fun ModernHeroMediaLayer(
             modifier = Modifier.align(Alignment.TopEnd).padding(top = 88.dp, end = 32.dp),
         )
     }
+}
+
+/** Lightweight first frame shown before the network artwork is ready. */
+@Composable
+private fun ModernHeroFallback(modifier: Modifier = Modifier) {
+    val colors = NuvioTheme.colors
+    val primary = NuvioTheme.palette.secondaryVariant
+    val secondary = NuvioTheme.palette.secondary
+    Box(
+        modifier = modifier
+            .background(
+                Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0f to colors.Background,
+                        0.40f to colors.Surface,
+                        0.76f to colors.SurfaceVariant.copy(alpha = 0.92f),
+                        1f to colors.Background,
+                    )
+                )
+            )
+            .drawWithCache {
+                val ambient = Brush.radialGradient(
+                    colors = listOf(secondary.copy(alpha = 0.24f), Color.Transparent),
+                    center = Offset(size.width * 0.74f, size.height * 0.24f),
+                    radius = maxOf(size.width, size.height) * 0.62f,
+                )
+                val warmEdge = Brush.radialGradient(
+                    colors = listOf(primary.copy(alpha = 0.15f), Color.Transparent),
+                    center = Offset(size.width * 0.40f, size.height * 0.90f),
+                    radius = maxOf(size.width, size.height) * 0.48f,
+                )
+                val rayColor = colors.TextPrimary.copy(alpha = 0.035f)
+                onDrawBehind {
+                    drawRect(ambient)
+                    drawRect(warmEdge)
+                    repeat(4) { index ->
+                        val x = size.width * (0.47f + index * 0.075f)
+                        drawLine(
+                            color = rayColor,
+                            start = Offset(x, 0f),
+                            end = Offset(x + size.width * 0.20f, size.height),
+                            strokeWidth = size.width * 0.018f,
+                        )
+                    }
+                }
+            }
+    )
 }
 
 @Composable

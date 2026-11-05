@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -49,6 +50,43 @@ class TelumiaHomeHeroTvTest {
         contentTypeText = "Filme", yearText = "2026", runtimeText = "124 min", imdbText = "8.1",
         ageRatingText = "12", languageText = "Português", genres = StableList(listOf("Drama")),
         poster = null, backdrop = null, imageUrl = null)
+
+    @Test fun zeroNetworkHeroStillPaintsAnIntentionalCinematicFirstFrame() {
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            ModernHeroMediaLayer(
+                heroBackdrop = { null },
+                enrichmentActive = { false },
+                shouldPlayHeroTrailer = { false },
+                heroTrailerFirstFrameRendered = { false },
+                heroTrailerUrl = { null },
+                heroTrailerAudioUrl = { null },
+                heroTrailerPlaybackKey = { null },
+                muted = { true },
+                onTrailerEnded = {},
+                onFirstFrameRendered = {},
+                modifier = Modifier.fillMaxSize().testTag("zero_network_hero"),
+                requestWidthPx = 1280,
+                requestHeightPx = 720,
+            )
+        } }
+
+        compose.onNodeWithTag("zero_network_hero").assertIsDisplayed()
+        compose.waitForIdle()
+        val pixels = compose.onNodeWithTag("zero_network_hero").captureToImage().toPixelMap()
+        val left = pixels[(pixels.width * 0.08f).toInt(), (pixels.height * 0.28f).toInt()]
+        val right = pixels[(pixels.width * 0.74f).toInt(), (pixels.height * 0.28f).toInt()]
+        val channelDistance = abs(left.red - right.red) + abs(left.green - right.green) + abs(left.blue - right.blue)
+        val screenshot = instrumentation.uiAutomation.takeScreenshot()
+        val directory = instrumentation.targetContext.getExternalFilesDir(null)!!
+        File(directory, "telumia-home-zero-network-tv.png").outputStream().use {
+            screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
+        screenshot.recycle()
+        assertTrue(
+            "Fallback should keep visual depth when artwork is unavailable (distance=$channelDistance)",
+            channelDistance > 0.05f,
+        )
+    }
 
     @Test fun dpadSelectionUpdatesTheHeroWithoutRetainingAnotherTitlesMetadata() {
         val second = movie.copy(title = "Histórias de uma cidade", contentTypeText = "Série", isSeries = true,

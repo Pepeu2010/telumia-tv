@@ -105,8 +105,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.createLifecycleAwareWindowRecomposer
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -2299,20 +2302,21 @@ private fun ModernSidebarScaffold(
                 selectedDrawerRoute != Screen.Search.route
             ) {
                 if (!isSidebarExpanded && !sidebarCollapsePending) {
-                    CinematicRootNavigationBar(
-                        items = drawerItems,
-                        selectedRoute = selectedDrawerRoute,
-                        onNavigate = { route ->
-                            onNavigate(route)
-                            navigateToDrawerRoute(navController, currentRoute, route)
-                        },
-                        onEnterContent = { runCatching { contentFocusRequester.requestFocus() }.getOrDefault(false) },
-                        onExpandSidebar = {
+                    CollapsedSidebarPill(
+                        label = selectedDrawerItem.label,
+                        iconRes = selectedDrawerItem.iconRes,
+                        icon = selectedDrawerItem.icon,
+                        iconOnly = isFloatingPillIconOnly,
+                        blurEnabled = modernSidebarBlurEnabled,
+                        hazeState = sidebarHazeState,
+                        onExpand = {
                             isSidebarExpanded = true
                             sidebarCollapsePending = false
                             pendingSidebarFocusRequest = true
                         },
-                        modifier = Modifier.align(Alignment.TopCenter).padding(top = 20.dp),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 20.dp, top = 20.dp),
                     )
                 }
             }
@@ -2321,7 +2325,7 @@ private fun ModernSidebarScaffold(
 }
 
 @Composable
-private fun CollapsedSidebarPill(
+internal fun CollapsedSidebarPill(
     label: String,
     iconRes: Int?,
     icon: ImageVector?,
@@ -2337,13 +2341,11 @@ private fun CollapsedSidebarPill(
     val colors = NuvioTheme.colors
     val bgElevated = colors.BackgroundElevated
     val bgCard = colors.BackgroundCard
-    val borderBase = colors.Border
-    val mediaColors = colors.media
-    val pillBackgroundBrush = remember(blurEnabled) {
+    val pillBackgroundBrush = remember(blurEnabled, bgElevated, bgCard) {
         val alpha = if (blurEnabled) 0.65f else 0.96f
         Brush.verticalGradient(listOf(
-            Color(0xFF1C1C1E).copy(alpha = alpha),
-            Color(0xFF1C1C1E).copy(alpha = alpha)
+            bgElevated.copy(alpha = alpha),
+            bgCard.copy(alpha = alpha)
         ))
     }
 
@@ -2351,6 +2353,8 @@ private fun CollapsedSidebarPill(
         modifier = modifier
             .focusProperties { canFocus = false }
             .clickable(onClick = onExpand)
+            .semantics { contentDescription = label }
+            .testTag("collapsed-sidebar-beacon")
             .padding(horizontal = NuvioTheme.spacing.hairline, vertical = NuvioTheme.spacing.xxs),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -2369,6 +2373,11 @@ private fun CollapsedSidebarPill(
                     }
                 )
                 .background(brush = pillBackgroundBrush, shape = pillShape)
+                .border(
+                    width = NuvioTheme.spacing.hairline,
+                    color = colors.Border.copy(alpha = 0.72f),
+                    shape = pillShape,
+                )
         ) {
             Row(
                 modifier = Modifier

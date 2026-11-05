@@ -35,6 +35,30 @@ class TelumiaSidebarTvTest {
     @Test fun reducedMotionKeepsNativeDpadSelection() = exercise(NavigationMotion.REDUCED)
     @Test fun disabledMotionKeepsNativeDpadSelection() = exercise(NavigationMotion.OFF)
 
+    @Test
+    fun collapsedBeaconRemainsDiscoverableAndOpensTheSingleSidebar() {
+        var opened = false
+        compose.setContent {
+            NuvioTheme {
+                Box(Modifier.fillMaxSize().background(NuvioTheme.colors.Background)) {
+                    CollapsedSidebarPill(
+                        label = "Início",
+                        iconRes = null,
+                        icon = Icons.Default.Home,
+                        iconOnly = true,
+                        blurEnabled = false,
+                        onExpand = { opened = true },
+                    )
+                }
+            }
+        }
+
+        compose.onNodeWithTag("collapsed-sidebar-beacon")
+            .assertContentDescriptionEquals("Início")
+            .performClick()
+        compose.runOnIdle { check(opened) }
+    }
+
     private fun exercise(mode: NavigationMotion) {
         val items = listOf("Início", "Buscar", "Minha biblioteca", "Configurações")
             .mapIndexed { i, label -> DrawerItem("route-$i", label, icon = Icons.Default.Home) }

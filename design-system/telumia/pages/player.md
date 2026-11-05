@@ -51,3 +51,10 @@ raios e hierarquia do restante do aplicativo.
 - Referencia de plataforma: https://developer.android.com/reference/android/content/pm/ConfigurationInfo#reqGlEsVersion (campo desde API 4). Grounded Docs indisponivel nesta sessao.
 - Ainda pendentes: HDR em hardware fisico, formatos variados de addons e ciclo completo de filme da conta ate retorno ao catalogo.
 
+## Preferencias e proximo episodio
+
+- TrackPreferenceDataStore ja grava subtitleIsForced; nenhuma alteracao de persistencia necessaria neste marco.
+- 56 testes unitarios aprovados em PlayerNextEpisodeRulesTest, PostPlayResetRulesTest, PostPlayRecommendationStateTest e TrackSelectionInvestigationTest.
+- Corrigido fixture de TrackSelectionInvestigationTest: playbackTimeline explicita, preservando verificacoes de codec, bitrate e resolucao.
+- Estas regras nao comprovam a reproducao automatica completa de um episodio da conta nem a sincronizacao de preferencias por perfil.
+

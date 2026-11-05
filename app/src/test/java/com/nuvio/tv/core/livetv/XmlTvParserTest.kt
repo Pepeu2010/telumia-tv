@@ -14,7 +14,7 @@ class XmlTvParserTest {
                 |  <channel id="br.novela"><display-name lang="en">Soap</display-name><display-name lang="pt-BR">Novela Brasil</display-name><icon src="https://cdn.example/channel.png"/></channel>
                 |  <programme channel="br.novela" start="20260101180000 -0300" stop="20260101190000 -0300">
                 |    <title lang="en">Drama</title><title lang="pt-BR">Capítulo especial</title>
-                |    <desc lang="pt-BR">Edição de hoje</desc><category>Novela</category>
+                |    <desc lang="pt-BR">Edição de hoje</desc><desc lang="en">Today's edition</desc><category>Novela</category>
                 |  </programme>
                 |</tv>
             """.trimMargin(),

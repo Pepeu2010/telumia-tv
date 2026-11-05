@@ -143,7 +143,9 @@ object XmlTvParser {
                     "title" -> if (value != null && (programme?.title == null || textLanguage?.startsWith("pt") == true)) {
                         programme?.title = value
                     }
-                    "desc" -> if (value != null) programme?.description = value
+                    "desc" -> if (value != null && (programme?.description == null || textLanguage?.startsWith("pt") == true)) {
+                        programme?.description = value
+                    }
                     "category" -> if (value != null && programme?.category == null) programme?.category = value
                 }
                 textTag = null

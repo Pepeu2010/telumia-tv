@@ -34,6 +34,7 @@ import static com.google.common.util.concurrent.Futures.immediateCancelledFuture
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import android.content.Context;
+import android.app.ActivityManager;
 import android.graphics.Bitmap;
 import android.graphics.ColorSpace;
 import android.graphics.Matrix;
@@ -783,10 +784,15 @@ public final class TelumiaFrameExtractor {
     @Override
     protected PlaybackVideoGraphWrapper createPlaybackVideoGraphWrapper(
         Context context, VideoFrameReleaseControl frameReleaseControl) {
-      if (SDK_INT > 25) {
+      ActivityManager activityManager =
+          (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+      boolean es2Only = activityManager != null
+          && activityManager.getDeviceConfigurationInfo().reqGlEsVersion < 0x30000;
+      if (SDK_INT > 25 && !es2Only) {
         return super.createPlaybackVideoGraphWrapper(context, frameReleaseControl);
       }
-      // Only this bounded SDR preview graph uses ES2; the main playback engine stays unchanged.
+      // Android version does not guarantee ES3 support. Keep the bounded preview graph
+      // on ES2 for devices that advertise it, avoiding a failing ES3 probe.
       DefaultVideoFrameProcessor.Factory factory = new DefaultVideoFrameProcessor.Factory.Builder()
           .setGlObjectsProvider(new LegacyPreviewGlObjectsProvider()).build();
       return new PlaybackVideoGraphWrapper.Builder(context, frameReleaseControl)

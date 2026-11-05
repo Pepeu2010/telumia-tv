@@ -41,3 +41,13 @@ raios e hierarquia do restante do aplicativo.
 - Superfícies usam gradientes estáticos e evitam blur em tempo real, especialmente em TV Box.
 - Extração é suspensa quando o player perde primeiro plano, entra em PiP ou abre outro modal.
 
+## Validacao e correcao em 2026-11-05
+
+- O emulador Android TV API 30 anuncia OpenGL ES 2.0 (ro.opengles.version=131072). Antes da correcao, o extrator escolhia o pipeline padrao por SDK >25, falhando com eglChooseConfig failed.
+- Repeticao com SwiftShader manteve a falha. O extrator agora considera ActivityManager.deviceConfigurationInfo.reqGlEsVersion e reutiliza o provedor ES2 existente quando ES3 nao e anunciado.
+- Alteracao limitada ao grafo de miniaturas; o player principal conserva sua configuracao.
+- Apos a correcao, 11 testes instrumentados aprovados: TimelineFramesTvTest e SceneInfoTvTest, sem skips. Incluem video real local/HTTP, timestamps, headers, filmstrip, repeticao de seek, cancelamento e recuperacao.
+- Estado anterior: 8 falhas na primeira execucao e 9 na repeticao com SwiftShader. Registrar falhas preserva o diagnostico; nao tratar como testes ignorados.
+- Referencia de plataforma: https://developer.android.com/reference/android/content/pm/ConfigurationInfo#reqGlEsVersion (campo desde API 4). Grounded Docs indisponivel nesta sessao.
+- Ainda pendentes: HDR em hardware fisico, formatos variados de addons e ciclo completo de filme da conta ate retorno ao catalogo.
+

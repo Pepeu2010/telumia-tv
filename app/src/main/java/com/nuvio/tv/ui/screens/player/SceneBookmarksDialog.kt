@@ -11,6 +11,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
@@ -54,14 +57,21 @@ internal fun SceneBookmarksDialog(
     val motion = LocalUiMotion.current
     val actionScale = ButtonDefaults.scale(focusedScale = motion.scale(1.03f), pressedScale = motion.scale(0.98f))
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        BoxWithConstraints(Modifier.fillMaxSize().padding(24.dp)) {
+        BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black.copy(alpha = .72f)).padding(24.dp)) {
             val compact = maxHeight < 440.dp
             CompositionLocalProvider(androidx.tv.material3.LocalContentColor provides NuvioTheme.colors.TextPrimary) {
-            Column(Modifier.widthIn(max = 760.dp).fillMaxWidth().heightIn(max = maxHeight)
+            Column(Modifier.widthIn(max = 920.dp).fillMaxWidth().heightIn(max = maxHeight)
                 .align(androidx.compose.ui.Alignment.Center)
-                .background(NuvioTheme.colors.Background, RoundedCornerShape(24.dp)).padding(if (compact) 16.dp else 24.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Brush.linearGradient(listOf(Color(0xFF17212A), NuvioTheme.colors.Background, Color(0xFF0B1015))))
+                .padding(if (compact) 16.dp else 28.dp)
                 .testTag("scene-bookmarks-panel"), verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp)) {
-                Text(stringResource(R.string.scene_bookmarks_title), style = androidx.tv.material3.MaterialTheme.typography.headlineSmall)
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Box(Modifier.width(4.dp).height(34.dp).background(NuvioTheme.colors.Primary, RoundedCornerShape(99.dp)))
+                    Text(stringResource(R.string.scene_bookmarks_title),
+                        style = androidx.tv.material3.MaterialTheme.typography.headlineSmall)
+                }
                 Text(stringResource(R.string.scene_bookmarks_scope_notice), style = androidx.tv.material3.MaterialTheme.typography.bodySmall,
                     color = NuvioTheme.colors.TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (pendingJump != null) Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -106,7 +116,9 @@ internal fun SceneBookmarksDialog(
                 LazyColumn(Modifier.weight(1f, fill = false).fillMaxWidth().testTag("scene-bookmark-list"),
                     verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(4.dp)) {
                     items(state.items, key = { it.id }) { item ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
+                            .background(Color.White.copy(alpha = .045f)).padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Button(onClick = { if (item.editionKey == state.scope?.editionKey) onJump(item.id, false) else pendingJump = item.id }, enabled = writable,
                                 scale = ButtonDefaults.scale(focusedScale = 1f, pressedScale = 1f),
                                 modifier = Modifier.weight(1f).testTag("scene-bookmark-jump-${item.id}")) {

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -67,13 +68,18 @@ internal fun PlayerTimelinePreviewSurface(
         (result.neighbors + result.image).distinctBy { it.decodedMs }.sortedBy { it.decodedMs }.take(5)
     }.orEmpty()
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-    Column(modifier.fillMaxWidth().padding(bottom = if (compact) 6.dp else 10.dp)
+    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
+    Column(Modifier.widthIn(max = if (compact) 300.dp else 520.dp)
+        .clip(RoundedCornerShape(if (compact) 14.dp else 20.dp))
+        .background(Brush.verticalGradient(listOf(Color(0xF21B222C), Color(0xFA090D12))))
+        .border(1.dp, Color.White.copy(alpha = .14f), RoundedCornerShape(if (compact) 14.dp else 20.dp))
+        .padding(horizontal = if (compact) 10.dp else 14.dp, vertical = if (compact) 8.dp else 12.dp)
         .testTag("timeline-preview-surface"), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 6.dp)) {
         Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White,
             maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag("timeline-preview-position"))
         Box(Modifier.width(frameWidth).aspectRatio(16f / 9f).clip(shape)
-            .background(Color(0xF0101720)).border(1.dp, NuvioTheme.colors.Primary.copy(alpha = .65f), shape),
+            .background(Color(0xF0101720)).border(1.dp, NuvioTheme.colors.Primary.copy(alpha = .82f), shape),
             contentAlignment = Alignment.Center) {
             if (ready != null) {
                 val bitmap = remember(ready.image.bitmap) { ready.image.bitmap.asImageBitmap() }
@@ -114,6 +120,7 @@ internal fun PlayerTimelinePreviewSurface(
                 }
             }
         }
+    }
     }
     }
 }

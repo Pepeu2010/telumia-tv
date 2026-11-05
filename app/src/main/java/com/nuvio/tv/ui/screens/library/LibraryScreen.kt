@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -202,7 +203,7 @@ fun LibraryScreen(
         }
     }
 
-    LaunchedEffect(uiState.isLoading, uiState.sourceMode, uiState.listTabs.size) {
+    LaunchedEffect(uiState.isLoading, uiState.sourceMode, uiState.listTabs.size, visibleItemKeys) {
         if (!uiState.isLoading && pendingPrimaryFocus) {
             val restoreKey = lastFocusedPosterKey
             val restoreIndex = restoreKey?.let { visibleItemIndexByKey[it] }
@@ -210,8 +211,13 @@ fun LibraryScreen(
 
             var focused = false
             if (restoreIndex != null && restoreRequester != null) {
-                if (gridState.firstVisibleItemIndex == 0 && gridState.firstVisibleItemScrollOffset == 0) {
-                    runCatching { gridState.scrollToItem(restoreIndex) }
+                if (gridState.layoutInfo.visibleItemsInfo.none { it.key == restoreKey }) {
+                    val gridIndex = savedLibraryPosterGridIndex(
+                        restoreIndex,
+                        uiState.listManagement != null && uiState.isTrackingAuthenticated,
+                    )
+                    gridState.scrollToItem(gridIndex)
+                    withFrameNanos { }
                 }
                 focused = runCatching { restoreRequester.requestFocus() }.isSuccess
                 if (!focused) {

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.domain.model.LiveTvSource
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -20,11 +21,15 @@ class LiveTvSourceStore @Inject constructor(
     private val json = Json { ignoreUnknownKeys = true }
     private fun store() = factory.get(profileManager.activeProfileId.value, FEATURE)
 
-    suspend fun list(): List<LiveTvSource> = runCatching {
+    suspend fun list(): List<LiveTvSource> = try {
         val raw = store().data.first()[sourcesKey].orEmpty()
-        if (raw.length > MAX_CONFIG_CHARS) return@runCatching emptyList()
-        json.decodeFromString<List<LiveTvSource>>(raw).take(MAX_SOURCES)
-    }.getOrDefault(emptyList())
+        if (raw.length > MAX_CONFIG_CHARS || raw.isBlank()) emptyList()
+        else json.decodeFromString<List<LiveTvSource>>(raw).take(MAX_SOURCES)
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        emptyList()
+    }
 
     suspend fun add(name: String, playlistUrl: String, epgUrl: String? = null): LiveTvSource {
         val source = LiveTvSource(
@@ -51,9 +56,13 @@ class LiveTvSourceStore @Inject constructor(
     private suspend fun update(transform: (List<LiveTvSource>) -> List<LiveTvSource>) {
         store().edit { preferences ->
             val raw = preferences[sourcesKey].orEmpty()
-            val current = if (raw.length <= MAX_CONFIG_CHARS) {
-                runCatching { json.decodeFromString<List<LiveTvSource>>(raw) }.getOrDefault(emptyList())
-            } else emptyList()
+            require(raw.length <= MAX_CONFIG_CHARS) { "Configuração Live TV excede o limite" }
+            val current = if (raw.isBlank()) emptyList() else try {
+                json.decodeFromString<List<LiveTvSource>>(raw)
+            } catch (_: Exception) {
+                error("Não foi possível ler as fontes de TV salvas")
+            }
+            require(current.size <= MAX_SOURCES) { "Limite de fontes Live TV atingido" }
             val encoded = json.encodeToString(transform(current).take(MAX_SOURCES))
             require(encoded.length <= MAX_CONFIG_CHARS) { "Configuração Live TV excede o limite" }
             preferences[sourcesKey] = encoded

@@ -674,6 +674,11 @@ internal fun LibraryHeaderPanel(
     visible: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    if (!visible) {
+        // Keep clearance for the floating menu without drawing an empty title panel.
+        Spacer(modifier.fillMaxWidth().height(64.dp))
+        return
+    }
     val shape = RoundedCornerShape(20.dp)
     Row(
         modifier = modifier.fillMaxWidth()

@@ -30,6 +30,17 @@ class LibraryHeaderVisualTest {
 
     @Test fun cinematicHeaderSupportsMotionOff() = verifyHeader(NavigationMotion.OFF)
 
+    @Test fun floatingMenuClearanceDoesNotLeaveAnEmptyDecorativePanel() {
+        compose.setContent {
+            NuvioTheme {
+                LibraryHeaderPanel("Biblioteca", "TELUMIA", visible = false)
+            }
+        }
+        compose.onNodeWithTag("library-cinematic-header").assertDoesNotExist()
+        compose.onNodeWithTag("library-header-title").assertDoesNotExist()
+        compose.onNodeWithTag("library-header-source").assertDoesNotExist()
+    }
+
     private fun verifyHeader(motion: NavigationMotion) {
         compose.setContent {
             NuvioTheme(navigationMotion = motion) {

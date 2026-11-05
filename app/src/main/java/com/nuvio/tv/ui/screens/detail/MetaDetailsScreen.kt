@@ -68,6 +68,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.ContentScale
@@ -3225,6 +3226,7 @@ private fun BackdropLayer(
         label = "gradientFade"
     )
     Box(modifier = Modifier.fillMaxSize()) {
+        DetailBackdropFallback(Modifier.fillMaxSize())
         // Show hero backdrop from previous screen as persistent underlay
         // to prevent flash/re-render during navigation transition
         if (showHeroBackdropUnderlay && heroBackdropRequest != null) {
@@ -3282,6 +3284,53 @@ private fun BackdropLayer(
                 }
         )
     }
+}
+
+/** Zero-network first frame for details; intentionally static for low-end TV devices. */
+@Composable
+internal fun DetailBackdropFallback(modifier: Modifier = Modifier) {
+    val colors = NuvioTheme.colors
+    val primary = NuvioTheme.palette.secondaryVariant
+    val secondary = NuvioTheme.palette.secondary
+    Box(
+        modifier = modifier
+            .background(
+                Brush.horizontalGradient(
+                    colorStops = arrayOf(
+                        0f to colors.Background,
+                        0.40f to colors.Surface,
+                        0.76f to colors.SurfaceVariant,
+                        1f to colors.Background,
+                    )
+                )
+            )
+            .drawWithCache {
+                val coolLight = Brush.radialGradient(
+                    colors = listOf(secondary.copy(alpha = 0.24f), Color.Transparent),
+                    center = Offset(size.width * 0.74f, size.height * 0.26f),
+                    radius = maxOf(size.width, size.height) * 0.64f,
+                )
+                val warmLight = Brush.radialGradient(
+                    colors = listOf(primary.copy(alpha = 0.15f), Color.Transparent),
+                    center = Offset(size.width * 0.44f, size.height * 0.88f),
+                    radius = maxOf(size.width, size.height) * 0.46f,
+                )
+                val ray = colors.TextPrimary.copy(alpha = 0.035f)
+                onDrawBehind {
+                    drawRect(coolLight)
+                    drawRect(warmLight)
+                    repeat(4) { index ->
+                        val x = size.width * (0.46f + index * 0.075f)
+                        drawLine(
+                            color = ray,
+                            start = Offset(x, 0f),
+                            end = Offset(x + size.width * 0.20f, size.height),
+                            strokeWidth = size.width * 0.018f,
+                        )
+                    }
+                }
+            }
+    )
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)

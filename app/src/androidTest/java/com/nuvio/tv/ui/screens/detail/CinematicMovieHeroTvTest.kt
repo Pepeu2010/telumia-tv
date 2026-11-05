@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -24,6 +26,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.math.abs
 
 @RunWith(AndroidJUnit4::class)
 class CinematicMovieHeroTvTest {
@@ -35,6 +38,18 @@ class CinematicMovieHeroTvTest {
         releaseInfo="2026", imdbRating=8.1f, genres=listOf("Drama"), runtime="124 min",
         director=listOf("Direção de teste"), cast=emptyList(), videos=emptyList(), country=null,
         awards=null, language=null, links=emptyList())
+
+    @Test fun missingArtworkKeepsTheDetailStageVisuallyIntentional() {
+        compose.setContent { NuvioTheme(navigationMotion=NavigationMotion.OFF) {
+            DetailBackdropFallback(Modifier.fillMaxSize().testTag("detail_fallback"))
+        } }
+        compose.onNodeWithTag("detail_fallback").assertIsDisplayed()
+        val pixels = compose.onNodeWithTag("detail_fallback").captureToImage().toPixelMap()
+        val left = pixels[(pixels.width * 0.08f).toInt(), (pixels.height * 0.28f).toInt()]
+        val right = pixels[(pixels.width * 0.74f).toInt(), (pixels.height * 0.28f).toInt()]
+        val channelDistance = abs(left.red-right.red)+abs(left.green-right.green)+abs(left.blue-right.blue)
+        org.junit.Assert.assertTrue("Detail fallback should keep depth (distance=$channelDistance)", channelDistance>0.05f)
+    }
 
     @Test fun movieActionsRemainVisibleAndDpadReachesTrailerAndLibraryLongPress() {
         var save=0; var lists=0; var trailer=0

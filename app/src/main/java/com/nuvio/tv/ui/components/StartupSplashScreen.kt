@@ -77,10 +77,11 @@ fun StartupSplashScreen(
     )
     Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
         if (!profileBackgroundUrl.isNullOrBlank()) {
-            val imageData: Any = if (profileBackgroundUrl.startsWith("file:")) {
-                java.io.File(java.net.URI(profileBackgroundUrl))
-            } else {
-                profileBackgroundUrl
+            val imageData: Any = remember(profileBackgroundUrl) {
+                if (profileBackgroundUrl.startsWith("file:")) {
+                    runCatching { java.io.File(java.net.URI(profileBackgroundUrl)) }
+                        .getOrNull() ?: profileBackgroundUrl
+                } else profileBackgroundUrl
             }
             val request = ImageRequest.Builder(LocalContext.current)
                 .data(imageData)
@@ -173,10 +174,10 @@ fun StartupSplashScreen(
                 enter = fadeIn(tween(motion.durationMillis(560))) +
                     slideInVertically(
                         animationSpec = tween(motion.durationMillis(560), easing = FastOutSlowInEasing),
-                        initialOffsetY = { it / 12 }
+                        initialOffsetY = { if (motion.allowsSpatialEffects) it / 12 else 0 }
                     ) + scaleIn(
                         animationSpec = tween(motion.durationMillis(560), easing = FastOutSlowInEasing),
-                        initialScale = 0.96f
+                        initialScale = if (motion.allowsSpatialEffects) 0.96f else 1f
                     )
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -201,7 +202,7 @@ fun StartupSplashScreen(
                 enter = fadeIn(tween(motion.durationMillis(320))) +
                     slideInVertically(
                         animationSpec = tween(motion.durationMillis(320), easing = FastOutSlowInEasing),
-                        initialOffsetY = { -it / 6 }
+                        initialOffsetY = { if (motion.allowsSpatialEffects) -it / 6 else 0 }
                     )
             ) {
                 LoadingIndicator(modifier = Modifier.size(NuvioTheme.spacing.xxxl))

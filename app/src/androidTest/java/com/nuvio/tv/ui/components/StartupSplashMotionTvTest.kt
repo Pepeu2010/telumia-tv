@@ -18,10 +18,15 @@ class StartupSplashMotionTvTest {
     @Test fun brandAppearsWithMotionEnabled() = verifyBrand(NavigationMotion.FULL)
     @Test fun brandAppearsWithMotionDisabled() = verifyBrand(NavigationMotion.OFF)
 
-    private fun verifyBrand(motion: NavigationMotion) {
+    @Test fun brandAppearsWithReducedMotion() = verifyBrand(NavigationMotion.REDUCED)
+
+    @Test fun malformedLocalBackgroundDoesNotCrashStartup() =
+        verifyBrand(NavigationMotion.OFF, "file://invalid host/background image.webp")
+
+    private fun verifyBrand(motion: NavigationMotion, backgroundUrl: String? = null) {
         compose.setContent {
             NuvioTheme(navigationMotion = motion) {
-                StartupSplashScreen(profileColorHex = null, profileBackgroundUrl = null)
+                StartupSplashScreen(profileColorHex = null, profileBackgroundUrl = backgroundUrl)
             }
         }
         val label = InstrumentationRegistry.getInstrumentation().targetContext.getString(R.string.cd_nuvio_logo)

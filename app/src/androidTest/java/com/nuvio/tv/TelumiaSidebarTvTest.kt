@@ -60,7 +60,7 @@ class TelumiaSidebarTvTest {
     }
 
     private fun exercise(mode: NavigationMotion) {
-        val items = listOf("Início", "Buscar", "Minha biblioteca", "Configurações")
+        val items = listOf("Início", "Buscar", "Minha biblioteca", "TV ao vivo", "Configurações")
             .mapIndexed { i, label -> DrawerItem("route-$i", label, icon = Icons.Default.Home) }
         val selected = mutableStateOf(items.first().route)
         val focus = items.associate { it.route to FocusRequester() }
@@ -79,6 +79,13 @@ class TelumiaSidebarTvTest {
         compose.onNodeWithText(items.first().label).assertIsFocused()
         for (item in items.drop(1)) {
             instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+            compose.onNodeWithText(item.label).assertIsFocused()
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+            compose.onNodeWithText(item.label).assertIsSelected()
+            compose.runOnIdle { check(selected.value == item.route) }
+        }
+        for (item in items.dropLast(1).asReversed()) {
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
             compose.onNodeWithText(item.label).assertIsFocused()
             instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
             compose.onNodeWithText(item.label).assertIsSelected()

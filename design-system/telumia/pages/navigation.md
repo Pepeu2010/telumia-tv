@@ -16,3 +16,11 @@
 
 - Expandir e recolher usa os tokens de movimento do tema.
 - Movimento reduzido ou desligado nao altera a ordem de foco nem a disponibilidade das rotas.
+
+## Validacao em 2026-11-05
+
+- TelumiaSidebarTvTest: 4 testes instrumentados aprovados no emulador Android TV API 30.
+- Controle percorre Inicio, Busca, Biblioteca, TV ao vivo e Configuracoes nos dois sentidos e confirma foco/selecao em cada item.
+- Percurso aprovado com movimento completo, reduzido e desligado; beacon aciona a abertura da lateral.
+- O teste exercita componentes com rotas controladas. Retorno de filme real e restauracao de rolagem de cada tela ainda precisam de verificacao integrada.
+- Captura da TV nao foi recuperada do armazenamento externo apos o teste; nao declarar inspecao visual desta captura.

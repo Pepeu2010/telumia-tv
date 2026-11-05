@@ -4,6 +4,7 @@ import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,7 +56,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -309,33 +313,18 @@ fun LibraryScreen(
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.library_title),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = if (showBuiltInHeader) NuvioTheme.colors.TextPrimary else Color.Transparent,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.5.sp
-                )
-                Text(
-                    text = when {
-                        viewMode == LibraryViewMode.Cloud -> stringResource(R.string.library_source_cloud).uppercase()
-                        uiState.sourceMode == LibrarySourceMode.TRAKT -> "TRAKT"
-                        uiState.sourceMode == LibrarySourceMode.SIMKL -> "SIMKL"
-                        uiState.sourceMode == LibrarySourceMode.MDBLIST -> "MDBLIST"
-                        uiState.isNuvioAccount -> "TELUMIA"
-                        else -> stringResource(R.string.library_source_local)
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (showBuiltInHeader) NuvioTheme.colors.TextTertiary else Color.Transparent,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = 2.sp
-                )
-            }
+            LibraryHeaderPanel(
+                title = stringResource(R.string.library_title),
+                sourceLabel = when {
+                    viewMode == LibraryViewMode.Cloud -> stringResource(R.string.library_source_cloud).uppercase()
+                    uiState.sourceMode == LibrarySourceMode.TRAKT -> "TRAKT"
+                    uiState.sourceMode == LibrarySourceMode.SIMKL -> "SIMKL"
+                    uiState.sourceMode == LibrarySourceMode.MDBLIST -> "MDBLIST"
+                    uiState.isNuvioAccount -> "TELUMIA"
+                    else -> stringResource(R.string.library_source_local)
+                },
+                visible = showBuiltInHeader,
+            )
         }
 
         item(span = { GridItemSpan(maxLineSpan) }) {
@@ -676,6 +665,51 @@ fun LibraryScreen(
             onNavigateToDetail(id, type, addonBaseUrl.takeIf { it.isNotBlank() })
         }
     )
+}
+
+@Composable
+internal fun LibraryHeaderPanel(
+    title: String,
+    sourceLabel: String,
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        modifier = modifier.fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .testTag("library-cinematic-header")
+            .clip(shape)
+            .background(Brush.horizontalGradient(listOf(
+                NuvioTheme.colors.BackgroundElevated,
+                NuvioTheme.colors.BackgroundCard.copy(alpha = .82f),
+                NuvioTheme.colors.Background,
+            )))
+            .border(1.dp, NuvioTheme.colors.Border.copy(alpha = .62f), shape)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
+        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.width(4.dp).height(32.dp)
+                .background(if (visible) NuvioTheme.colors.Primary else Color.Transparent, RoundedCornerShape(99.dp)))
+            Text(title, style = MaterialTheme.typography.headlineMedium,
+                color = if (visible) NuvioTheme.colors.TextPrimary else Color.Transparent,
+                fontWeight = FontWeight.SemiBold, letterSpacing = 0.5.sp,
+                modifier = Modifier.testTag("library-header-title"))
+        }
+        Box(Modifier.clip(RoundedCornerShape(99.dp))
+            .background(if (visible) NuvioTheme.colors.Primary.copy(alpha = .13f) else Color.Transparent)
+            .border(1.dp, if (visible) NuvioTheme.colors.Primary.copy(alpha = .34f) else Color.Transparent,
+                RoundedCornerShape(99.dp))
+            .padding(horizontal = 14.dp, vertical = 7.dp)) {
+            Text(sourceLabel, style = MaterialTheme.typography.labelLarge,
+                color = if (visible) NuvioTheme.colors.TextSecondary else Color.Transparent,
+                fontWeight = FontWeight.SemiBold, letterSpacing = 1.5.sp,
+                modifier = Modifier.testTag("library-header-source"))
+        }
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

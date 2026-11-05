@@ -925,11 +925,11 @@ internal fun ProfileSelectionMainContent(
             MemberBrandWordmark(height = if(dense)22.dp else 32.dp,
                 contentDescription = stringResource(R.string.cd_nuvio_logo),drawableOverride=brandWordmarkRes)
             Spacer(Modifier.height(if(dense)6.dp else 16.dp))
-            Text(screenTitle,color=Color(0xFFF4EEDD),fontSize=if(dense)28.sp else 40.sp,
+            Text(screenTitle,color=NuvioTheme.colors.TextPrimary,fontSize=if(dense)28.sp else 40.sp,
                 fontFamily=TelumiaDisplayFamily,fontWeight=FontWeight.SemiBold,
                 letterSpacing=(-0.8).sp,maxLines=1,overflow=TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
-            Text(screenSubtitle,color=Color(0xFFB7BCC5),fontSize=if(dense)12.sp else 16.sp,
+            Text(screenSubtitle,color=NuvioTheme.colors.TextSecondary,fontSize=if(dense)12.sp else 16.sp,
                 maxLines=1,overflow=TextOverflow.Ellipsis)
             Spacer(Modifier.height(if(dense)10.dp else 20.dp))
             Box(Modifier.weight(1f).fillMaxWidth(),contentAlignment=Alignment.Center) {
@@ -938,7 +938,7 @@ internal fun ProfileSelectionMainContent(
                     onAddProfileClick,dense,preferredFocusId)
             }
             Spacer(Modifier.height(if(dense)8.dp else 20.dp))
-            Text(screenHint,color=Color(0xFFB7BCC5),fontSize=if(dense)11.sp else 14.sp,
+            Text(screenHint,color=NuvioTheme.colors.TextSecondary,fontSize=if(dense)11.sp else 14.sp,
                 fontWeight=FontWeight.Medium,maxLines=1,overflow=TextOverflow.Ellipsis)
         }
     }
@@ -1088,9 +1088,9 @@ private fun ProfileCard(
                 scaleY = itemScale
             }
             .clip(RoundedCornerShape(18.dp))
-            .background(if(isFocused) Color(0xFF1D2938) else Color(0xFF101B29))
+            .background(if(isFocused) NuvioTheme.colors.BackgroundElevated else NuvioTheme.colors.BackgroundCard)
             .border(if(isFocused)2.dp else 1.dp,
-                if(isFocused)Color(0xFFE8BE72) else Color(0xFF293746),RoundedCornerShape(18.dp))
+                if(isFocused)NuvioTheme.colors.Primary else NuvioTheme.colors.Border,RoundedCornerShape(18.dp))
             .focusRequester(focusRequester)
             .onFocusChanged {
                 isFocused = it.isFocused
@@ -1174,7 +1174,7 @@ private fun ProfileCard(
                         .width(if (protectedByPin) 32.dp else 24.dp)
                         .height(24.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFFE8BE72), RoundedCornerShape(8.dp))
+                        .background(NuvioTheme.colors.Primary, RoundedCornerShape(8.dp))
                         .border(
                             width = NuvioTheme.spacing.xxs,
                             color = NuvioTheme.colors.Background,
@@ -1184,7 +1184,7 @@ private fun ProfileCard(
                 ) {
                     Text(
                         text = if(protectedByPin) "PIN" else "\u2605",
-                        color = Color(0xFF080E18),
+                        color = NuvioTheme.colors.OnPrimary,
                         fontSize = if (protectedByPin) 9.sp else 14.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -1223,7 +1223,7 @@ private fun ProfileCard(
             if (profile.isPrimary) {
                 Text(
                     text = stringResource(R.string.profile_selection_primary_badge),
-                    color = Color(0xFFE8BE72),
+                    color = NuvioTheme.colors.Primary,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = 0.8.sp
@@ -1288,9 +1288,9 @@ private fun AddProfileCard(
                 scaleY = itemScale
             }
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFF101B29))
+            .background(NuvioTheme.colors.BackgroundCard)
             .border(if(isFocused)2.dp else 1.dp,
-                if(isFocused)Color(0xFFE8BE72) else Color(0xFF293746),RoundedCornerShape(18.dp))
+                if(isFocused)NuvioTheme.colors.Primary else NuvioTheme.colors.Border,RoundedCornerShape(18.dp))
             .focusRequester(focusRequester)
             .onFocusChanged {
                 isFocused = it.isFocused

@@ -22,6 +22,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,8 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -100,6 +103,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
+import androidx.tv.material3.Border
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.IconButton as TvIconButton
 import androidx.tv.material3.IconButtonDefaults as TvIconButtonDefaults
@@ -715,15 +719,17 @@ fun SearchScreen(
             if (!isDiscoverMode && companies.isNotEmpty()) {
                 item(key = "company_search_results") {
                     Column(Modifier.fillMaxWidth().padding(horizontal = 52.dp)) {
-                        Text(stringResource(R.string.search_production_companies))
+                        SearchEntitySectionHeader(stringResource(R.string.search_production_companies))
                         Spacer(Modifier.height(10.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(companies, key = { it.id }) { company ->
                                 val name = company.name.orEmpty()
-                                Button(
+                                SearchEntityButton(
+                                    name = name,
+                                    icon = Icons.Default.Business,
                                     onClick = { onNavigateToCompany(company.id, name) },
                                     modifier = if (company.id == companies.first().id) Modifier.focusRequester(companyFocusRequester) else Modifier,
-                                ) { Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -732,14 +738,16 @@ fun SearchScreen(
             if (!isDiscoverMode && networks.isNotEmpty()) {
                 item(key = "network_search_results") {
                     Column(Modifier.fillMaxWidth().padding(horizontal = 52.dp)) {
-                        Text(stringResource(R.string.search_tv_networks))
+                        SearchEntitySectionHeader(stringResource(R.string.search_tv_networks))
                         Spacer(Modifier.height(10.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             items(networks, key = { it.id }) { network ->
-                                Button(
+                                SearchEntityButton(
+                                    name = network.name,
+                                    icon = Icons.Default.LiveTv,
                                     onClick = { onNavigateToNetwork(network.id, network.name) },
                                     modifier = if (network.id == networks.first().id) Modifier.focusRequester(networkFocusRequester) else Modifier,
-                                ) { Text(network.name, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                                )
                             }
                         }
                     }
@@ -1035,6 +1043,40 @@ fun SearchScreen(
             onNavigateToDetail(id, type, addonBaseUrl)
         }
     )
+}
+
+@Composable
+private fun SearchEntitySectionHeader(title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Box(Modifier.width(4.dp).height(22.dp).background(NuvioTheme.colors.Primary, RoundedCornerShape(99.dp)))
+        Text(title, style = androidx.tv.material3.MaterialTheme.typography.titleMedium,
+            color = NuvioTheme.colors.TextPrimary)
+    }
+}
+
+@Composable
+private fun SearchEntityButton(
+    name: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Button(onClick = onClick, modifier = modifier.height(54.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+        colors = ButtonDefaults.colors(containerColor = NuvioTheme.colors.BackgroundCard,
+            contentColor = NuvioTheme.colors.TextPrimary,
+            focusedContainerColor = NuvioTheme.colors.FocusBackground,
+            focusedContentColor = NuvioTheme.colors.FocusContent),
+        shape = ButtonDefaults.shape(shape = RoundedCornerShape(16.dp)),
+        border = ButtonDefaults.border(
+            border = Border(BorderStroke(1.dp, NuvioTheme.colors.Border), shape = RoundedCornerShape(16.dp)),
+            focusedBorder = Border(NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs), shape = RoundedCornerShape(16.dp)))) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(name, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                style = androidx.tv.material3.MaterialTheme.typography.labelLarge)
+        }
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

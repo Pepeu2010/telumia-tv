@@ -89,6 +89,15 @@ val useLocalFfmpegDecoder = truthy(
 )
 val releaseStoreFilePath = env("NUVIO_RELEASE_STORE_FILE")
     ?: localProperties.getProperty("NUVIO_RELEASE_STORE_FILE")
+val buildingPublishedRelease = gradle.startParameter.taskNames.any {
+    it.substringAfterLast(':').matches(Regex("(?i)(assemble|bundle|package)FullRelease"))
+}
+if (buildingPublishedRelease) {
+    require(!localProperties.getProperty("NUVIO_SUPABASE_URL", "").isNullOrBlank() &&
+        !localProperties.getProperty("NUVIO_SUPABASE_ANON_KEY", "").isNullOrBlank()) {
+        "A TV release requires account backend configuration; refusing to build an APK without login."
+    }
+}
 val releaseKeyAliasValue = env("NUVIO_RELEASE_KEY_ALIAS")
     ?: localProperties.getProperty("NUVIO_RELEASE_KEY_ALIAS", "telumia")
 val releaseKeyPasswordValue = env("NUVIO_RELEASE_KEY_PASSWORD")
@@ -115,8 +124,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 24
         targetSdk = 36
-        versionCode = 10036
-        versionName = "1.1.5"
+        versionCode = 10037
+        versionName = "1.1.6"
 
         buildConfigField("String", "PARENTAL_GUIDE_API_URL", "\"${localProperties.getProperty("PARENTAL_GUIDE_API_URL", "")}\"")
         buildConfigField("String", "INTRODB_API_URL", "\"${localProperties.getProperty("INTRODB_API_URL", "")}\"")

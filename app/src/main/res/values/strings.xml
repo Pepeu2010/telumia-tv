@@ -2560,6 +2560,7 @@
     <string name="collections_import">Import</string>
     <string name="collections_export_file">Export File</string>
     <string name="collections_saved_downloads">Saved to Downloads</string>
+    <string name="collections_export_success">Collection exported</string>
     <string name="collections_export_failed">Export failed</string>
     <string name="collections_import_header">Import Collections</string>
     <string name="collections_import_description">Import collections from JSON. Catalogs from addons you don\'t have installed will show a warning.</string>

@@ -3,6 +3,8 @@ package com.nuvio.tv.ui.screens.collection
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.compose.foundation.BorderStroke
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,6 +74,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.TextStyle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -130,6 +133,25 @@ fun CollectionManagementScreen(
     }
 
     var exportMessage by remember { mutableStateOf<String?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) {
+            scope.launch {
+                exportMessage = try {
+                    val json = viewModel.getExportJson()
+                    withContext(Dispatchers.IO) {
+                        val stream = context.contentResolver.openOutputStream(uri)
+                            ?: throw java.io.IOException("Unable to open export destination")
+                        stream.use { it.write(json.toByteArray(Charsets.UTF_8)) }
+                    }
+                    "saved"
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    "failed"
+                }
+            }
+        }
+    }
     LaunchedEffect(exportMessage) {
         if (exportMessage != null) {
             kotlinx.coroutines.delay(3000)
@@ -195,35 +217,12 @@ fun CollectionManagementScreen(
             Row(horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)) {
                 if (uiState.collections.isNotEmpty()) {
                     NuvioButton(onClick = {
-                        scope.launch {
-                            try {
-                                val json = viewModel.getExportJson()
-                                withContext(Dispatchers.IO) {
-                                    val resolver = context.contentResolver
-                                    // Delete existing file first
-                                    val existingUri = android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
-                                    resolver.delete(
-                                        existingUri,
-                                        "${android.provider.MediaStore.Downloads.DISPLAY_NAME} = ?",
-                                        arrayOf("nuvio-collections.json")
-                                    )
-                                    // Write new file
-                                    val values = android.content.ContentValues().apply {
-                                        put(android.provider.MediaStore.Downloads.DISPLAY_NAME, "nuvio-collections.json")
-                                        put(android.provider.MediaStore.Downloads.MIME_TYPE, "application/json")
-                                    }
-                                    val uri = resolver.insert(existingUri, values)
-                                    uri?.let { resolver.openOutputStream(it)?.use { os -> os.write(json.toByteArray()) } }
-                                }
-                                exportMessage = "saved"
-                            } catch (_: Exception) {
-                                exportMessage = "failed"
-                            }
-                        }
+                        try { exportLauncher.launch("telumia-collections.json") }
+                        catch (_: android.content.ActivityNotFoundException) { exportMessage = "failed" }
                     }) {
                         Text(exportMessage?.let {
                             when (it) {
-                                "saved" -> stringResource(R.string.collections_saved_downloads)
+                                "saved" -> stringResource(R.string.collections_export_success)
                                 "failed" -> stringResource(R.string.collections_export_failed)
                                 else -> it
                             }

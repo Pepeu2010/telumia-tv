@@ -2417,6 +2417,7 @@
     <string name="collections_import">Importar</string>
     <string name="collections_export_file">Exportar arquivo</string>
     <string name="collections_saved_downloads">Salvo em Downloads</string>
+    <string name="collections_export_success">Coleção exportada</string>
     <string name="collections_export_failed">Falha na exportação</string>
     <string name="collections_import_header">Importar coleções</string>
     <string name="collections_import_description">Importar coleções de JSON. Catálogos de addons não instalados exibirão um aviso.</string>

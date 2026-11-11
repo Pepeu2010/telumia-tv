@@ -92,14 +92,12 @@
     <string name="web_import_error_source_invalid_format">"{collection}" gyűjtemény, "{folder}" mappa, {index}. forrás: érvénytelen formátum</string>
     <string name="web_import_error_source_missing_addon_fields">"{collection}" gyűjtemény, "{folder}" mappa, {index}. forrás: hiányzó kötelező mezők (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">"{collection}" gyűjtemény, "{folder}" mappa, {index}. forrás: hiányzó TMDB forrástípus</string>
-    <string name="web_import_error_source_missing_trakt_id">"{collection}" gyűjtemény, "{folder}" mappa, {index}. forrás: hiányzó Trakt lista ID</string>
     <string name="web_import_success">Sikeresen importálva: {count} gyűjtemény. Ellenőrizd, majd kattints a Változtatások mentése gombra az alkalmazáshoz.</string>
     <string name="web_import_invalid_json">Érvénytelen JSON</string>
 
     <string name="home_no_addons">Nincsenek telepített bővítmények. A kezdéshez adj hozzá egyet.</string>
     <string name="home_no_catalog_addons">Nincsenek katalógusbővítmények. Telepíts egyet a tartalom megtekintéséhez.</string>
     <string name="auth_notice_nuvio_logged_out">Kijelentkeztél a Telumia-ból. Kérlek, jelentkezz be újra.</string>
-    <string name="auth_notice_trakt_logged_out">Kijelentkeztél a Trakt-ból. Kérlek, csatlakozz újra.</string>
     <string name="error_generic">Hiba történt</string>
 
     <string name="action_retry">Próbáld újra</string>
@@ -199,7 +197,6 @@
     <string name="episodes_mark_previous_watched">Korábbiak megjelölése megnézettként ebben az évadban</string>
     <string name="episodes_mark_previous_seasons_watched">Korábbi évadok megjelölése megnézettként</string>
     <string name="episodes_play">Lejátszás</string>
-    <string name="episodes_open_comments">Epizód vélemények megnyitása</string>
     <string name="play_manually">Lejátszás forrásválasztással</string>
     <string name="episodes_season_actions">Évadműveletek</string>
 
@@ -231,29 +228,10 @@
     <string name="detail_tab_more_like_this">Hasonló tartalmak</string>
     <string name="detail_tab_trailer">Előzetes</string>
     <string name="detail_more_like_this_powered_by_tmdb">A TMDB technológiájával</string>
-    <string name="detail_more_like_this_powered_by_trakt">A Trakt technológiájával</string>
-    <string name="detail_comments_title">Vélemények</string>
-    <string name="detail_comments_subtitle">Értékelések a Trakt-ról</string>
-    <string name="detail_comments_subtitle_episode">Értékelések a Trakt-ról (S%1$dE%2$d)</string>
-    <string name="detail_comments_mode_show">Sorozat</string>
-    <string name="detail_comments_mode_episode">Epizód</string>
-    <string name="detail_comments_mode_episode_change">Epizód váltása (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Epizód kiválasztása</string>
-    <string name="detail_comments_episode_picker_subtitle">Válassz egy epizódot a Trakt vélemények megtekintéséhez</string>
     <string name="detail_section_network">Csatorna</string>
     <string name="detail_section_production">Stúdiók</string>
-    <string name="detail_comments_empty">Még nem érkezett Trakt vélemény.</string>
-    <string name="detail_comments_error">Jelenleg nem sikerült betölteni a Trakt véleményeket.</string>
     <string name="detail_trailer_loading">Előzetes betöltése...</string>
     <string name="detail_trailer_error">Jelenleg nem sikerült betölteni az előzetest.</string>
-    <string name="detail_comments_spoiler_hidden">Spoileres vélemény. Nyomd meg az OK gombot a felfedéshez.</string>
-    <string name="detail_comments_reveal_spoiler">Spoiler felfedése</string>
-    <string name="detail_comments_reveal_spoiler_hint">Nyomd meg az OK gombot a spoiler felfedéséhez.</string>
-    <string name="detail_comments_back_hint">Kattints a vissza gombra a bezáráshoz</string>
-    <string name="detail_comments_badge_review">Vélemény</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d kedvelés</string>
     <string name="tmdb_entity_kind_company">Stúdió</string>
     <string name="tmdb_entity_kind_network">Csatorna</string>
     <string name="tmdb_entity_rail_popular">Népszerű</string>
@@ -375,8 +353,6 @@
     <string name="licenses_attributions_nuvio_body">A forráskód és a licencfeltételek elérhetők a projekt tárolójában. Licenc: GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">A Telumia a TMDB API-t használja a filmek és tévéműsorok metaadataihoz, borítóképekhez, előzetesekhez, stáblistákhoz, gyártási adatokhoz, gyűjteményekhez és ajánlásokhoz. Ez a termék a TMDB API-t használja, de a TMDB nem támogatja és nem hagyta jóvá.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">A Telumia a Trakt-hoz csatlakozik a fiók hitelesítéséhez, a megtekintési előzményekhez, a folyamat szinkronizálásához, a könyvtári adatokhoz, az értékelésekhez, a listákhoz és a véleményekhez. A Telumia nem áll kapcsolatban a Trakt-tal, és az nem hagyta jóvá.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">A Telumia a Simklhez kapcsolódik fiókhitelesítéshez, várólistákhoz, megtekintési előzményekhez, lejátszási folyamathoz és scrobblinghoz. A film-, sorozat- és animekövetési adatokat a Simkl szolgáltatja. A Telumia nem áll kapcsolatban a Simkllel, és a Simkl nem támogatja.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -407,15 +383,12 @@
     <string name="settings_plugins_subtitle">Tárhelyek és szolgáltatók.</string>
     <string name="settings_integration">Integrációk</string>
     <string name="settings_playback">Lejátszás</string>
-    <string name="settings_trakt_subtitle">Trakt kapcsolat beállítása.</string>
     <string name="settings_tracking_title">Tracking</string>
     <string name="settings_tracking_description">Csatlakoztass tracking szolgáltatókat, és válaszd ki, melyik szolgáltatja a Könyvtárat és a Megtekintés folytatását.</string>
     <string name="tracking_accounts_title">Fiókok</string>
     <string name="tracking_accounts_subtitle">Tracking szolgáltatások csatlakoztatása és kezelése</string>
     <string name="tracking_sources_title">Források</string>
     <string name="tracking_sources_subtitle">Válaszd ki, honnan olvassa a Telumia a könyvtáradat és a megtekintési folyamatot. A lejátszás scrobblingja minden csatlakoztatott szolgáltatásnál működik.</string>
-    <string name="tracking_trakt_features_title">Trakt funkciók</string>
-    <string name="tracking_trakt_features_subtitle">Trakt-specifikus előzmények, értékelések és javaslatok</string>
     <string name="tracking_simkl_features_title">Simkl funkciók</string>
     <string name="tracking_simkl_features_subtitle">Simkl-specifikus beállítások</string>
     <string name="tracking_simkl_anime_id_title">Anime azonosító beállítás</string>
@@ -431,8 +404,6 @@
     <string name="tracking_connecting_provider">%1$s csatlakoztatása folyamatban…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Válaszd ki, melyik szolgáltatás adja meg, hol hagytad abba, és mi kerüljön a Megtekintés folytatása sorba. A scrobbling minden csatlakoztatott szolgáltatásnál aktív marad.</string>
     <string name="tracking_library_source_dialog_subtitle">Válaszd ki, honnan olvassa a Telumia a Könyvtáradat. A lejátszás scrobblingja minden csatlakoztatott szolgáltatásnál működik.</string>
-    <string name="tracking_trakt_progress_required">Akkor elérhető, ha a Trakt a Megtekintési folyamat forrása</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Hálózati sebesség</string>
     <string name="settings_network_subtitle">Késleltetés és letöltés diagnosztikája</string>
@@ -442,7 +413,7 @@
     <string name="experience_mode_advanced">Haladó</string>
     <string name="experience_mode_choose_title">Válaszd ki a Telumia élményt</string>
     <string name="experience_mode_choose_subtitle">Kezdd egyszerűen, vagy oldj fel minden testreszabást. Bármikor válthatsz.</string>
-    <string name="experience_mode_essential_card_subtitle">Fókuszált beállítás, bővítmények, lejátszási alapok, Trakt és fiókbeállítások.</string>
+    <string name="experience_mode_essential_card_subtitle">Fókuszált beállítás, bővítmények, lejátszási alapok és fiókbeállítások.</string>
     <string name="experience_mode_advanced_card_subtitle">Teljes beállítások, elrendezés vezérlők, katalógus sorrend, gyűjtemények, beépülő modulok és diagnosztika.</string>
     <string name="experience_mode_group_title">Élmény mód</string>
     <string name="essential_addon_continue_for_now">Folytatás egyelőre</string>
@@ -1017,8 +988,6 @@
     <string name="mdblist_enable_subtitle">Értékelések lekérése külső szolgáltatóktól a részletek képernyőn</string>
     <string name="mdblist_api_key_title">API-kulcs</string>
     <string name="mdblist_api_key_subtitle">Szükséges az értékelések lekéréséhez az MDBList-ről</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Trakt értékelés megjelenítése</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">IMDb értékelés megjelenítése (és az alapértelmezett IMDb sor elrejtése, ha elérhető)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1247,11 +1216,6 @@
 
     <string name="tmdb_language_dialog_title">TMDB nyelv</string>
 
-    <string name="trakt_description">Szinkronizáld a várólistád, a megtekintési folyamatot, a lejátszás folytatását és a saját listáidat a Trakttal.</string>
-    <string name="trakt_connected_as">Bejelentkezve mint: %1$s</string>
-    <string name="trakt_account_login">Fiókbejelentkezés</string>
-    <string name="trakt_awaiting_instruction">Látogass el a trakt.tv/activate oldalra, és írd be ezt a kódot:</string>
-    <string name="trakt_waiting_approval">Várakozás jóváhagyásra\u2026</string>
     <string name="qr_login_approved">Sikeres jóváhagyás. Bejelentkezés befejezése\u2026</string>
     <string name="qr_login_pending">Várakozás a telefonos jóváhagyásra\u2026</string>
     <string name="qr_login_expired">A QR-kód lejárt. Kérj új kódot.</string>
@@ -1262,67 +1226,25 @@
     <string name="qr_login_signing_in">Bejelentkezés…</string>
     <string name="qr_login_success">Sikeres bejelentkezés</string>
     <string name="qr_login_exchange_failed">A QR bejelentkezés nem sikerült befejezni</string>
-    <string name="trakt_code_expires">A kód lejár: %1$s múlva</string>
-    <string name="trakt_token_refreshes">Trakt token frissítése: %1$s múlva</string>
-    <string name="trakt_login_instruction">Nyomd meg a Bejelentkezés gombot a Trakt hitelesítéshez. Egy QR-kód fog megjelenni.</string>
-    <string name="trakt_missing_credentials">Hiányzó TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET a local.properties fájlban.</string>
-    <string name="trakt_watch_progress_title">Megtekintési folyamat</string>
-    <string name="trakt_watch_progress_subtitle">Válaszd ki, melyik folyamatforrás vezérelje a lejátszás folytatását</string>
-    <string name="trakt_watch_progress_dialog_title">Megtekintési folyamat</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Válaszd ki, hogy a lejátszás folytatása a Traktot vagy a Telumia Sync-et használja-e, miközben a Trakt scrobbling aktív marad.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">Könyvtár forrása</string>
-    <string name="trakt_library_source_subtitle">Válaszd ki, melyik könyvtárat használja a gyűjteményed mentéséhez és megtekintéséhez</string>
-    <string name="trakt_library_source_dialog_title">Könyvtár forrása</string>
-    <string name="trakt_library_source_dialog_subtitle">Válaszd ki, hol szeretnéd menteni és kezelni a könyvtárelemeidet</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Telumia Könyvtár</string>
-    <string name="trakt_library_source_trakt_selected">Trakt könyvtár kiválasztva</string>
-    <string name="trakt_library_source_nuvio_selected">Telumia könyvtár kiválasztva</string>
-    <string name="trakt_setting_on">Be</string>
-    <string name="trakt_setting_off">Ki</string>
-    <string name="trakt_watch_progress_trakt_selected">Megtekintési folyamat forrása: Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Megtekintési folyamat forrása: Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Folytatási időablak</string>
-    <string name="trakt_continue_watching_subtitle">A Trakt előzmények figyelembe vétele a folytatáshoz</string>
-    <string name="trakt_unaired_next_up">Még nem vetített epizódok</string>
-    <string name="trakt_unaired_next_up_subtitle">Közelgő epizódok megjelenítése a premier előtt</string>
-    <string name="trakt_unaired_shown">Látható</string>
-    <string name="trakt_unaired_hidden">Rejtett</string>
-    <string name="trakt_unaired_now_shown">A még nem vetített következő epizódok mostantól láthatók</string>
-    <string name="trakt_unaired_now_hidden">A még nem vetített következő epizódok mostantól rejtettek</string>
-    <string name="trakt_comments_title">Vélemények</string>
-    <string name="trakt_comments_subtitle">Trakt vélemények megjelenítése a részletek oldalon</string>
-    <string name="trakt_comments_dialog_title">Vélemények</string>
-    <string name="trakt_comments_dialog_subtitle">Válaszd ki, hogy a részletek oldal megjelenítse-e a Trakt véleményeket, ha csatlakozva vagy.</string>
-    <string name="trakt_comments_now_shown">A Trakt vélemények mostantól láthatóak</string>
-    <string name="trakt_comments_now_hidden">A Trakt vélemények mostantól rejtettek</string>
-    <string name="trakt_more_like_this_source_title">Hasonló tartalmak forrása</string>
-    <string name="trakt_more_like_this_source_subtitle">Válaszd ki, honnan származzanak az ajánlások a részletek oldalon</string>
-    <string name="trakt_more_like_this_source_dialog_title">Hasonló tartalmak forrása</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Válaszd ki a részletek oldalon megjelenő ajánlások forrását.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_cached_label">Gyorsítótárazva</string>
-    <string name="trakt_stat_movies">Film</string>
-    <string name="trakt_stat_shows">Sorozat</string>
-    <string name="trakt_stat_episodes">Epizód</string>
-    <string name="trakt_stat_watched_hours">Nézett órák</string>
-    <string name="trakt_disconnect">Leválasztás</string>
-    <string name="trakt_disconnect_title">Lecsatlakozol a Traktról?</string>
-    <string name="trakt_disconnect_subtitle">Ez megszünteti a kapcsolatot a Trakt fiókod és a Telumia között.</string>
-    <string name="trakt_login">Bejelentkezés</string>
-    <string name="trakt_retry">Újra</string>
-    <string name="trakt_back">Vissza</string>
-    <string name="trakt_cw_window_title">Megtekintés folytatása ablak</string>
-    <string name="trakt_cw_window_subtitle">Válaszd ki, mennyi Trakt aktivitás jelenjen meg a megtekintés folytatása listában.</string>
-    <string name="trakt_unaired_dialog_title">Még nem vetített epizódok</string>
-    <string name="trakt_unaired_dialog_subtitle">Válaszd ki, hogy a megtekintés folytatása tartalmazza-e a még nem vetített epizódokat.</string>
-    <string name="trakt_show_unaired">Még nem vetített epizódok megjelenítése</string>
-    <string name="trakt_hide_unaired">Még nem vetített epizódok elrejtése</string>
-    <string name="trakt_all_history">Teljes előzmény</string>
-    <string name="trakt_days_format">%1$d nap</string>
+    <string name="tracking_code_expires">A kód lejár: %1$s múlva</string>
+    <string name="tracking_watch_progress_title">Megtekintési folyamat</string>
+    <string name="tracking_watch_progress_subtitle">Válaszd ki, melyik folyamatforrás vezérelje a lejátszás folytatását</string>
+    <string name="tracking_watch_progress_dialog_title">Megtekintési folyamat</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">Könyvtár forrása</string>
+    <string name="tracking_library_source_subtitle">Válaszd ki, melyik könyvtárat használja a gyűjteményed mentéséhez és megtekintéséhez</string>
+    <string name="tracking_library_source_dialog_title">Könyvtár forrása</string>
+    <string name="tracking_library_source_nuvio">Telumia Könyvtár</string>
+    <string name="tracking_continue_watching_window">Folytatási időablak</string>
+    <string name="tracking_more_like_this_source_title">Hasonló tartalmak forrása</string>
+    <string name="tracking_more_like_this_source_subtitle">Válaszd ki, honnan származzanak az ajánlások a részletek oldalon</string>
+    <string name="tracking_more_like_this_source_dialog_title">Hasonló tartalmak forrása</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Válaszd ki a részletek oldalon megjelenő ajánlások forrását.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_disconnect">Leválasztás</string>
+    <string name="tracking_cw_window_title">Megtekintés folytatása ablak</string>
+    <string name="tracking_all_history">Teljes előzmény</string>
+    <string name="tracking_days_format">%1$d nap</string>
 
     <string name="debug_title">Hibakeresés</string>
     <string name="debug_subtitle">Fejlesztői eszközök és funkciókapcsolók (csak debug build esetén)</string>
@@ -1447,7 +1369,6 @@
     <string name="essential_addon_setup_subtitle">Telepíts egy bővítményt a streaming megkezdéséhez. Később továbbiakat is hozzáadhatsz a Bővítmények menüből.</string>
     <string name="essential_addon_show_qr">QR megjelenítése</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">Nem találhatók Trakt listák</string>
     <string name="collection_editor_untitled_folder">Névtelen</string>
     <string name="collection_editor_untitled_collection">Névtelen gyűjtemény</string>
     <!-- AddonManagerScreen -->
@@ -1746,7 +1667,6 @@
     <string name="search_no_results_subtitle">Próbálkozz más kulcsszavakkal</string>
     <string name="search_error_no_catalogs">Nincsenek kereshető katalógusok a telepített bővítményekben</string>
 
-    <string name="library_syncing">Trakt könyvtár szinkronizálása\u2026</string>
     <string name="library_title">Könyvtár</string>
     <string name="library_filter_list">Lista</string>
     <string name="library_filter_type">Típus</string>
@@ -1784,14 +1704,12 @@
     <string name="genre_soap">Szappanopera</string>
     <string name="genre_talk">Talk-show</string>
     <string name="genre_war_politics">Háború és politika</string>
-    <string name="library_sort_trakt_order">Trakt sorrend</string>
     <string name="library_sort_provider_order">Szolgáltatók sorrendje</string>
     <string name="library_sort_added_desc">Hozzáadva ↓</string>
     <string name="library_sort_added_asc">Hozzáadva ↑</string>
     <string name="library_sort_title_asc">Cím A-Z</string>
     <string name="library_sort_title_desc">Cím Z-A</string>
     <string name="library_manage_lists">Listák kezelése</string>
-    <string name="library_manage_trakt_lists">Trakt listák kezelése</string>
     <string name="library_no_lists">Még nincsenek saját listák.</string>
     <string name="library_list_create">Létrehozás</string>
     <string name="library_list_edit">Szerkesztés</string>
@@ -1804,11 +1722,9 @@
     <string name="library_list_description_label">Leírás</string>
     <string name="library_list_privacy">Adatvédelem</string>
     <string name="library_delete_title">Törlöd ezt a listát?</string>
-    <string name="library_delete_subtitle">Ez eltávolítja a listát és annak minden elemét a Trakt-ról.</string>
     <string name="library_delete_confirm">Törlés</string>
     <string name="library_source_local">HELYI</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Mentett</string>
     <string name="library_source_cloud">Felhő</string>
     <string name="library_watchlist">Várólista</string>
@@ -1821,11 +1737,9 @@
     <string name="library_type_all">Összes</string>
     <string name="library_type_items">elem</string>
     <string name="library_empty_local_title">Még nincs %1$s</string>
-    <string name="library_empty_trakt_title">Nincs %1$s ebben a listában</string>
+    <string name="library_empty_remote_title">Nincs %1$s ebben a listában</string>
     <string name="library_empty_local_subtitle">Mentsd el a kedvenc tartalmaidat, hogy itt láthasd őket</string>
-    <string name="library_empty_trakt_subtitle">Használd a + gombot a részletek oldalon, hogy elemeket adj a várólistádhoz vagy más listákhoz</string>
-    <string name="library_empty_trakt_not_auth_title">A Trakt nincs csatlakoztatva</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Csatlakoztasd a Trakt fiókodat a Beállításokban a Trakt könyvtárad megtekintéséhez</string>
+    <string name="library_empty_remote_subtitle">Használd a + gombot a részletek oldalon, hogy elemeket adj a várólistádhoz vagy más listákhoz</string>
     <string name="library_empty_simkl_title">Nincs %1$s ebben az állapotban</string>
     <string name="library_empty_simkl_subtitle">Használd a + gombot a részletek oldalon, hogy elemeket adj egy Simkl állapothoz</string>
     <string name="library_empty_simkl_not_auth_title">A Simkl nincs csatlakoztatva</string>
@@ -2066,7 +1980,6 @@
     <string name="update_unknown_sources">A folytatáshoz engedélyezd a telepítést ismeretlen forrásokból.</string>
     <!-- AccountScreen -->
     <string name="account_title">Fiók</string>
-    <string name="account_sign_in_description">Jelentkezz be a könyvtár, a megtekintési előzmények és a bővítmények eszközök közötti szinkronizálásához. A könyvtár és az előzmények szinkronizálása csak akkor működik, ha a Trakt nincs csatlakoztatva.</string>
     <string name="account_sync_code_title">Szinkronizációs kód</string>
     <string name="account_sync_code_description">Szinkronizálás az eszközök között fiók létrehozása nélkül.</string>
     <string name="account_linked_devices">Összekapcsolt eszközök (%1$d)</string>
@@ -2158,30 +2071,7 @@
     <string name="plugin_repo_removed">Adattár eltávolítva</string>
     <string name="plugin_repo_refreshed">Adattár frissítve</string>
 
-    <!-- Trakt errors -->
 
-    <string name="trakt_error_code_expired">Device kód lejárt. Kezdd újra.</string>
-    <string name="trakt_error_code_used">Device kód már használatban van. Kezdd újra.</string>
-    <string name="trakt_error_denied">A Trakt hitelesítés elutasítva.</string>
-    <string name="trakt_error_missing_credentials">Hiányzó Trakt hitelesítő adatok</string>
-    <string name="trakt_error_network_retry">Hálózati hiba, kérjük próbáld újra</string>
-    <string name="trakt_error_network_will_retry">Hálózati hiba, újrapróbálkozás következik</string>
-    <string name="trakt_error_rate_limited_minutes">A Trakt korlátozza a kéréseket. Próbáld újra kb. %1$d perc múlva</string>
-    <string name="trakt_error_failed_start_code">A Trakt hitelesítés indítása sikertelen (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Nincs aktív Trakt eszközkód</string>
-    <string name="trakt_error_invalid_device_code">Érvénytelen eszközkód</string>
-    <string name="trakt_error_token_polling_failed_code">A token lekérése sikertelen (%1$d)</string>
-    <string name="trakt_error_public_request_failed">A Trakt kérés sikertelen</string>
-    <string name="trakt_error_list_not_found_or_private">A Trakt lista nem található, vagy nem nyilvános</string>
-    <string name="trakt_error_rate_limit_reached">Trakt lekérdezési korlát elérve</string>
-    <string name="trakt_status_enter_activation_code">Írd be a kódot a trakt.tv/activate oldalon</string>
-    <string name="trakt_status_syncing">Szinkronizálás...</string>
-    <string name="trakt_status_sync_completed">Szinkronizálás befejezve</string>
-    <string name="trakt_status_disconnected">Leválasztva a Trakt-ról</string>
-    <string name="trakt_status_cw_window_updated">A Megtekintés folytatása ablak frissítve</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Sebességkorlátozás miatt a lekérések lassítása...</string>
-    <string name="trakt_user_fallback">Trakt felhasználó</string>
-    <string name="trakt_error_failed_start">A Trakt hitelesítés indítása sikertelen</string>
 
     <!-- General errors -->
     <string name="error_unknown">Ismeretlen hiba</string>
@@ -2234,8 +2124,6 @@
     <string name="cd_test">Tesztelés</string>
     <string name="cd_unlink">Leválasztás</string>
     <string name="cd_nuvio_logo">TelumiaTV</string>
-    <string name="cd_trakt_logo">Trakt logó</string>
-    <string name="cd_trakt_qr">Trakt aktivációs QR-kód</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Felfedezés megnyitása</string>
     <string name="cd_clear_search">Keresés törlése</string>
@@ -2335,18 +2223,8 @@
     <string name="collections_editor_shape_square">Négyzet</string>
     <string name="collections_editor_addon_missing">A bővítmény nincs telepítve: %1$s</string>
     <string name="collections_editor_add_tmdb_source">TMDB forrás hozzáadása</string>
-    <string name="collections_editor_add_trakt_source">Trakt lista hozzáadása</string>
     <string name="collections_editor_edit_tmdb_source">TMDB forrás szerkesztése</string>
     <string name="collections_editor_tmdb_sources">TMDB források</string>
-    <string name="collections_editor_trakt_sources">Trakt listák</string>
-    <string name="collections_editor_edit_trakt_source">Trakt lista szerkesztése</string>
-    <string name="collections_editor_trakt_list">Trakt lista</string>
-    <string name="collections_editor_trakt_search_results">Keresési eredmények</string>
-    <string name="collections_editor_trakt_trending">Felkapott listák</string>
-    <string name="collections_editor_trakt_popular">Népszerű listák</string>
-    <string name="collections_editor_trakt_direction">Irány</string>
-    <string name="collections_editor_trakt_ascending">Növekvő</string>
-    <string name="collections_editor_trakt_descending">Csökkenő</string>
     <string name="collections_editor_tmdb_id_or_url">TMDB ID vagy URL</string>
     <string name="collections_editor_tmdb_public_list">Nyilvános TMDB lista</string>
     <string name="collections_editor_tmdb_network_id">Hálózat ID</string>
@@ -2430,27 +2308,13 @@
     <string name="collections_editor_sort_votes">Szavazatok</string>
     <string name="collections_editor_direction_asc_short">Növ</string>
     <string name="collections_editor_direction_desc_short">Csökk</string>
-    <string name="collections_editor_trakt_movie_list">Trakt film lista</string>
-    <string name="collections_editor_trakt_series_list">Trakt sorozat lista</string>
-    <string name="collections_editor_trakt_list_with_id">Trakt Lista %1$d</string>
-    <string name="collections_editor_trakt_public_list">Trakt nyilvános lista</string>
-    <string name="collections_editor_trakt_items_count">%1$d elem</string>
-    <string name="collections_editor_trakt_likes_count">%1$d kedvelés</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Adj meg egy érvényes TMDB ID-t vagy URL-t</string>
     <string name="collections_editor_error_load_tmdb_source">Nem sikerült betölteni a TMDB forrást</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Adj meg egy Trakt lista ID-t vagy URL-t</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Adj meg egy Trakt lista nevet, URL-t vagy ID-t</string>
-    <string name="collections_editor_error_load_trakt_list">Nem sikerült betölteni a Trakt listát</string>
-    <string name="collections_editor_error_load_trakt_lists">Nem sikerült betölteni a Trakt listákat</string>
-    <string name="collections_editor_error_search_trakt_lists">Nem sikerült keresni a Trakt listák között</string>
-    <string name="collections_editor_error_trakt_list_not_found">A Trakt lista nem található</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">A Trakt lista nem tartalmazott numerikus ID-t</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 vagy 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 a Star Wars gyűjteményhez</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420, vagy cég URL</string>
     <string name="collections_editor_tmdb_placeholder_network">213 a Netflixhez, 49 az HBO-hoz, 2739 a Disney+-hoz</string>
     <string name="collections_editor_tmdb_person_placeholder">31 Tom Hankshez, vagy személy URL-je</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 vagy 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2503,9 +2367,6 @@
     <string name="collections_tab_combined">Egyesített</string>
     <string name="collection_editor_remove_cd">Eltávolítás</string>
     <string name="collection_editor_choice_both">Mindkettő</string>
-    <string name="collection_editor_resolved_trakt_list">Feloldott Trakt lista</string>
-    <string name="collection_editor_trakt_search_placeholder">Keresés cím, Trakt URL vagy lista ID alapján</string>
-    <string name="collection_editor_trakt_name_placeholder">Hétvégi filmezés, Díjnyertesek</string>
     <string name="collection_editor_folder_count_one">%1$d elem</string>
     <string name="collection_editor_folder_count_other">%1$d elem</string>
     <string name="collections_editor_delete_folder_title">Mappa törlése?</string>
@@ -2627,7 +2488,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="collections_import_error_source_invalid">\&quot;%1$s\&quot; gyűjtemény, \&quot;%2$s\&quot; mappa, %3$d. forrás: érvénytelen formátum</string>
     <string name="collections_import_error_source_required_fields">\&quot;%1$s\&quot; gyűjtemény, \&quot;%2$s\&quot; mappa, %3$d. forrás: hiányzó kötelező mezők</string>
     <string name="collections_import_error_missing_tmdb_type">\&quot;%1$s\&quot; gyűjtemény, \&quot;%2$s\&quot; mappa, %3$d. forrás: hiányzó TMDB forrástípus</string>
-    <string name="collections_import_error_missing_trakt_list_id">\&quot;%1$s\&quot; gyűjtemény, \&quot;%2$s\&quot; mappa, %3$d. forrás: hiányzó Trakt lista ID</string>
     <string name="collections_import_error_json_parse">JSON értelmezési hiba: %1$s</string>
 
     <!-- Library messages -->
@@ -2648,26 +2508,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="library_privacy_friends">Barátok</string>
     <string name="library_privacy_public">Nyilvános</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">Trakt hitelesítés szükséges</string>
-    <string name="trakt_library_error_request_failed">Trakt kérés sikertelen</string>
-    <string name="trakt_library_error_create_list_failed">A lista létrehozása sikertelen</string>
-    <string name="trakt_library_error_update_list_failed">A lista frissítése sikertelen</string>
-    <string name="trakt_library_error_delete_list_failed">A lista törlése sikertelen</string>
-    <string name="trakt_library_error_reorder_lists_failed">A listák átrendezése sikertelen</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">A nézőlista filmjeinek lekérése sikertelen</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">A nézőlista sorozatainak lekérése sikertelen</string>
-    <string name="trakt_library_error_fetch_personal_lists">A személyes listák lekérése sikertelen</string>
-    <string name="trakt_library_error_add_watchlist_failed">A nézőlistához adás sikertelen</string>
-    <string name="trakt_library_error_remove_watchlist_failed">A nézőlistából való eltávolítás sikertelen</string>
-    <string name="trakt_library_error_add_to_list_failed">A listához adás sikertelen</string>
-    <string name="trakt_library_error_remove_from_list_failed">A listából való eltávolítás sikertelen</string>
-    <string name="trakt_library_error_missing_compatible_ids">Hiányzó kompatibilis azonosítók a Trakt lista művelethez</string>
-    <string name="trakt_library_error_auth_expired">A Trakt hitelesítés lejárt</string>
-    <string name="trakt_library_error_list_not_found">A Trakt lista nem található</string>
-    <string name="trakt_library_error_list_limit_reached">Trakt lista korlát elérve. Frissítés szükséges.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">Nincs elegendő Trakt azonosító a megnézettként való megjelöléshez</string>
-    <string name="trakt_error_request_failed">Trakt kérés sikertelen</string>
     <string name="simkl_account_title">Simkl fiók</string>
     <string name="simkl_description">Csatlakoztasd a Simklt a listák, a megtekintési előzmények, a lejátszási folyamat és a scrobble-ök szinkronizálásához.</string>
     <string name="simkl_connect">Simkl csatlakoztatása</string>
@@ -2708,7 +2548,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="action_remove_anyway">Eltávolítás mindenképp</string>
     <string name="cd_simkl_qr">Simkl aktivációs QR-kód</string>
     <string name="cd_simkl_logo">Simkl logó</string>
-    <string name="trakt_error_mark_watched_failed">A megnézettként való megjelölés a Trakt-on sikertelen (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">A könyvtár frissítése sikertelen</string>
@@ -2785,8 +2624,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="stream_error_detail_addon_request_failed">a bővítmény kérés sikertelen</string>
     <string name="stream_error_fetch_failed">A streamek lekérése sikertelen</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">A Trakt többoldalas lekérés sikertelen (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">A listák betöltése sikertelen</string>
@@ -2796,10 +2633,6 @@ Próbálj meg egy másik forrást. [%1$s]</string>
     <string name="profile_pin_saved_for_profile">PIN mentve ehhez: %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">PIN zár eltávolítva ehhez: %1$s.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">A Trakt kapcsolódó kérés sikertelen</string>
-    <string name="trakt_comments_error_request_failed">A Trakt vélemények kérése sikertelen</string>
-    <string name="trakt_library_error_fetch_list_items">A listaelemek lekérése sikertelen</string>
 
     <string name="watchlist_removed">Eltávolítva a várólistáról</string>
     <string name="watchlist_added">Hozzáadva a várólistához</string>

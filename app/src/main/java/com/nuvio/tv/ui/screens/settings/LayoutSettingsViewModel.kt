@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.R
 import com.nuvio.tv.core.qr.QrCodeGenerator
+import com.nuvio.tv.core.runtime.TvPerformanceProfile
 import com.nuvio.tv.core.server.DeviceIpAddress
 import com.nuvio.tv.core.server.StreamBadgeConfigServer
 import com.nuvio.tv.core.streams.StreamBadgePlacement
@@ -14,7 +15,7 @@ import com.nuvio.tv.core.streams.StreamBadgeRules
 import com.nuvio.tv.core.streams.StreamBadgeSettings
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
 import com.nuvio.tv.data.local.StreamBadgeSettingsDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.TrailerSettingsDataStore
 import com.nuvio.tv.domain.model.CardDepthStyle
 import com.nuvio.tv.domain.model.CardDepthSurface
@@ -48,7 +49,7 @@ data class LayoutSettingsUiState(
     val modernSidebarEnabled: Boolean = false,
     val modernSidebarBlurEnabled: Boolean = false,
     val modernLandscapePostersEnabled: Boolean = false,
-    val modernHeroFullScreenBackdropEnabled: Boolean = false,
+    val modernHeroFullScreenBackdropEnabled: Boolean = true,
     val heroSectionEnabled: Boolean = true,
     val discoverLocation: DiscoverLocation = DiscoverLocation.IN_SEARCH,
     val lastNonOffDiscoverLocation: DiscoverLocation = DiscoverLocation.IN_SEARCH,
@@ -165,13 +166,18 @@ class LayoutSettingsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val layoutPreferenceDataStore: LayoutPreferenceDataStore,
     private val streamBadgeSettingsDataStore: StreamBadgeSettingsDataStore,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val trailerSettingsDataStore: TrailerSettingsDataStore,
     private val addonRepository: AddonRepository,
     private val metaRepository: com.nuvio.tv.domain.repository.MetaRepository
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LayoutSettingsUiState())
+    private val _uiState = MutableStateFlow(
+        LayoutSettingsUiState(
+            focusedPosterBackdropTrailerEnabled =
+                TvPerformanceProfile.detect(context).focusedTrailerPreviewEnabledByDefault
+        )
+    )
     val uiState: StateFlow<LayoutSettingsUiState> = _uiState.asStateFlow()
     private var streamBadgeServer: StreamBadgeConfigServer? = null
     private var logoBytes: ByteArray? = null

@@ -80,7 +80,6 @@ import com.nuvio.tv.domain.model.TmdbCollectionMediaType
 import com.nuvio.tv.domain.model.TmdbCollectionSort
 import com.nuvio.tv.domain.model.TmdbCollectionSource
 import com.nuvio.tv.domain.model.TmdbCollectionSourceType
-import com.nuvio.tv.domain.model.TraktCollectionSource
 import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.R
 import androidx.compose.ui.res.stringResource
@@ -203,7 +202,6 @@ fun collectionSourceKey(source: CollectionSource): String {
     return when (source) {
         is AddonCatalogCollectionSource -> "addon_${source.addonId}_${source.type}_${source.catalogId}_${source.genre.orEmpty()}"
         is TmdbCollectionSource -> "tmdb_${source.sourceType}_${source.tmdbId}_${source.mediaType}_${source.sortBy}_${source.filters.hashCode()}"
-        is TraktCollectionSource -> "trakt_${source.traktListId}_${source.mediaType}_${source.sortBy}_${source.sortHow}"
     }
 }
 
@@ -231,27 +229,4 @@ fun tmdbSourceSubtitle(source: TmdbCollectionSource): String {
         TmdbCollectionSourceType.DIRECTOR -> listOf(stringResource(R.string.collections_editor_tmdb_director_credits), media, sort).joinToString(" • ")
         TmdbCollectionSourceType.DISCOVER -> listOf(stringResource(R.string.collections_editor_tmdb_default_discover), media, sort).joinToString(" • ")
     }
-}
-
-@Composable
-fun traktSourceSubtitle(source: TraktCollectionSource): String {
-    val media = when (source.mediaType) {
-        TmdbCollectionMediaType.MOVIE -> stringResource(R.string.type_movies)
-        TmdbCollectionMediaType.TV -> stringResource(R.string.type_series_plural)
-    }
-    val sort = when (source.sortBy) {
-        "rank" -> stringResource(R.string.collections_editor_sort_list_order)
-        "added" -> stringResource(R.string.collections_editor_sort_recently_added)
-        "title" -> stringResource(R.string.collections_editor_sort_title)
-        "released" -> stringResource(R.string.collections_editor_sort_released)
-        "popularity" -> stringResource(R.string.tmdb_entity_rail_popular)
-        "votes" -> stringResource(R.string.collections_editor_sort_votes)
-        else -> source.sortBy
-    }
-    val direction = if (source.sortHow == "desc") {
-        stringResource(R.string.collections_editor_direction_desc_short)
-    } else {
-        stringResource(R.string.collections_editor_direction_asc_short)
-    }
-    return listOf(stringResource(R.string.collections_editor_trakt_list), media, "$sort $direction").joinToString(" • ")
 }

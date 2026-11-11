@@ -358,7 +358,6 @@ private fun RatingOrderToggleRow(
 }
 
 private fun ratingProviderLabel(provider: String): String = when (provider) {
-    "trakt" -> "Trakt"
     "imdb" -> "IMDb"
     "tmdb" -> "TMDB"
     "tomatoes" -> "Rotten Tomatoes"
@@ -370,7 +369,6 @@ private fun ratingProviderLabel(provider: String): String = when (provider) {
 }
 
 private fun isRatingProviderEnabled(state: MDBListSettingsUiState, provider: String): Boolean = when (provider) {
-    "trakt" -> state.showTrakt
     "imdb" -> state.showImdb
     "tmdb" -> state.showTmdb
     "tomatoes" -> state.showTomatoes
@@ -382,7 +380,6 @@ private fun isRatingProviderEnabled(state: MDBListSettingsUiState, provider: Str
 }
 
 private fun toggleEventForProvider(provider: String, enabled: Boolean): MDBListSettingsEvent? = when (provider) {
-    "trakt" -> MDBListSettingsEvent.ToggleTrakt(enabled)
     "imdb" -> MDBListSettingsEvent.ToggleImdb(enabled)
     "tmdb" -> MDBListSettingsEvent.ToggleTmdb(enabled)
     "tomatoes" -> MDBListSettingsEvent.ToggleTomatoes(enabled)

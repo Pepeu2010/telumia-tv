@@ -68,7 +68,7 @@ object CustomPosterUrlResolver {
     ): String? {
         if (pattern.isBlank()) return null
         val decoded = decodePatternPlaceholders(pattern)
-        if (!containsPlaceholder(decoded)) return null
+        if (!containsPlaceholder(decoded)) return decoded
 
         val result = if (isRpdbFamily(decoded)) {
             resolveRpdbWithFallback(decoded, ids, type, shape)
@@ -224,8 +224,7 @@ object CustomPosterUrlResolver {
     private val RPDB_DOMAINS = listOf(
         "ratingposterdb.com",
         "aioratings.com",
-        "top-posters.com",
-        "btttr.cc"
+        "top-posters.com"
     )
 
     private fun isRpdbFamily(pattern: String): Boolean =

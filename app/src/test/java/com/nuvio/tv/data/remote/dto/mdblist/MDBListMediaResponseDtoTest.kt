@@ -123,7 +123,6 @@ class MDBListMediaResponseDtoTest {
     fun `all supported sources use their native rating scales`() {
         val ratings = parse("""{"ratings":[
             {"source":"imdb","value":0,"score":99},
-            {"source":"trakt","value":81},
             {"source":"tmdb","value":78},
             {"source":"letterboxd","value":8.4,"score":84},
             {"source":"myanimelist","value":8.5},
@@ -131,14 +130,13 @@ class MDBListMediaResponseDtoTest {
             {"source":"metacriticuser","value":9.0}
         ]}""")
 
-        assertEquals(MDBListRatings(imdb = 0.0, trakt = 81.0, tmdb = 78.0, letterboxd = 4.2, mal = 8.5, metacritic = 75.0), ratings)
+        assertEquals(MDBListRatings(imdb = 0.0, tmdb = 78.0, letterboxd = 4.2, mal = 8.5, metacritic = 75.0), ratings)
     }
 
     @Test
     fun `invalid values and missing ratings are skipped`() {
         val ratings = parse("""{"ratings":[
             {"source":"imdb","value":11},
-            {"source":"trakt","value":-1},
             {"source":"tmdb","value":101},
             {"source":"letterboxd","value":-1,"score":80},
             {"source":"letterboxd","value":5.1},

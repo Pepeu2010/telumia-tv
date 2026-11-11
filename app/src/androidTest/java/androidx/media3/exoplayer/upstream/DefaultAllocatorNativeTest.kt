@@ -63,6 +63,8 @@ class DefaultAllocatorNativeTest {
         val firstAlloc = DefaultAllocatorNative.createAllocation(segmentSize)
         assertNotNull(firstAlloc)
         DefaultAllocatorNative.freeAllocation(firstAlloc!!)
+        // Native arena returns are intentionally deferred; wait before assuming a full pool.
+        Thread.sleep(2_500)
 
         val arenaBaseAddress = fieldBase.get(null) as Long
         val arenaEndAddress = fieldEnd.get(null) as Long

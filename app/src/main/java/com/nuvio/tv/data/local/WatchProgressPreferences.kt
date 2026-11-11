@@ -454,7 +454,7 @@ class WatchProgressPreferences @Inject constructor(
         lastSuccessfulPushMs: Long? = null,
         profileId: Int = profileManager.activeProfileId.value,
         removeMissingRemoteEntries: Boolean = true,
-        isNonTraktId: ((String) -> Boolean)? = null
+        shouldPreserveId: ((String) -> Boolean)? = null
     ): Boolean {
         var preservedLocalItems = false
         Log.d("WatchProgressPrefs", "mergeRemoteEntries: ${remoteEntries.size} remote entries, profile=$profileId, removeMissing=$removeMissingRemoteEntries")
@@ -468,8 +468,8 @@ class WatchProgressPreferences @Inject constructor(
                 val removedKeys = local.keys - remoteEntries.keys
                 removedKeys.forEach { key ->
                     val localEntry = local[key]
-                    if (localEntry != null && isNonTraktId != null && isNonTraktId(localEntry.contentId)) {
-                        Log.d("WatchProgressPrefs", "  preserved key=$key (non-Trakt ID: ${localEntry.contentId})")
+                    if (localEntry != null && shouldPreserveId != null && shouldPreserveId(localEntry.contentId)) {
+                        Log.d("WatchProgressPrefs", "  preserved key=$key (content ID: ${localEntry.contentId})")
                         preservedLocalItems = true
                     } else if (key in pendingUpsertKeys) {
                         Log.d("WatchProgressPrefs", "  preserved pending key=$key")
@@ -593,20 +593,20 @@ class WatchProgressPreferences @Inject constructor(
     }
 
     /**
-     * Clear all watch progress entries EXCEPT those with non-Trakt-compatible IDs
+     * Clear all watch progress entries EXCEPT those with IDs the caller asks to preserve
      */
-    suspend fun clearAllPreservingNonTraktIds(
+    suspend fun clearAllPreservingIds(
         profileId: Int = profileManager.activeProfileId.value,
-        isNonTraktId: (String) -> Boolean
+        shouldPreserveId: (String) -> Boolean
     ) {
         storageMutex.withLock {
             ensureStorageLocked(profileId)
             val current = readBucketsLocked(profileId)
             val map = mergeWatchProgressBuckets(current.recent, current.archive)
-            val preserved = map.filter { (_, progress) -> isNonTraktId(progress.contentId) }
+            val preserved = map.filter { (_, progress) -> shouldPreserveId(progress.contentId) }
             writeBucketsLocked(profileId, current, splitWatchProgressEntries(preserved))
             if (preserved.isNotEmpty()) {
-                Log.d(TAG, "clearAllPreservingNonTraktIds: preserved ${preserved.size} non-Trakt entries")
+                Log.d(TAG, "clearAllPreservingIds: preserved ${preserved.size} preserved entries")
             }
             metadataStore(profileId).edit { preferences ->
                 preferences.remove(watchProgressEntriesKey)
@@ -833,6 +833,9 @@ class WatchProgressPreferences @Inject constructor(
         val contentType = obj.getString("contentType", "content_type")?.takeIf { it.isNotBlank() } ?: return null
         val videoId = obj.getString("videoId", "video_id")?.takeIf { it.isNotBlank() } ?: contentId
         val lastWatched = obj.getLong("lastWatched", "last_watched") ?: return null
+        // Entries cached from the retired Trakt integration are dropped; local progress is untouched.
+        val source = obj.getString("source")?.takeIf { it.isNotBlank() } ?: WatchProgress.SOURCE_LOCAL
+        if (source.startsWith("trakt_")) return null
 
         return WatchProgress(
             contentId = contentId,
@@ -850,11 +853,7 @@ class WatchProgressPreferences @Inject constructor(
             lastWatched = lastWatched,
             addonBaseUrl = obj.getString("addonBaseUrl", "addon_base_url"),
             progressPercent = obj.getFloat("progressPercent", "progress_percent"),
-            source = obj.getString("source")?.takeIf { it.isNotBlank() } ?: WatchProgress.SOURCE_LOCAL,
-            traktPlaybackId = obj.getLong("traktPlaybackId", "trakt_playback_id"),
-            traktMovieId = obj.getInt("traktMovieId", "trakt_movie_id"),
-            traktShowId = obj.getInt("traktShowId", "trakt_show_id"),
-            traktEpisodeId = obj.getInt("traktEpisodeId", "trakt_episode_id")
+            source = source
         )
     }
 

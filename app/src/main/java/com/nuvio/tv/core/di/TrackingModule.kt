@@ -8,13 +8,9 @@ import com.nuvio.tv.data.simkl.SimklSyncRemote
 import com.nuvio.tv.data.simkl.SimklSyncStorage
 import com.nuvio.tv.core.tracking.TrackingLibraryProvider
 import com.nuvio.tv.core.tracking.TrackingProvider
-import com.nuvio.tv.data.repository.TraktTrackingLibraryProvider
-import com.nuvio.tv.data.repository.TraktTrackingProvider
 import com.nuvio.tv.data.simkl.SimklLibraryService
 import com.nuvio.tv.core.tracking.TrackingHistoryWriter
 import com.nuvio.tv.core.tracking.TrackingProgressProvider
-import com.nuvio.tv.data.repository.TraktTrackingHistoryWriter
-import com.nuvio.tv.data.repository.TraktTrackingProgressProvider
 import com.nuvio.tv.data.simkl.SimklTrackingHistoryWriter
 import com.nuvio.tv.data.simkl.SimklTrackingProgressProvider
 import com.nuvio.tv.data.simkl.SimklTrackingProvider
@@ -68,21 +64,9 @@ abstract class TrackingModule {
 
     @Binds
     @IntoSet
-    abstract fun bindTraktTrackingLibraryProvider(
-        provider: TraktTrackingLibraryProvider
-    ): TrackingLibraryProvider
-
-    @Binds
-    @IntoSet
     abstract fun bindSimklTrackingLibraryProvider(
         provider: SimklLibraryService
     ): TrackingLibraryProvider
-
-    @Binds
-    @IntoSet
-    abstract fun bindTraktTrackingProgressProvider(
-        provider: TraktTrackingProgressProvider
-    ): TrackingProgressProvider
 
     @Binds
     @IntoSet
@@ -92,21 +76,9 @@ abstract class TrackingModule {
 
     @Binds
     @IntoSet
-    abstract fun bindTraktTrackingHistoryWriter(
-        writer: TraktTrackingHistoryWriter
-    ): TrackingHistoryWriter
-
-    @Binds
-    @IntoSet
     abstract fun bindSimklTrackingHistoryWriter(
         writer: SimklTrackingHistoryWriter
     ): TrackingHistoryWriter
-
-    @Binds
-    @IntoSet
-    abstract fun bindTraktTrackingProvider(
-        provider: TraktTrackingProvider
-    ): TrackingProvider
 
     @Binds
     @IntoSet

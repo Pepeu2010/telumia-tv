@@ -888,6 +888,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
         it.copy(
             isBuffering = true,
             error = null,
+            playbackFailureReport = null,
             currentStreamName = stream.name ?: stream.addonName,
             currentStreamUrl = playbackUrl,
             currentStreamInfoHash = stream.infoHash ?: stream.clientResolve?.infoHash,
@@ -932,7 +933,19 @@ internal fun PlayerRuntimeController.switchToSourceStream(
                 player.playWhenReady = true
                 player.prepare()
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message ?: context.getString(com.nuvio.tv.R.string.player_error_play_stream_failed)) }
+                val errorMessage = e.message ?: context.getString(com.nuvio.tv.R.string.player_error_play_stream_failed)
+                _uiState.update {
+                    it.copy(
+                        error = errorMessage,
+                        playbackFailureReport = PlaybackFailureReport.create(
+                            source = PlaybackFailureSource.STREAM,
+                            stage = PlaybackFailureStage.STARTUP,
+                            mimeType = currentStreamMimeType,
+                            mediaUrl = currentStreamUrl,
+                            errorMessage = errorMessage
+                        )
+                    )
+                }
             }
         }
     } ?: run {
@@ -1000,6 +1013,7 @@ private fun PlayerRuntimeController.switchToTorrentSourceStream(
         it.copy(
             isBuffering = true,
             error = null,
+            playbackFailureReport = null,
             currentStreamName = stream.name ?: stream.addonName,
             currentStreamUrl = "",
             currentStreamInfoHash = stream.infoHash ?: stream.clientResolve?.infoHash,
@@ -1464,14 +1478,13 @@ internal fun PlayerRuntimeController.switchToEpisodeStream(
     mpvView?.markMediaRequested(playbackUrl)
     endDetectionArmed = false
     mpvEofSeenClear = false
-    currentTraktEpisodeMapping = null
-    currentTraktEpisodeMappingKey = null
     lastSavedPosition = 0L
 
     _uiState.update {
         it.copy(
             isBuffering = true,
             error = null,
+            playbackFailureReport = null,
             currentSeason = currentSeason,
             currentEpisode = currentEpisode,
             currentVideoId = currentVideoId,
@@ -1585,6 +1598,7 @@ private fun PlayerRuntimeController.switchToEpisodeStreamCommon(
         it.copy(
             isBuffering = true,
             error = null,
+            playbackFailureReport = null,
             currentSeason = currentSeason,
             currentEpisode = currentEpisode,
             currentEpisodeTitle = currentEpisodeTitle,

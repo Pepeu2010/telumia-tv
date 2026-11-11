@@ -10,7 +10,6 @@ import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.core.tmdb.TmdbCollectionSourceResolver
 import com.nuvio.tv.core.util.hasNoReleaseInfo
 import com.nuvio.tv.core.util.isUnreleased
-import com.nuvio.tv.core.trakt.TraktPublicListSourceResolver
 import com.nuvio.tv.data.trailer.TrailerService
 import com.nuvio.tv.data.local.CollectionsDataStore
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
@@ -24,7 +23,6 @@ import com.nuvio.tv.domain.model.HomeImdbRatingsVisibility
 import com.nuvio.tv.domain.model.HomeLayout
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.TmdbCollectionSource
-import com.nuvio.tv.domain.model.TraktCollectionSource
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.model.findCollectionCatalog
 import com.nuvio.tv.domain.model.mergeCatalogPage
@@ -126,7 +124,6 @@ class FolderDetailViewModel @Inject constructor(
     private val metaRepository: com.nuvio.tv.domain.repository.MetaRepository,
     private val trailerService: TrailerService,
     private val tmdbCollectionSourceResolver: TmdbCollectionSourceResolver,
-    private val traktPublicListSourceResolver: TraktPublicListSourceResolver,
     val posterOptions: com.nuvio.tv.ui.components.posteroptions.PosterOptionsController
 ) : ViewModel() {
 
@@ -281,7 +278,6 @@ class FolderDetailViewModel @Inject constructor(
                         Triple(labels.first, labels.second, catalog?.apiType ?: source.type)
                     }
                     is TmdbCollectionSource -> Triple(source.title, buildTmdbTypeLabel(source), source.mediaType.value.toCollectionRawType())
-                    is TraktCollectionSource -> Triple(source.title, buildTraktTypeLabel(source), source.mediaType.value.toCollectionRawType())
                 }
                 // Generate placeholder CatalogRow with shimmer items for Modern/Classic follow-layout
                 val placeholderRow = if (useShimmerPlaceholders) {
@@ -291,7 +287,6 @@ class FolderDetailViewModel @Inject constructor(
                             Triple(source.addonId, source.catalogId, baseUrl)
                         }
                         is TmdbCollectionSource -> Triple("tmdb", buildTmdbSourceKey(source), "")
-                        is TraktCollectionSource -> Triple("trakt", buildTraktSourceKey(source), "")
                     }
                     val apiType = rawType.ifBlank { "movie" }
                     val fakeItems = (0 until 8).map { i ->
@@ -452,7 +447,6 @@ class FolderDetailViewModel @Inject constructor(
                     val (phAddonId, phCatalogId, phBaseUrl) = when (val src = tab.source) {
                         is AddonCatalogCollectionSource -> Triple(src.addonId, src.catalogId, "")
                         is TmdbCollectionSource -> Triple("tmdb", buildTmdbSourceKey(src), "")
-                        is TraktCollectionSource -> Triple("trakt", buildTraktSourceKey(src), "")
                         else -> Triple("placeholder", tab.label, "")
                     }
                     val apiType = tab.rawType.ifBlank { "movie" }
@@ -737,7 +731,6 @@ class FolderDetailViewModel @Inject constructor(
         when (source) {
             is AddonCatalogCollectionSource -> loadAddonCatalogForTab(tabIndex, source)
             is TmdbCollectionSource -> loadTmdbSourceForTab(tabIndex, source, page = 1, append = false)
-            is TraktCollectionSource -> loadTraktSourceForTab(tabIndex, source, page = 1, append = false)
         }
     }
 
@@ -849,11 +842,6 @@ class FolderDetailViewModel @Inject constructor(
 
         if (tab.source is TmdbCollectionSource) {
             loadTmdbSourceForTab(tabIndex, tab.source, page = row.currentPage + 1, append = true)
-            return
-        }
-
-        if (tab.source is TraktCollectionSource) {
-            loadTraktSourceForTab(tabIndex, tab.source, page = row.currentPage + 1, append = true)
             return
         }
 
@@ -1085,69 +1073,6 @@ class FolderDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTraktSourceForTab(tabIndex: Int, source: TraktCollectionSource, page: Int, append: Boolean) {
-        if (append) {
-            _uiState.update { s ->
-                val tabs = s.tabs.toMutableList()
-                val row = tabs.getOrNull(tabIndex)?.catalogRow
-                if (row != null) tabs[tabIndex] = tabs[tabIndex].copy(catalogRow = row.copy(isLoading = true))
-                s.copy(tabs = tabs)
-            }
-            rebuildAllTab()
-            rebuildFollowLayoutState()
-        }
-        viewModelScope.launch {
-            traktPublicListSourceResolver.resolve(source, page).collect { result ->
-                when (result) {
-                    is NetworkResult.Success -> {
-                        val posterPattern = layoutPreferenceDataStore.customPosterUrlPattern.first()
-                        val enabledScreens = layoutPreferenceDataStore.customPosterEnabledScreens.first()
-                        _uiState.update { s ->
-                            val tabs = s.tabs.toMutableList()
-                            val currentRow = tabs.getOrNull(tabIndex)?.catalogRow
-                            val filteredData = result.data.filteredForRelease(
-                                hideUnreleased = s.hideUnreleasedContent,
-                                treatMissingDateAsUnreleased = true
-                            )
-                            val row = if (append && currentRow != null) {
-                                val existingIds = currentRow.items.map { "${it.apiType}:${it.id}" }.toHashSet()
-                                val newItems = filteredData.items.filter { "${it.apiType}:${it.id}" !in existingIds }
-                                filteredData.copy(
-                                    items = currentRow.items + newItems,
-                                    hasMore = filteredData.hasMore && newItems.isNotEmpty(),
-                                    isLoading = false
-                                )
-                            } else {
-                                filteredData
-                            }
-                            if (tabIndex < tabs.size) tabs[tabIndex] = tabs[tabIndex].copy(catalogRow = row.copy(items = row.items.withCustomPosterUrls(com.nuvio.tv.core.poster.patternForScreen(posterPattern, com.nuvio.tv.core.poster.CustomPosterScreen.COLLECTIONS, enabledScreens))), isLoading = false)
-                            s.copy(tabs = tabs)
-                        }
-                        rebuildAllTab()
-                        rebuildFollowLayoutState()
-                    }
-                    is NetworkResult.Error -> {
-                        _uiState.update { s ->
-                            val tabs = s.tabs.toMutableList()
-                            val current = tabs.getOrNull(tabIndex)
-                            if (current != null) {
-                                tabs[tabIndex] = current.copy(
-                                    isLoading = false,
-                                    error = result.message,
-                                    catalogRow = current.catalogRow?.copy(isLoading = false)
-                                )
-                            }
-                            s.copy(tabs = tabs)
-                        }
-                        rebuildAllTab()
-                        rebuildFollowLayoutState()
-                    }
-                    NetworkResult.Loading -> {}
-                }
-            }
-        }
-    }
-
     private fun buildAddonTabLabels(source: AddonCatalogCollectionSource, catalogName: String?): Pair<String, String> {
         val typeLabel = when (source.type.lowercase()) {
             "movie" -> appContext.getString(R.string.type_movies)
@@ -1176,13 +1101,6 @@ class FolderDetailViewModel @Inject constructor(
         }
     }
 
-    private fun buildTraktTypeLabel(source: TraktCollectionSource): String {
-        return when (source.mediaType) {
-            com.nuvio.tv.domain.model.TmdbCollectionMediaType.MOVIE -> appContext.getString(R.string.collections_editor_trakt_movie_list)
-            com.nuvio.tv.domain.model.TmdbCollectionMediaType.TV -> appContext.getString(R.string.collections_editor_trakt_series_list)
-        }
-    }
-
     private fun buildTmdbSourceKey(source: TmdbCollectionSource): String {
         return buildString {
             append("tmdb_")
@@ -1200,17 +1118,6 @@ class FolderDetailViewModel @Inject constructor(
                 append(source.filters.hashCode().toUInt().toString(16))
             }
         }
-    }
-
-    private fun buildTraktSourceKey(source: TraktCollectionSource): String {
-        return listOf(
-            "trakt",
-            "list",
-            source.traktListId.toString(),
-            source.mediaType.value,
-            source.sortBy.lowercase(java.util.Locale.US),
-            source.sortHow.lowercase(java.util.Locale.US)
-        ).joinToString("_")
     }
 
     private fun String.toCollectionRawType(): String {
@@ -1331,7 +1238,7 @@ class FolderDetailViewModel @Inject constructor(
                     }
                     // Propagate TMDB-fetched localized trailer YT ids onto the item
                     // so the trailer pipeline can use them as a fallback when the
-                    // direct TMDB videos lookup misses the user locale (e.g. Trakt
+                    // direct TMDB videos lookup misses the user locale (e.g.
                     // list items that didn't carry trailers from their addon).
                     val enrichedYtIds = finalEnrichment.trailers.mapNotNull { it.ytId }.distinct()
                     if (enrichedYtIds.isNotEmpty() && result.trailerYtIds.isEmpty()) {
@@ -1709,7 +1616,7 @@ class FolderDetailViewModel @Inject constructor(
 /**
  * Drops unreleased items from a freshly-loaded row when the user toggle is on.
  * [treatMissingDateAsUnreleased] additionally drops items that have no release
- * information at all — used for TMDB- and Trakt-resolved rows, where a missing
+ * information at all — used for TMDB-resolved rows, where a missing
  * release date means the title is unannounced (#2793). Addon rows keep the
  * lenient behavior because sparse addon metadata often omits dates for
  * released content.

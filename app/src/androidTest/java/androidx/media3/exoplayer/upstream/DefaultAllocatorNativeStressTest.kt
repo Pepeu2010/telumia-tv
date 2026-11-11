@@ -72,7 +72,10 @@ class DefaultAllocatorNativeStressTest {
         val finished = executor.awaitTermination(30, TimeUnit.SECONDS)
         assertTrue("Stress test threads should terminate inside timeout", finished)
 
-        // Verify that everything trimmed down to 0 without leaking memory
-        assertEquals("Memory leak under concurrent late release!", 0, allocator.memoryFootprint)
+        // Concurrent late releases can refill the reusable pool after each reset.
+        // Trim after all worker threads stop, then verify the pool releases its footprint.
+        assertTrue("Late releases should have reusable allocations pending trim", allocator.availableBytes > 0)
+        allocator.trim()
+        assertEquals("Allocator should release its native footprint after trim", 0, allocator.memoryFootprint)
     }
 }

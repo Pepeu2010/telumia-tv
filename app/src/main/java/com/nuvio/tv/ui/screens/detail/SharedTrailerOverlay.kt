@@ -44,6 +44,11 @@ import androidx.tv.material3.Text
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.ui.components.TrailerPlayer
+import com.nuvio.tv.ui.screens.player.PlaybackFailureDetailsDialog
+import com.nuvio.tv.ui.screens.player.PlaybackFailureReport
+import com.nuvio.tv.ui.screens.player.PlaybackFailureSource
+import com.nuvio.tv.ui.screens.player.PlaybackFailureStage
+import com.nuvio.tv.ui.screens.player.sanitizePlaybackError
 import kotlinx.coroutines.delay
 import android.view.KeyEvent
 
@@ -69,12 +74,32 @@ fun SharedTrailerOverlay(
     val seekOverlayState = remember { TrailerSeekOverlayState() }
     var seekToken by remember { mutableIntStateOf(0) }
     var seekDeltaMs by remember { mutableLongStateOf(0L) }
+    var trailerFailure by remember(trailerUrl) { mutableStateOf<PlaybackFailureReport?>(null) }
+    var trailerFirstFrameSeen by remember(trailerUrl) { mutableStateOf(false) }
+    var showFailureDetails by remember { mutableStateOf(false) }
+    val externalFailureReport = remember(errorMessage, trailerUrl, isLoading, trailerFirstFrameSeen) {
+        errorMessage?.takeIf { it.isNotBlank() }?.let {
+            PlaybackFailureReport.create(
+                source = PlaybackFailureSource.TRAILER,
+                stage = when {
+                    trailerUrl.isNullOrBlank() -> PlaybackFailureStage.SOURCE_SELECTION
+                    isLoading || !trailerFirstFrameSeen -> PlaybackFailureStage.STARTUP
+                    else -> PlaybackFailureStage.PLAYBACK
+                },
+                mediaUrl = trailerUrl,
+                firstFrameRendered = trailerFirstFrameSeen.takeIf { !trailerUrl.isNullOrBlank() },
+                errorMessage = it
+            )
+        }
+    }
+    val activeFailureReport = trailerFailure ?: externalFailureReport
 
-    val canControlPlayback = !trailerUrl.isNullOrBlank() && !isLoading && errorMessage == null
+    val canControlPlayback = !trailerUrl.isNullOrBlank() && !isLoading && activeFailureReport == null
 
     LaunchedEffect(trailerUrl, trailerAudioUrl, isLoading, errorMessage) {
         isPaused = false
         seekOverlayVisible = false
+        showFailureDetails = false
     }
 
     LaunchedEffect(seekOverlayVisible, canControlPlayback, seekToken) {
@@ -173,7 +198,7 @@ fun SharedTrailerOverlay(
                     }
                 }
         ) {
-            if (!trailerUrl.isNullOrBlank() && errorMessage == null) {
+            if (!trailerUrl.isNullOrBlank() && activeFailureReport == null) {
                 TrailerPlayer(
                     trailerUrl = trailerUrl,
                     trailerAudioUrl = trailerAudioUrl,
@@ -186,6 +211,27 @@ fun SharedTrailerOverlay(
                         seekOverlayState.durationMs = duration
                     },
                     onEnded = onDismiss,
+                    onFirstFrameRendered = { trailerFirstFrameSeen = true },
+                    onPlaybackFailure = { error ->
+                        trailerFailure = PlaybackFailureReport.create(
+                            source = PlaybackFailureSource.TRAILER,
+                            stage = if (trailerFirstFrameSeen) PlaybackFailureStage.PLAYBACK else PlaybackFailureStage.STARTUP,
+                            mediaUrl = trailerUrl,
+                            firstFrameRendered = trailerFirstFrameSeen,
+                            errorCode = error.errorCodeName,
+                            errorMessage = error.message
+                        )
+                    },
+                    onFirstFrameTimeout = {
+                        trailerFailure = PlaybackFailureReport.create(
+                            source = PlaybackFailureSource.TRAILER,
+                            stage = PlaybackFailureStage.STARTUP,
+                            mediaUrl = trailerUrl,
+                            firstFrameRendered = false,
+                            errorCode = "TRAILER_FIRST_FRAME_TIMEOUT",
+                            errorMessage = "The player did not render a video frame within 12 seconds."
+                        )
+                    },
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -217,7 +263,7 @@ fun SharedTrailerOverlay(
                 }
             }
 
-            if (!errorMessage.isNullOrBlank()) {
+            if (activeFailureReport != null) {
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -226,14 +272,30 @@ fun SharedTrailerOverlay(
                     verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
                 ) {
                     Text(
-                        text = errorMessage,
+                        text = trailerFailure?.summary
+                            ?: sanitizePlaybackError(errorMessage),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White
                     )
-                    Button(onClick = onRetry) {
-                        Text(text = stringResource(R.string.action_retry))
+                    Row(horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)) {
+                        Button(onClick = { showFailureDetails = true }) {
+                            Text(text = stringResource(R.string.playback_failure_details_action))
+                        }
+                        Button(onClick = {
+                            trailerFailure = null
+                            onRetry()
+                        }) {
+                            Text(text = stringResource(R.string.action_retry))
+                        }
                     }
                 }
+            }
+
+            if (showFailureDetails && activeFailureReport != null) {
+                PlaybackFailureDetailsDialog(
+                    reportText = activeFailureReport.asText(),
+                    onDismiss = { showFailureDetails = false }
+                )
             }
 
             TrailerSeekOverlayHost(

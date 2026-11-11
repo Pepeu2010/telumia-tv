@@ -25,7 +25,6 @@ class MDBListSettingsDataStore @Inject constructor(
 
     private val enabledKey = booleanPreferencesKey("mdblist_enabled")
     private val apiKeyKey = stringPreferencesKey("mdblist_api_key")
-    private val showTraktKey = booleanPreferencesKey("mdblist_show_trakt")
     private val showImdbKey = booleanPreferencesKey("mdblist_show_imdb")
     private val showTmdbKey = booleanPreferencesKey("mdblist_show_tmdb")
     private val showLetterboxdKey = booleanPreferencesKey("mdblist_show_letterboxd")
@@ -41,7 +40,6 @@ class MDBListSettingsDataStore @Inject constructor(
             MDBListSettings(
                 enabled = prefs[enabledKey] ?: false,
                 apiKey = prefs[apiKeyKey] ?: "",
-                showTrakt = prefs[showTraktKey] ?: true,
                 showImdb = prefs[showImdbKey] ?: true,
                 showTmdb = prefs[showTmdbKey] ?: true,
                 showLetterboxd = prefs[showLetterboxdKey] ?: true,
@@ -62,10 +60,6 @@ class MDBListSettingsDataStore @Inject constructor(
 
     suspend fun setApiKey(apiKey: String) {
         store().edit { it[apiKeyKey] = apiKey.trim() }
-    }
-
-    suspend fun setShowTrakt(enabled: Boolean) {
-        store().edit { it[showTraktKey] = enabled }
     }
 
     suspend fun setShowImdb(enabled: Boolean) {

@@ -12,11 +12,9 @@ import com.nuvio.tv.data.local.MoreLikeThisSourcePreference
 import com.nuvio.tv.data.local.PlayerSettingsDataStore
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
 import com.nuvio.tv.data.local.TrailerSettingsDataStore
-import com.nuvio.tv.data.local.TraktAuthDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchedSeriesStateHolder
 import com.nuvio.tv.data.repository.MDBListRepository
-import com.nuvio.tv.data.repository.TraktRelatedService
 import com.nuvio.tv.data.simkl.SimklAuthRepository
 import com.nuvio.tv.data.simkl.SimklRelatedService
 import com.nuvio.tv.data.trailer.TrailerService
@@ -50,9 +48,7 @@ internal class PostPlayRecommendationController(
     private val tmdbSettingsDataStore: TmdbSettingsDataStore,
     private val mdbListRepository: MDBListRepository,
     private val mdbListSettingsDataStore: MDBListSettingsDataStore,
-    private val traktRelatedService: TraktRelatedService,
-    private val traktAuthDataStore: TraktAuthDataStore,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val simklRelatedService: SimklRelatedService,
     private val simklAuthRepository: SimklAuthRepository,
     private val layoutPreferenceDataStore: LayoutPreferenceDataStore,
@@ -626,19 +622,10 @@ internal class PostPlayRecommendationController(
             fallback = meta.type
         ) ?: return emptyList()
         val candidates = withTimeoutOrNull(10_000L) {
-            val sourcePreference = traktSettingsDataStore.moreLikeThisSource.first()
-            val traktAuthenticated = traktAuthDataStore.isAuthenticated.first()
+            val sourcePreference = trackingSettingsDataStore.moreLikeThisSource.first()
             if (sourcePreference == MoreLikeThisSourcePreference.SIMKL && simklAuthRepository.state.value.isAuthenticated) {
                 runCatching {
                     simklRelatedService.getRelated(
-                        meta = meta,
-                        fallbackItemId = playbackController.contentId,
-                        fallbackItemType = playbackController.contentType
-                    )
-                }.getOrDefault(emptyList())
-            } else if (sourcePreference == MoreLikeThisSourcePreference.TRAKT && traktAuthenticated) {
-                runCatching {
-                    traktRelatedService.getRelated(
                         meta = meta,
                         fallbackItemId = playbackController.contentId,
                         fallbackItemType = playbackController.contentType

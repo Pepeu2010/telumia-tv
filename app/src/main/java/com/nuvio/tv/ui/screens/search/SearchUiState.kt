@@ -47,7 +47,17 @@ data class SearchUiState(
     val posterCardHeightDp: Int = 189,
     val posterCardCornerRadiusDp: Int = 12,
     val recentSearches: List<String> = emptyList(),
-    val suggestions: List<String> = emptyList()
+    val suggestions: List<String> = emptyList(),
+    val companySearchResults: List<SearchCompanyResult> = emptyList(),
+    val isCompanySearchLoading: Boolean = false,
+    val companySearchError: String? = null
+)
+
+@Immutable
+data class SearchCompanyResult(
+    val tmdbId: Int,
+    val name: String,
+    val originCountry: String? = null
 )
 
 @Immutable

@@ -157,7 +157,18 @@ internal fun PlayerRuntimeController.initializePlayer(
     startPaused: Boolean = false
 ) {
     if (url.isEmpty()) {
-        _uiState.update { it.copy(error = context.getString(R.string.player_error_no_stream_url), showLoadingOverlay = false) }
+        val errorMessage = context.getString(R.string.player_error_no_stream_url)
+        _uiState.update {
+            it.copy(
+                error = errorMessage,
+                playbackFailureReport = PlaybackFailureReport.create(
+                    source = PlaybackFailureSource.STREAM,
+                    stage = PlaybackFailureStage.SOURCE_SELECTION,
+                    errorMessage = errorMessage
+                ),
+                showLoadingOverlay = false
+            )
+        }
         return
     }
     mpvMediaLoadPrepared = false
@@ -1703,6 +1714,15 @@ internal fun PlayerRuntimeController.initializePlayer(
                         _uiState.update {
                             it.copy(
                                 error = detailedError,
+                                playbackFailureReport = PlaybackFailureReport.create(
+                                    source = PlaybackFailureSource.STREAM,
+                                    stage = if (hasRenderedFirstFrame) PlaybackFailureStage.PLAYBACK else PlaybackFailureStage.STARTUP,
+                                    mimeType = currentStreamMimeType,
+                                    mediaUrl = currentStreamUrl,
+                                    firstFrameRendered = hasRenderedFirstFrame,
+                                    errorCode = error.errorCodeName,
+                                    errorMessage = detailedError
+                                ),
                                 showSwitchToMpvErrorAction = canSwitchToMpvOnFatal,
                                 showLoadingOverlay = false,
                                 showPauseOverlay = false,

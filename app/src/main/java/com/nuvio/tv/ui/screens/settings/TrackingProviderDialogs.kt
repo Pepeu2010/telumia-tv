@@ -58,7 +58,6 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
 import com.nuvio.tv.core.qr.QrCodeGenerator
-import com.nuvio.tv.data.repository.TraktProgressService
 import com.nuvio.tv.data.simkl.SIMKL_AUTOMATIC_REFRESH_INTERVAL_MINUTES
 import com.nuvio.tv.data.simkl.SimklConnectionMode
 import com.nuvio.tv.ui.components.LoadingIndicator
@@ -67,79 +66,6 @@ import com.nuvio.tv.ui.theme.NuvioMotion
 import com.nuvio.tv.ui.theme.NuvioTheme
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
-
-@Composable
-internal fun TraktAccountDialog(
-    state: TraktUiState,
-    onStartConnection: () -> Unit,
-    onRetryPolling: () -> Unit,
-    onDisconnect: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val logo = painterResource(R.drawable.trakt_logo_wordmark)
-    if (state.mode == TraktConnectionMode.CONNECTED) {
-        val glyph = rememberRawSvgPainter(R.raw.trakt_tv_favicon, 150.dp)
-        ConnectedTrackingAccountDialog(
-            brand = TrackingDialogBrand.TRAKT,
-            glyph = glyph,
-            onDismiss = onDismiss
-        ) {
-            ConnectedTrackingAccountContent(
-                brand = TrackingDialogBrand.TRAKT,
-                logo = logo,
-                logoContentDescription = stringResource(R.string.cd_trakt_logo),
-                connectedLabel = stringResource(
-                    R.string.trakt_connected_as,
-                    state.username ?: stringResource(R.string.trakt_user_fallback)
-                ),
-                connectedDescription = stringResource(R.string.trakt_description),
-                statusMessage = state.statusMessage,
-                errorMessage = state.errorMessage,
-                isLoading = state.isLoading,
-                onDisconnect = onDisconnect,
-                tokenRefreshText = state.tokenExpiresAtMillis?.let { expiresAt ->
-                    stringResource(
-                        R.string.trakt_token_refreshes,
-                        formatTrackingDuration((expiresAt - System.currentTimeMillis()).coerceAtLeast(0L))
-                    )
-                },
-                stats = state.connectedStats,
-                isStatsLoading = state.isStatsLoading
-            )
-        }
-    } else {
-        NuvioDialog(
-            onDismiss = onDismiss,
-            title = "",
-            width = 720.dp,
-            titleTextAlign = TextAlign.Center,
-            suppressFirstKeyUp = false
-        ) {
-            val displayUrl = state.verificationUrl ?: TRAKT_ACTIVATION_URL
-            val qrUrl = state.deviceUserCode?.let { "$TRAKT_ACTIVATION_URL/$it" } ?: displayUrl
-            TrackingDeviceAuthContent(
-                providerName = stringResource(R.string.trakt_name),
-                logo = logo,
-                logoContentDescription = stringResource(R.string.cd_trakt_logo),
-                qrContentDescription = stringResource(R.string.cd_trakt_qr),
-                instruction = stringResource(R.string.trakt_awaiting_instruction),
-                userCode = state.deviceUserCode,
-                displayUrl = displayUrl,
-                qrUrl = qrUrl,
-                expiresAtEpochMs = state.deviceCodeExpiresAtMillis,
-                isLoading = state.isLoading,
-                isPolling = state.isPolling,
-                credentialsConfigured = state.credentialsConfigured,
-                statusMessage = state.statusMessage,
-                errorMessage = state.errorMessage,
-                missingCredentialsMessage = stringResource(R.string.trakt_missing_credentials),
-                onStartConnection = onStartConnection,
-                onRetryPolling = onRetryPolling,
-                onDismiss = onDismiss
-            )
-        }
-    }
-}
 
 @Composable
 internal fun SimklAccountDialog(
@@ -363,7 +289,7 @@ internal fun TrackingDeviceAuthContent(
                 expiresAtEpochMs?.let { expiresAt ->
                     Text(
                         text = stringResource(
-                            R.string.trakt_code_expires,
+                            R.string.tracking_code_expires,
                             formatTrackingDuration((expiresAt - nowMillis).coerceAtLeast(0L))
                         ),
                         style = MaterialTheme.typography.bodySmall,
@@ -488,8 +414,6 @@ internal fun ConnectedTrackingAccountContent(
     onDisconnect: () -> Unit,
     onSync: (() -> Unit)? = null,
     tokenRefreshText: String? = null,
-    stats: TraktProgressService.TraktCachedStats? = null,
-    isStatsLoading: Boolean = false,
     onVisit: (() -> Unit)? = null,
     onInfo: (() -> Unit)? = null
 ) {
@@ -521,9 +445,6 @@ internal fun ConnectedTrackingAccountContent(
             )
         }
     }
-    if (stats != null || isStatsLoading) {
-        TraktConnectedStatsStrip(stats, isStatsLoading)
-    }
     if (onSync != null) {
         TrackingBrandPrimaryButton(
             label = stringResource(R.string.simkl_sync_now),
@@ -554,7 +475,7 @@ internal fun ConnectedTrackingAccountContent(
             )
         }
         TrackingBrandFooterButton(
-            text = stringResource(R.string.trakt_disconnect),
+            text = stringResource(R.string.tracking_disconnect),
             onClick = onDisconnect,
             enabled = !isLoading,
             modifier = if (hasMultipleActions) Modifier.weight(1.05f) else Modifier,
@@ -663,9 +584,6 @@ private fun TrackingConnectedWordmark(
         painter = logo,
         contentDescription = contentDescription,
         modifier = when (brand) {
-            TrackingDialogBrand.TRAKT -> Modifier
-                .width(86.dp)
-                .height(38.dp)
             TrackingDialogBrand.SIMKL -> Modifier
                 .width(124.dp)
                 .height(30.dp)
@@ -823,98 +741,17 @@ private fun TrackingProviderWordmark(
 }
 
 internal enum class TrackingDialogBrand {
-    TRAKT,
     SIMKL,
     MDBLIST
 }
 
 private fun TrackingDialogBrand.cardBrush(): Brush = when (this) {
-    TrackingDialogBrand.TRAKT -> Brush.linearGradient(
-        colors = listOf(Color(0xFF7D279B), Color(0xFFD61F56), Color(0xFFF22125))
-    )
     TrackingDialogBrand.SIMKL -> Brush.linearGradient(
         colors = listOf(Color(0xFF050505), Color(0xFF292929), Color(0xFF111111))
     )
     TrackingDialogBrand.MDBLIST -> Brush.linearGradient(
         colors = listOf(Color(0xFF173D69), Color(0xFF225C97), Color(0xFF16385D))
     )
-}
-
-@Composable
-private fun TraktConnectedStatsStrip(
-    stats: TraktProgressService.TraktCachedStats?,
-    isLoading: Boolean
-) {
-    val values = if (isLoading) {
-        listOf("…", "…", "…", "…")
-    } else {
-        listOf(
-            stats?.moviesWatched?.toString() ?: "-",
-            stats?.showsWatched?.toString() ?: "-",
-            stats?.episodesWatched?.toString() ?: "-",
-            stats?.totalWatchedHours?.let { "${it}h" } ?: "-"
-        )
-    }
-    val labels = listOf(
-        stringResource(R.string.trakt_stat_movies),
-        stringResource(R.string.trakt_stat_shows),
-        stringResource(R.string.trakt_stat_episodes),
-        stringResource(R.string.trakt_stat_watched_hours)
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(Color.White.copy(alpha = 0.08f))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
-    ) {
-        Text(
-            text = stringResource(R.string.trakt_cached_label),
-            style = MaterialTheme.typography.labelMedium,
-            color = Color.White.copy(alpha = 0.6f)
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(NuvioTheme.spacing.hairline)
-                .background(Color.White.copy(alpha = 0.18f))
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            values.forEachIndexed { index, value ->
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxs))
-                    Text(
-                        text = labels[index],
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.76f),
-                        textAlign = TextAlign.Center
-                    )
-                }
-                if (index != values.lastIndex) {
-                    Box(
-                        modifier = Modifier
-                            .width(NuvioTheme.spacing.hairline)
-                            .height(44.dp)
-                            .background(Color.White.copy(alpha = 0.18f))
-                    )
-                }
-            }
-        }
-    }
 }
 
 internal fun formatTrackingDuration(valueMs: Long): String {
@@ -931,7 +768,6 @@ internal fun formatTrackingDuration(valueMs: Long): String {
     }
 }
 
-private const val TRAKT_ACTIVATION_URL = "https://trakt.tv/activate"
 private const val SIMKL_WEBSITE_URL = "https://simkl.com"
 private const val SIMKL_SYNC_GUIDE_URL = "https://api.simkl.org/guides/sync"
 private val TrackingBrandButtonContent = Color(0xFF171717)

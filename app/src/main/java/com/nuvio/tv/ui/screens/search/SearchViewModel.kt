@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.R
 import com.nuvio.tv.core.network.NetworkResult
+import com.nuvio.tv.data.remote.api.TmdbCompanySearchResult
 import com.nuvio.tv.data.local.DiscoverSelectionDataStore
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
 import com.nuvio.tv.data.local.SearchHistoryDataStore
@@ -29,6 +30,7 @@ import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.model.PLACEHOLDER_IMAGE_URL
 import com.nuvio.tv.domain.repository.CatalogRepository
+import com.nuvio.tv.core.tmdb.TmdbCollectionSourceResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -51,10 +53,22 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import javax.inject.Inject
 
+internal fun mapCompanySearchResults(results: Iterable<TmdbCompanySearchResult>): List<SearchCompanyResult> =
+    results.mapNotNull { result ->
+        val name = result.name?.trim()?.takeIf(String::isNotEmpty) ?: return@mapNotNull null
+        if (result.id <= 0) return@mapNotNull null
+        SearchCompanyResult(
+            tmdbId = result.id,
+            name = name,
+            originCountry = result.originCountry?.trim()?.takeIf(String::isNotEmpty),
+        )
+    }.distinctBy(SearchCompanyResult::tmdbId)
+
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val addonRepository: AddonRepository,
     private val catalogRepository: CatalogRepository,
+    private val tmdbCollectionSourceResolver: TmdbCollectionSourceResolver,
     private val metaRepository: com.nuvio.tv.domain.repository.MetaRepository,
     private val discoverSelectionDataStore: DiscoverSelectionDataStore,
     private val layoutPreferenceDataStore: LayoutPreferenceDataStore,
@@ -80,6 +94,7 @@ class SearchViewModel @Inject constructor(
 
     private val catalogsMap = linkedMapOf<String, CatalogRow>()
     private val catalogOrder = mutableListOf<String>()
+    private val catalogRequestLimit = Semaphore(MAX_CONCURRENT_CATALOG_REQUESTS)
     private val brazilianAliasRequestLimit = Semaphore(2)
 
     private var activeSearchJobs: List<Job> = emptyList()
@@ -95,10 +110,10 @@ class SearchViewModel @Inject constructor(
     private var searchGeneration = 0L
     private var discoverJob: Job? = null
     private var catalogRowsUpdateJob: Job? = null
-    private var suggestionJob: Job? = null
     private var liveSearchJob: Job? = null
     private var lastRequestKey: String? = null
     private var lastCompletedRequestKey: String? = null
+    private var lastCompanySearchQuery: String? = null
     private var hasRenderedFirstCatalog = false
     private var pendingCatalogResponses = 0
     private var revealBatchAfterNextDiscoverFetch = false
@@ -107,13 +122,12 @@ class SearchViewModel @Inject constructor(
     private companion object {
         const val DISCOVER_INITIAL_LIMIT = 100
         const val DISCOVER_SHOW_MORE_BATCH = 50
-        const val SUGGESTION_DEBOUNCE_MS = 150L
-
         /**
-         * Live search fires while typing, but each run fans out to every enabled addon catalog, so
-         * it waits longer than the suggestion debounce to avoid a request storm per keystroke.
+         * Live search fires while typing and queries every enabled addon catalog, so it waits
+         * briefly after the last keystroke before opening requests.
          */
         const val LIVE_SEARCH_DEBOUNCE_MS = 350L
+        const val MAX_CONCURRENT_CATALOG_REQUESTS = 4
 
         const val MAX_SUGGESTIONS = 8
         /** Splits titles and queries into words. */
@@ -255,6 +269,7 @@ class SearchViewModel @Inject constructor(
                 // An explicit retry must refetch even though nothing about the request changed.
                 lastRequestKey = null
                 lastCompletedRequestKey = null
+                lastCompanySearchQuery = null
                 cancelSearchRun()
                 performSearch(uiState.value.submittedQuery.ifBlank { uiState.value.query })
             }
@@ -299,8 +314,6 @@ class SearchViewModel @Inject constructor(
             // searches, until the screen was rebuilt by navigating away and back.
             performSearch(query)
         }
-
-        fetchSuggestions(trimmed)
     }
 
     /** Match rank for [title], lower being better, or null when it does not match [queryLower]. */
@@ -338,9 +351,9 @@ class SearchViewModel @Inject constructor(
             .take(MAX_SUGGESTIONS)
 
     /**
-     * Every catalog's titles, taken one position at a time: each catalog's first title, then each
-     * one's second, and so on, in catalog order. Each catalog's best matches lead, and the result
-     * does not depend on which catalog happened to answer first.
+     * Catalog results are already requested for the visible rows. Suggestions are ranked from
+     * those same responses so typing never issues a second request for the same addon/query.
+     * Catalog indexes preserve addon/manifest order while responses may arrive in any order.
      */
     private fun mergedCatalogNames(namesByCatalog: Map<Int, List<String>>, catalogCount: Int): List<String> {
         val catalogs = (0 until catalogCount).mapNotNull { namesByCatalog[it] }
@@ -349,99 +362,6 @@ class SearchViewModel @Inject constructor(
             catalogs.forEach { names -> names.getOrNull(position)?.let(merged::add) }
         }
         return merged.toList()
-    }
-
-    private fun fetchSuggestions(query: String) {
-        suggestionJob?.cancel()
-
-        if (query.length < MIN_SEARCH_QUERY_LENGTH) {
-            _uiState.update { it.copy(suggestions = emptyList()) }
-            return
-        }
-
-        // Already searched, so a fetch would repeat itself and the strip is current. Leave it
-        // standing: live search submits as the user types, so typing a space between words
-        // trims back to the submitted query and lands here mid-query.
-        if (query == _uiState.value.submittedQuery.trim() && _uiState.value.catalogRows.isNotEmpty()) {
-            return
-        }
-
-        suggestionJob = viewModelScope.launch {
-            kotlinx.coroutines.delay(SUGGESTION_DEBOUNCE_MS)
-
-            val addons = try {
-                addonRepository.getInstalledAddons().first().enabledAddons()
-            } catch (_: Exception) {
-                return@launch
-            }
-
-            val allTargets = buildSearchTargets(addons)
-            val firstAddonId = allTargets.firstOrNull()?.first?.id
-            val searchTargets = if (firstAddonId != null) allTargets.filter { it.first.id == firstAddonId } else emptyList()
-            if (searchTargets.isEmpty()) {
-                _uiState.update { it.copy(suggestions = emptyList()) }
-                return@launch
-            }
-
-            // Each catalog's titles in the order it returned them, keyed by its place in searchTargets.
-            val namesByCatalog = java.util.concurrent.ConcurrentHashMap<Int, List<String>>()
-            val queryLower = query.lowercase()
-            val suggestionJobs = searchTargets.mapIndexed { catalogIndex, (addon, catalog) ->
-                launch {
-                    try {
-                        catalogRepository.getCatalog(
-                            addonBaseUrl = addon.baseUrl,
-                            addonId = addon.id,
-                            addonName = addon.displayName,
-                            catalogId = catalog.id,
-                            catalogName = catalog.name,
-                            type = catalog.apiType,
-                            skip = 0,
-                            skipStep = 100,
-                            extraArgs = mapOf("search" to query),
-                            supportsSkip = false,
-                            posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
-                        ).collect { result ->
-                            if (result is NetworkResult.Success && _uiState.value.query.trim() == query) {
-                                val names = result.data.items.map { it.name }
-                                val previous = namesByCatalog.put(catalogIndex, names)
-                                // Catalog results arrive independently and are merged, so a batch
-                                // whose titles all fail the filter ranks to nothing while the batch
-                                // holding the match is still in flight. Only the settle below may
-                                // empty the strip: an empty push tells the keyboard there are no
-                                // completions, and it does not always take them back when the next
-                                // batch lands.
-                                if (names != previous) {
-                                    val ranked = rankedSuggestions(
-                                        mergedCatalogNames(namesByCatalog, searchTargets.size),
-                                        queryLower
-                                    )
-                                    if (ranked.isNotEmpty()) {
-                                        _uiState.update { it.copy(suggestions = ranked) }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (e: CancellationException) {
-                        // The settle below treats joinAll() as "collection is over".
-                        throw e
-                    } catch (_: Exception) {
-                        // Ignore per-catalog errors for suggestions
-                    }
-                }
-            }
-
-            suggestionJobs.joinAll()
-
-            // Every catalog job has completed, so this is the first point the query is known
-            // to have no suggestions. Until here the strip keeps the previous query's titles
-            // rather than blinking on every keystroke. It must be cleared here or it would go
-            // on captioning text the field no longer contains.
-            if (_uiState.value.query.trim() == query) {
-                val ranked = rankedSuggestions(mergedCatalogNames(namesByCatalog, searchTargets.size), queryLower)
-                _uiState.update { it.copy(suggestions = ranked) }
-            }
-        }
     }
 
     private fun submitSearch() {
@@ -464,7 +384,7 @@ class SearchViewModel @Inject constructor(
             row.items.any { item -> !item.id.startsWith("__placeholder_") }
         } || catalogsMap.values.any { row ->
             row.items.any { item -> !item.id.startsWith("__placeholder_") }
-        }
+        } || state.companySearchResults.isNotEmpty()
         if (!hasRealResults) return
         viewModelScope.launch {
             searchHistoryDataStore.saveRecentSearch(query, MAX_RECENT_SEARCHES)
@@ -523,9 +443,8 @@ class SearchViewModel @Inject constructor(
 
 
     /**
-     * @param keepSuggestions live search runs this on every keystroke, while the field is still
-     * being typed into and the suggestion strip is the whole point. Those runs leave the strip
-     * alone. A submit or a retry replaces the screen with results, which retires it.
+     * @param keepSuggestions live search runs this while the field is being typed into and ranks
+     * suggestions from its catalog responses. A submit or retry retires the suggestion strip.
      */
     private fun performSearch(
         rawQuery: String,
@@ -533,14 +452,18 @@ class SearchViewModel @Inject constructor(
         keepSuggestions: Boolean = false
     ) {
         val query = rawQuery.trim()
-        if (!keepSuggestions) {
-            suggestionJob?.cancel()
-        }
+        val shouldSearchCompanies = query.length >= MIN_SEARCH_QUERY_LENGTH && lastCompanySearchQuery != query
+        if (shouldSearchCompanies) lastCompanySearchQuery = query
         _uiState.update {
+            val sameSubmittedQuery = it.submittedQuery.trim() == query
             it.copy(
                 submittedQuery = submittedSearchQuery(query),
                 query = rawQuery,
-                suggestions = if (keepSuggestions) it.suggestions else emptyList()
+                suggestions = if (keepSuggestions) it.suggestions else emptyList(),
+                companySearchResults = if (sameSubmittedQuery) it.companySearchResults else emptyList(),
+                isCompanySearchLoading = query.length >= MIN_SEARCH_QUERY_LENGTH &&
+                    (shouldSearchCompanies || it.isCompanySearchLoading),
+                companySearchError = if (sameSubmittedQuery && !shouldSearchCompanies) it.companySearchError else null
             )
         }
 
@@ -554,9 +477,13 @@ class SearchViewModel @Inject constructor(
                 it.copy(
                     isSearching = false,
                     error = null,
-                    catalogRows = emptyList()
+                    catalogRows = emptyList(),
+                    companySearchResults = emptyList(),
+                    isCompanySearchLoading = false,
+                    companySearchError = null
                 )
             }
+            lastCompanySearchQuery = null
             ensureDiscoverLoaded()
             return
         }
@@ -569,6 +496,37 @@ class SearchViewModel @Inject constructor(
         activeSearchQuery = query
 
         val job = viewModelScope.launch {
+            val companySearchJob = if (shouldSearchCompanies) {
+                launch {
+                    try {
+                        val results = tmdbCollectionSourceResolver.searchCompanies(query)
+                        if (isCurrentSearch(generation, query)) {
+                            _uiState.update { state ->
+                                if (state.submittedQuery.trim() != query) state
+                                else state.copy(
+                                    companySearchResults = mapCompanySearchResults(results),
+                                    isCompanySearchLoading = false,
+                                    companySearchError = null
+                                )
+                            }
+                        }
+                    } catch (error: CancellationException) {
+                        throw error
+                    } catch (error: Exception) {
+                        if (isCurrentSearch(generation, query)) {
+                            _uiState.update { state ->
+                                if (state.submittedQuery.trim() != query) state
+                                else state.copy(
+                                    isCompanySearchLoading = false,
+                                    companySearchError = error.message
+                                        ?.takeIf(String::isNotBlank)
+                                        ?: context.getString(R.string.search_error_failed)
+                                )
+                            }
+                        }
+                    }
+                }
+            } else null
             val addons = try {
                 addonRepository.getInstalledAddons().first().enabledAddons()
             } catch (e: CancellationException) {
@@ -576,6 +534,12 @@ class SearchViewModel @Inject constructor(
             } catch (e: Exception) {
                 if (generation == searchGeneration && activeSearchQuery == query) {
                     _uiState.update { it.copy(isSearching = false, error = e.message ?: context.getString(com.nuvio.tv.R.string.search_error_load_addons_failed)) }
+                }
+                if (rememberToHistory) {
+                    companySearchJob?.join()
+                    if (_uiState.value.companySearchResults.isNotEmpty()) {
+                        viewModelScope.launch { searchHistoryDataStore.saveRecentSearch(query, MAX_RECENT_SEARCHES) }
+                    }
                 }
                 return@launch
             }
@@ -596,7 +560,10 @@ class SearchViewModel @Inject constructor(
                 // An explicit submit that lands on a query the live search already finished still
                 // counts as a search the user confirmed, so remember it instead of skipping out
                 // of the history save below.
-                if (rememberToHistory && catalogsMap.values.any { row -> row.items.isNotEmpty() }) {
+                if (
+                    rememberToHistory &&
+                    (catalogsMap.values.any { row -> row.items.isNotEmpty() } || uiState.value.companySearchResults.isNotEmpty())
+                ) {
                     viewModelScope.launch {
                         searchHistoryDataStore.saveRecentSearch(query, MAX_RECENT_SEARCHES)
                     }
@@ -616,12 +583,17 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(isSearching = true, error = null, installedAddons = addons) }
 
             if (searchTargets.isEmpty()) {
+                companySearchJob?.join()
                 _uiState.update {
                     it.copy(
                         isSearching = false,
                         error = context.getString(R.string.search_error_no_catalogs),
-                        catalogRows = emptyList()
+                        catalogRows = emptyList(),
+                        suggestions = if (keepSuggestions) emptyList() else it.suggestions
                     )
+                }
+                if (rememberToHistory && uiState.value.companySearchResults.isNotEmpty()) {
+                    viewModelScope.launch { searchHistoryDataStore.saveRecentSearch(query, MAX_RECENT_SEARCHES) }
                 }
                 return@launch
             }
@@ -691,9 +663,29 @@ class SearchViewModel @Inject constructor(
                 if (showingRealRows) state else state.copy(catalogRows = placeholderRows)
             }
 
-            val jobs = searchTargets.map { (addon, catalog) ->
+            val suggestionNamesByCatalog = java.util.concurrent.ConcurrentHashMap<Int, List<String>>()
+            val queryLower = query.lowercase()
+            val jobs = searchTargets.mapIndexed { catalogIndex, (addon, catalog) ->
                 launch {
                     loadCatalog(addon, catalog, query, generation)
+                    if (keepSuggestions && isCurrentSearch(generation, query)) {
+                        val key = catalogKey(
+                            addonId = addon.id,
+                            addonBaseUrl = addon.baseUrl,
+                            type = catalog.apiType,
+                            catalogId = catalog.id
+                        )
+                        suggestionNamesByCatalog[catalogIndex] = catalogsMap[key]?.items?.map { it.name }.orEmpty()
+                        val ranked = rankedSuggestions(
+                            mergedCatalogNames(suggestionNamesByCatalog, searchTargets.size),
+                            queryLower
+                        )
+                        if (ranked.isNotEmpty()) {
+                            _uiState.update { state ->
+                                if (state.query.trim() == query) state.copy(suggestions = ranked) else state
+                            }
+                        }
+                    }
                 }
             }
             pendingCatalogResponses = jobs.size
@@ -702,6 +694,7 @@ class SearchViewModel @Inject constructor(
             // Wait for all jobs to complete so we can stop showing the global loading state.
             try {
                 jobs.joinAll()
+                companySearchJob?.join()
             } finally {
                 if (
                     generation == searchGeneration &&
@@ -709,12 +702,23 @@ class SearchViewModel @Inject constructor(
                     uiState.value.submittedQuery.trim() == query
                 ) {
                     lastCompletedRequestKey = requestKey
-                    _uiState.update { it.copy(isSearching = false) }
+                    if (keepSuggestions && uiState.value.query.trim() == query) {
+                        val ranked = rankedSuggestions(
+                            mergedCatalogNames(suggestionNamesByCatalog, searchTargets.size),
+                            queryLower
+                        )
+                        _uiState.update { it.copy(isSearching = false, suggestions = ranked) }
+                    } else {
+                        _uiState.update { it.copy(isSearching = false) }
+                    }
                     // Only explicit submit (or moving into results from the text input — see
                     // rememberSearchFromTextInput)
                     // writes history. Live search fires per keystroke and would otherwise record
                     // every prefix ("do", "dog") even when the user never confirmed the search.
-                    if (rememberToHistory && catalogsMap.values.any { row -> row.items.isNotEmpty() }) {
+                    if (
+                        rememberToHistory &&
+                        (catalogsMap.values.any { row -> row.items.isNotEmpty() } || uiState.value.companySearchResults.isNotEmpty())
+                    ) {
                         viewModelScope.launch {
                             searchHistoryDataStore.saveRecentSearch(query, MAX_RECENT_SEARCHES)
                         }
@@ -740,24 +744,26 @@ class SearchViewModel @Inject constructor(
                 .map { alias ->
                     async {
                         brazilianAliasRequestLimit.withPermit {
-                            try {
-                                catalogRepository.getCatalog(
-                                    addonBaseUrl = addon.baseUrl,
-                                    addonId = addon.id,
-                                    addonName = addon.displayName,
-                                    catalogId = catalog.id,
-                                    catalogName = catalog.name,
-                                    type = catalog.apiType,
-                                    skip = 0,
-                                    skipStep = 0,
-                                    extraArgs = mapOf("search" to alias),
-                                    supportsSkip = false,
-                                    posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH,
-                                ).first { it !is NetworkResult.Loading }
-                            } catch (error: CancellationException) {
-                                throw error
-                            } catch (_: Exception) {
-                                null
+                            catalogRequestLimit.withPermit {
+                                try {
+                                    catalogRepository.getCatalog(
+                                        addonBaseUrl = addon.baseUrl,
+                                        addonId = addon.id,
+                                        addonName = addon.displayName,
+                                        catalogId = catalog.id,
+                                        catalogName = catalog.name,
+                                        type = catalog.apiType,
+                                        skip = 0,
+                                        skipStep = 0,
+                                        extraArgs = mapOf("search" to alias),
+                                        supportsSkip = false,
+                                        posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH,
+                                    ).first { it !is NetworkResult.Loading }
+                                } catch (error: CancellationException) {
+                                    throw error
+                                } catch (_: Exception) {
+                                    null
+                                }
                             }
                         }
                     }
@@ -774,54 +780,56 @@ class SearchViewModel @Inject constructor(
         }
         val supportsSkip = catalog.supportsExtra("skip")
         val skipStep = catalog.skipStep()
-        catalogRepository.getCatalog(
-            addonBaseUrl = addon.baseUrl,
-            addonId = addon.id,
-            addonName = addon.displayName,
-            catalogId = catalog.id,
-            catalogName = catalog.name,
-            type = catalog.apiType,
-            skip = 0,
-            skipStep = skipStep,
-            extraArgs = mapOf("search" to query),
-            supportsSkip = supportsSkip,
-            posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
-        ).collect { result ->
-            when (result) {
-                is NetworkResult.Success -> {
-                    if (!isCurrentSearch(generation, query)) return@collect
-                    val key = catalogKey(
-                        addonId = addon.id,
-                        addonBaseUrl = addon.baseUrl,
-                        type = catalog.apiType,
-                        catalogId = catalog.id
-                    )
-                    catalogsMap[key] = result.data.copy(
-                        items = (result.data.items + aliasItems).distinctBy { it.apiType to it.id }
-                            .map { it.copy(name = com.nuvio.tv.core.catalog.brazilianTitle(it.id, it.apiType, it.name)) },
-                    )
-                    pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
-                    scheduleCatalogRowsUpdate()
-                }
-                is NetworkResult.Error -> {
-                    if (!isCurrentSearch(generation, query)) return@collect
-                    if (aliasItems.isNotEmpty()) {
-                        val key = catalogKey(addon.id, addon.baseUrl, catalog.apiType, catalog.id)
-                        catalogsMap[key] = requireNotNull(aliasRow).copy(
-                            items = aliasItems.distinctBy { it.apiType to it.id }.map {
-                                it.copy(name = com.nuvio.tv.core.catalog.brazilianTitle(it.id, it.apiType, it.name))
-                            }, hasMore = false, supportsSkip = false,
+        catalogRequestLimit.withPermit {
+            catalogRepository.getCatalog(
+                addonBaseUrl = addon.baseUrl,
+                addonId = addon.id,
+                addonName = addon.displayName,
+                catalogId = catalog.id,
+                catalogName = catalog.name,
+                type = catalog.apiType,
+                skip = 0,
+                skipStep = skipStep,
+                extraArgs = mapOf("search" to query),
+                supportsSkip = supportsSkip,
+                posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
+            ).collect { result ->
+                when (result) {
+                    is NetworkResult.Success -> {
+                        if (!isCurrentSearch(generation, query)) return@collect
+                        val key = catalogKey(
+                            addonId = addon.id,
+                            addonBaseUrl = addon.baseUrl,
+                            type = catalog.apiType,
+                            catalogId = catalog.id
                         )
+                        catalogsMap[key] = result.data.copy(
+                            items = (result.data.items + aliasItems).distinctBy { it.apiType to it.id }
+                                .map { it.copy(name = com.nuvio.tv.core.catalog.brazilianTitle(it.id, it.apiType, it.name)) },
+                        )
+                        pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
+                        scheduleCatalogRowsUpdate()
                     }
-                    pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
-                    // Ignore per-catalog errors unless we have nothing to show.
-                    if (catalogsMap.isEmpty()) {
-                        _uiState.update { it.copy(error = result.message ?: context.getString(com.nuvio.tv.R.string.search_error_failed)) }
+                    is NetworkResult.Error -> {
+                        if (!isCurrentSearch(generation, query)) return@collect
+                        if (aliasItems.isNotEmpty()) {
+                            val key = catalogKey(addon.id, addon.baseUrl, catalog.apiType, catalog.id)
+                            catalogsMap[key] = requireNotNull(aliasRow).copy(
+                                items = aliasItems.distinctBy { it.apiType to it.id }.map {
+                                    it.copy(name = com.nuvio.tv.core.catalog.brazilianTitle(it.id, it.apiType, it.name))
+                                }, hasMore = false, supportsSkip = false,
+                            )
+                        }
+                        pendingCatalogResponses = (pendingCatalogResponses - 1).coerceAtLeast(0)
+                        // Ignore per-catalog errors unless we have nothing to show.
+                        if (catalogsMap.isEmpty()) {
+                            _uiState.update { it.copy(error = result.message ?: context.getString(com.nuvio.tv.R.string.search_error_failed)) }
+                        }
+                        scheduleCatalogRowsUpdate()
                     }
-                    scheduleCatalogRowsUpdate()
-                }
-                NetworkResult.Loading -> {
-                    // No-op; screen shows global loading when empty.
+                    NetworkResult.Loading -> {
+                        // No-op; screen shows global loading when empty.
+                    }
                 }
             }
         }
@@ -862,30 +870,32 @@ class SearchViewModel @Inject constructor(
             }
 
             val nextSkip = currentRow.nextCatalogSkip()
-            catalogRepository.getCatalog(
-                addonBaseUrl = addon.baseUrl,
-                addonId = addon.id,
-                addonName = addon.displayName,
-                catalogId = catalogId,
-                catalogName = currentRow.catalogName,
-                type = currentRow.apiType,
-                skip = nextSkip,
-                skipStep = currentRow.skipStep,
-                extraArgs = mapOf("search" to query),
-                supportsSkip = currentRow.supportsSkip,
-                posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
-            ).collect { result ->
-                when (result) {
-                    is NetworkResult.Success -> {
-                        if (!isCurrentSearch(generation, query)) return@collect
-                        val latestRow = catalogsMap[key] ?: return@collect
-                        catalogsMap[key] = latestRow.mergeCatalogPage(result.data)
-                        scheduleCatalogRowsUpdate()
+            catalogRequestLimit.withPermit {
+                catalogRepository.getCatalog(
+                    addonBaseUrl = addon.baseUrl,
+                    addonId = addon.id,
+                    addonName = addon.displayName,
+                    catalogId = catalogId,
+                    catalogName = currentRow.catalogName,
+                    type = currentRow.apiType,
+                    skip = nextSkip,
+                    skipStep = currentRow.skipStep,
+                    extraArgs = mapOf("search" to query),
+                    supportsSkip = currentRow.supportsSkip,
+                    posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
+                ).collect { result ->
+                    when (result) {
+                        is NetworkResult.Success -> {
+                            if (!isCurrentSearch(generation, query)) return@collect
+                            val latestRow = catalogsMap[key] ?: return@collect
+                            catalogsMap[key] = latestRow.mergeCatalogPage(result.data)
+                            scheduleCatalogRowsUpdate()
+                        }
+                        is NetworkResult.Error -> {
+                            clearRowLoading(key, generation, query)
+                        }
+                        NetworkResult.Loading -> Unit
                     }
-                    is NetworkResult.Error -> {
-                        clearRowLoading(key, generation, query)
-                    }
-                    NetworkResult.Loading -> Unit
                 }
             }
         }
@@ -1137,77 +1147,79 @@ class SearchViewModel @Inject constructor(
                 state.selectedDiscoverGenre?.takeIf { it.isNotBlank() }?.let { put("genre", it) }
             }
 
-            catalogRepository.getCatalog(
-                addonBaseUrl = selectedCatalog.addonBaseUrl,
-                addonId = selectedCatalog.addonId,
-                addonName = selectedCatalog.addonName,
-                catalogId = selectedCatalog.catalogId,
-                catalogName = selectedCatalog.catalogName,
-                type = selectedCatalog.type,
-                skip = skip,
-                skipStep = selectedCatalog.skipStep,
-                extraArgs = extraArgs,
-                supportsSkip = selectedCatalog.supportsSkip,
-                posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
-            ).collect { result ->
-                if (_uiState.value.discoverLocation == DiscoverLocation.OFF) return@collect
-                when (result) {
-                    is NetworkResult.Success -> {
-                        val incoming = result.data.items
-                        val existing = if (reset) {
-                            emptyList()
-                        } else {
-                            _uiState.value.discoverResults + _uiState.value.pendingDiscoverResults
+            catalogRequestLimit.withPermit {
+                catalogRepository.getCatalog(
+                    addonBaseUrl = selectedCatalog.addonBaseUrl,
+                    addonId = selectedCatalog.addonId,
+                    addonName = selectedCatalog.addonName,
+                    catalogId = selectedCatalog.catalogId,
+                    catalogName = selectedCatalog.catalogName,
+                    type = selectedCatalog.type,
+                    skip = skip,
+                    skipStep = selectedCatalog.skipStep,
+                    extraArgs = extraArgs,
+                    supportsSkip = selectedCatalog.supportsSkip,
+                    posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
+                ).collect { result ->
+                    if (_uiState.value.discoverLocation == DiscoverLocation.OFF) return@collect
+                    when (result) {
+                        is NetworkResult.Success -> {
+                            val incoming = result.data.items
+                            val existing = if (reset) {
+                                emptyList()
+                            } else {
+                                _uiState.value.discoverResults + _uiState.value.pendingDiscoverResults
+                            }
+                            val existingKeys = existing.asSequence()
+                                .map { "${it.apiType}:${it.id}" }
+                                .toSet()
+                            val hasNewUniqueIncoming = incoming.any { item ->
+                                "${item.apiType}:${item.id}" !in existingKeys
+                            }
+                            val merged = if (reset) incoming else (existing + incoming)
+                            val rawDeduped = merged.distinctBy { "${it.apiType}:${it.id}" }
+                            val deduped = if (hideUnreleasedContent) {
+                                val today = LocalDate.now()
+                                rawDeduped.filterNot { it.isUnreleased(today) }
+                            } else {
+                                rawDeduped
+                            }
+                            val shouldRevealBatch = !reset && revealBatchAfterNextDiscoverFetch
+                            val visibleLimit = if (reset) {
+                                DISCOVER_INITIAL_LIMIT
+                            } else if (shouldRevealBatch) {
+                                (visibleCountBeforeRequest + DISCOVER_SHOW_MORE_BATCH)
+                                    .coerceAtLeast(DISCOVER_INITIAL_LIMIT)
+                            } else {
+                                visibleCountBeforeRequest.coerceAtLeast(DISCOVER_INITIAL_LIMIT)
+                            }
+                            val visible = deduped.take(visibleLimit)
+                            val pending = deduped.drop(visibleLimit)
+                            val shouldStopPagination = !reset && !hasNewUniqueIncoming
+                            _uiState.update {
+                                it.copy(
+                                    discoverLoading = false,
+                                    discoverLoadingMore = false,
+                                    discoverResults = visible,
+                                    pendingDiscoverResults = pending,
+                                    discoverHasMore = if (shouldStopPagination) false else result.data.hasMore,
+                                    discoverPage = if (shouldStopPagination) it.discoverPage else currentPage
+                                )
+                            }
+                            revealBatchAfterNextDiscoverFetch = false
                         }
-                        val existingKeys = existing.asSequence()
-                            .map { "${it.apiType}:${it.id}" }
-                            .toSet()
-                        val hasNewUniqueIncoming = incoming.any { item ->
-                            "${item.apiType}:${item.id}" !in existingKeys
+                        is NetworkResult.Error -> {
+                            revealBatchAfterNextDiscoverFetch = false
+                            _uiState.update {
+                                it.copy(
+                                    discoverLoading = false,
+                                    discoverLoadingMore = false,
+                                    discoverHasMore = false
+                                )
+                            }
                         }
-                        val merged = if (reset) incoming else (existing + incoming)
-                        val rawDeduped = merged.distinctBy { "${it.apiType}:${it.id}" }
-                        val deduped = if (hideUnreleasedContent) {
-                            val today = LocalDate.now()
-                            rawDeduped.filterNot { it.isUnreleased(today) }
-                        } else {
-                            rawDeduped
-                        }
-                        val shouldRevealBatch = !reset && revealBatchAfterNextDiscoverFetch
-                        val visibleLimit = if (reset) {
-                            DISCOVER_INITIAL_LIMIT
-                        } else if (shouldRevealBatch) {
-                            (visibleCountBeforeRequest + DISCOVER_SHOW_MORE_BATCH)
-                                .coerceAtLeast(DISCOVER_INITIAL_LIMIT)
-                        } else {
-                            visibleCountBeforeRequest.coerceAtLeast(DISCOVER_INITIAL_LIMIT)
-                        }
-                        val visible = deduped.take(visibleLimit)
-                        val pending = deduped.drop(visibleLimit)
-                        val shouldStopPagination = !reset && !hasNewUniqueIncoming
-                        _uiState.update {
-                            it.copy(
-                                discoverLoading = false,
-                                discoverLoadingMore = false,
-                                discoverResults = visible,
-                                pendingDiscoverResults = pending,
-                                discoverHasMore = if (shouldStopPagination) false else result.data.hasMore,
-                                discoverPage = if (shouldStopPagination) it.discoverPage else currentPage
-                            )
-                        }
-                        revealBatchAfterNextDiscoverFetch = false
+                        NetworkResult.Loading -> Unit
                     }
-                    is NetworkResult.Error -> {
-                        revealBatchAfterNextDiscoverFetch = false
-                        _uiState.update {
-                            it.copy(
-                                discoverLoading = false,
-                                discoverLoadingMore = false,
-                                discoverHasMore = false
-                            )
-                        }
-                    }
-                    NetworkResult.Loading -> Unit
                 }
             }
         }

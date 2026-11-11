@@ -7,7 +7,6 @@ import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsFocused
-import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -21,7 +20,6 @@ import com.nuvio.tv.R
 import com.nuvio.tv.core.tracking.TrackingProviderId
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.simkl.SimklConnectionMode
-import com.nuvio.tv.domain.model.LibrarySourceMode
 import com.nuvio.tv.ui.theme.NuvioTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -40,45 +38,34 @@ class TrackingSettingsOverviewTest {
     fun providerRowsAreOrderedAndShowDisconnectedStatus() {
         setOverview()
 
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.TRAKT_PROVIDER).assertIsDisplayed()
         composeRule.onNodeWithTag(TrackingSettingsTestTags.SIMKL_PROVIDER).assertIsDisplayed()
         composeRule.onNodeWithTag(TrackingSettingsTestTags.MDBLIST_PROVIDER).assertIsDisplayed()
         composeRule.onAllNodesWithText(
             context.getString(R.string.tracking_status_disconnected)
-        ).assertCountEquals(3)
+        ).assertCountEquals(2)
 
-        val traktTop = composeRule
-            .onNodeWithTag(TrackingSettingsTestTags.TRAKT_PROVIDER)
-            .fetchSemanticsNode()
-            .boundsInRoot
-            .top
         val simklTop = composeRule
             .onNodeWithTag(TrackingSettingsTestTags.SIMKL_PROVIDER)
             .fetchSemanticsNode()
             .boundsInRoot
             .top
-
         val mdblistTop = composeRule.onNodeWithTag(TrackingSettingsTestTags.MDBLIST_PROVIDER)
             .fetchSemanticsNode().boundsInRoot.top
-        assertTrue(traktTop < simklTop)
         assertTrue(simklTop < mdblistTop)
     }
 
     @Test
     fun connectedProviderRowsShowUsernamesAndStatus() {
         setOverview(
-            traktState = TraktUiState(
-                mode = TraktConnectionMode.CONNECTED,
-                username = "trakt-user"
-            ),
             simklState = SimklSettingsUiState(
                 mode = SimklConnectionMode.CONNECTED,
                 username = "simkl-user"
             ),
+            mdbListState = MdbListTrackerUiState(isConnected = true, username = "mdb-viewer"),
             trackingState = TrackingSettingsUiState(
                 connectedProviderIds = setOf(
-                    TrackingProviderId.TRAKT,
-                    TrackingProviderId.SIMKL
+                    TrackingProviderId.SIMKL,
+                    TrackingProviderId.MDBLIST
                 ),
                 isReady = true
             )
@@ -88,10 +75,10 @@ class TrackingSettingsOverviewTest {
             context.getString(R.string.tracking_status_connected)
         ).assertCountEquals(2)
         composeRule.onNodeWithText(
-            context.getString(R.string.trakt_connected_as, "trakt-user")
+            context.getString(R.string.simkl_connected_as, "simkl-user")
         ).assertIsDisplayed()
         composeRule.onNodeWithText(
-            context.getString(R.string.simkl_connected_as, "simkl-user")
+            context.getString(R.string.mdblist_connected_as, "mdb-viewer")
         ).assertIsDisplayed()
     }
 
@@ -109,142 +96,67 @@ class TrackingSettingsOverviewTest {
         composeRule.onNodeWithTag(TrackingSettingsTestTags.OVERVIEW_LIST).performScrollToIndex(1)
         composeRule.onNodeWithTag(TrackingSettingsTestTags.WATCH_PROGRESS_SOURCE).assertIsEnabled()
         composeRule.onNodeWithTag(TrackingSettingsTestTags.LIBRARY_SOURCE).assertIsEnabled()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.CONTINUE_WATCHING).assertDoesNotExist()
     }
 
     @Test
-    fun disconnectedTraktHidesItsProviderFeatures() {
+    fun continueWatchingWindowIsAvailableWithoutAnExternalProvider() {
         setOverview()
 
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.CONTINUE_WATCHING).assertDoesNotExist()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.COMMENTS).assertDoesNotExist()
+        composeRule.onNodeWithTag(TrackingSettingsTestTags.OVERVIEW_LIST).performScrollToIndex(1)
+        composeRule.onNodeWithTag(TrackingSettingsTestTags.CONTINUE_WATCHING).assertIsEnabled()
         composeRule.onNodeWithTag(TrackingSettingsTestTags.MORE_LIKE_THIS).assertDoesNotExist()
     }
 
     @Test
-    fun connectedTraktRequiresTraktProgressOnlyForContinueWatchingWindow() {
+    fun connectedSimklExposesMoreLikeThisSource() {
         setOverview(
-            traktState = TraktUiState(mode = TraktConnectionMode.CONNECTED),
+            simklState = SimklSettingsUiState(mode = SimklConnectionMode.CONNECTED),
             trackingState = TrackingSettingsUiState(
-                watchProgressSource = WatchProgressSource.NUVIO_SYNC,
-                connectedProviderIds = setOf(TrackingProviderId.TRAKT),
+                connectedProviderIds = setOf(TrackingProviderId.SIMKL),
                 isReady = true
             )
         )
-        scrollToTraktFeatures()
 
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.CONTINUE_WATCHING)
-            .assertIsNotEnabled()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.COMMENTS)
-            .assertIsEnabled()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.MORE_LIKE_THIS)
-            .assertIsEnabled()
+        composeRule.onNodeWithTag(TrackingSettingsTestTags.OVERVIEW_LIST).performScrollToIndex(1)
+        composeRule.onNodeWithTag(TrackingSettingsTestTags.MORE_LIKE_THIS).assertIsEnabled()
     }
 
     @Test
-    fun TraktProgressEnablesEveryConnectedTraktFeature() {
-        setOverview(
-            traktState = TraktUiState(mode = TraktConnectionMode.CONNECTED),
-            trackingState = TrackingSettingsUiState(
-                watchProgressSource = WatchProgressSource.TRAKT,
-                librarySourceMode = LibrarySourceMode.TRAKT,
-                connectedProviderIds = setOf(TrackingProviderId.TRAKT),
-                isReady = true
-            )
-        )
-        scrollToTraktFeatures()
-
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.CONTINUE_WATCHING)
-            .assertIsEnabled()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.COMMENTS)
-            .assertIsEnabled()
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.MORE_LIKE_THIS)
-            .assertIsEnabled()
-    }
-
-    @Test
-    fun remoteFocusMovesFromTraktThroughSimklToMdbList() {
-        lateinit var traktFocusRequester: FocusRequester
+    fun remoteFocusMovesFromSimklToMdbList() {
+        lateinit var simklFocusRequester: FocusRequester
         composeRule.setContent {
             NuvioTheme {
-                traktFocusRequester = remember { FocusRequester() }
+                simklFocusRequester = remember { FocusRequester() }
                 TrackingSettingsOverview(
-                    traktState = TraktUiState(),
                     simklState = SimklSettingsUiState(),
                     mdbListState = MdbListTrackerUiState(),
                     trackingState = TrackingSettingsUiState(isReady = true),
-                    traktFocusRequester = traktFocusRequester,
-                    simklFocusRequester = remember { FocusRequester() },
+                    simklFocusRequester = simklFocusRequester,
                     mdbListFocusRequester = remember { FocusRequester() },
                     libraryFocusRequester = remember { FocusRequester() },
                     watchProgressFocusRequester = remember { FocusRequester() },
                     continueWatchingFocusRequester = remember { FocusRequester() },
                     moreLikeThisFocusRequester = remember { FocusRequester() },
-                    onTraktClick = {},
                     onSimklClick = {},
                     onMdbListClick = {},
                     onLibrarySourceClick = {},
                     onWatchProgressClick = {},
                     onContinueWatchingWindowClick = {},
-                    onCommentsChanged = {},
                     onMoreLikeThisClick = {},
                     onAnimeIdClick = {}
                 )
             }
         }
         composeRule.runOnIdle {
-            traktFocusRequester.requestFocus()
+            simklFocusRequester.requestFocus()
         }
 
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.TRAKT_PROVIDER)
-            .assertIsFocused().performKeyInput { pressKey(Key.DirectionDown) }
         composeRule.onNodeWithTag(TrackingSettingsTestTags.SIMKL_PROVIDER)
             .assertIsFocused().performKeyInput { pressKey(Key.DirectionDown) }
         composeRule.onNodeWithTag(TrackingSettingsTestTags.MDBLIST_PROVIDER).assertIsFocused()
     }
 
-    @Test
-    fun disconnectedDeviceAuthorizationShowsRetryAction() {
-        composeRule.setContent {
-            NuvioTheme {
-                TraktAccountDialog(
-                    state = TraktUiState(),
-                    onStartConnection = {},
-                    onRetryPolling = {},
-                    onDisconnect = {},
-                    onDismiss = {}
-                )
-            }
-        }
-
-        composeRule.onNodeWithText(context.getString(R.string.action_retry)).assertExists()
-    }
-
-    @Test
-    fun awaitingDeviceAuthorizationShowsCodeAndCancelAction() {
-        composeRule.setContent {
-            NuvioTheme {
-                TraktAccountDialog(
-                    state = TraktUiState(
-                        mode = TraktConnectionMode.AWAITING_APPROVAL,
-                        deviceUserCode = "ABCD1234",
-                        verificationUrl = "https://trakt.tv/activate",
-                        deviceCodeExpiresAtMillis = System.currentTimeMillis() + 60_000L
-                    ),
-                    onStartConnection = {},
-                    onRetryPolling = {},
-                    onDisconnect = {},
-                    onDismiss = {}
-                )
-            }
-        }
-
-        composeRule.onNodeWithText("ABCD1234").assertExists()
-        composeRule.onNodeWithText(context.getString(R.string.action_cancel)).assertExists()
-    }
-
     private fun setOverview(
-        traktState: TraktUiState = TraktUiState(),
         simklState: SimklSettingsUiState = SimklSettingsUiState(),
         mdbListState: MdbListTrackerUiState = MdbListTrackerUiState(),
         trackingState: TrackingSettingsUiState = TrackingSettingsUiState(isReady = true)
@@ -252,33 +164,24 @@ class TrackingSettingsOverviewTest {
         composeRule.setContent {
             NuvioTheme {
                 TrackingSettingsOverview(
-                    traktState = traktState,
                     simklState = simklState,
                     mdbListState = mdbListState,
                     trackingState = trackingState,
-                    traktFocusRequester = remember { FocusRequester() },
                     simklFocusRequester = remember { FocusRequester() },
                     mdbListFocusRequester = remember { FocusRequester() },
                     libraryFocusRequester = remember { FocusRequester() },
                     watchProgressFocusRequester = remember { FocusRequester() },
                     continueWatchingFocusRequester = remember { FocusRequester() },
                     moreLikeThisFocusRequester = remember { FocusRequester() },
-                    onTraktClick = {},
                     onSimklClick = {},
                     onMdbListClick = {},
                     onLibrarySourceClick = {},
                     onWatchProgressClick = {},
                     onContinueWatchingWindowClick = {},
-                    onCommentsChanged = {},
                     onMoreLikeThisClick = {},
                     onAnimeIdClick = {}
                 )
             }
         }
-    }
-
-    private fun scrollToTraktFeatures() {
-        composeRule.onNodeWithTag(TrackingSettingsTestTags.OVERVIEW_LIST)
-            .performScrollToIndex(2)
     }
 }

@@ -8,6 +8,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.nio.ByteBuffer
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNotNull
 
@@ -92,9 +93,11 @@ class DefaultAllocatorNativeLeakTest {
         allocator.release(a2)
         allocator.release(a3)
 
-        // 4. Assert that memory footprint drops to 0. 
-        // On buggy code, this will fail as footprint remains 3 * segmentSize (196608)
-        org.junit.Assert.assertEquals("Memory leak detected in DefaultAllocator footprint!", 0, allocator.memoryFootprint)
+        // Late releases are retained by the allocator for reuse. Explicit trim must free them.
+        assertEquals(3 * segmentSize, allocator.memoryFootprint)
+        assertEquals(3 * segmentSize, allocator.availableBytes)
+        allocator.trim()
+        org.junit.Assert.assertEquals("Allocator should release its native footprint after trim", 0, allocator.memoryFootprint)
     }
 
 

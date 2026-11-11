@@ -1,5 +1,6 @@
 package com.nuvio.tv.data.local
 
+import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -10,6 +11,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nuvio.tv.core.profile.ProfileManager
+import com.nuvio.tv.core.runtime.TvPerformanceProfile
 import com.nuvio.tv.core.sync.LocalHomeCatalogSettingsState
 import com.nuvio.tv.core.sync.SyncHomeCatalogPayload
 import com.nuvio.tv.core.sync.buildHomeCatalogSyncPayload
@@ -40,12 +42,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class LayoutPreferenceDataStore @Inject constructor(
+    @param:ApplicationContext private val applicationContext: Context,
     private val factory: ProfileDataStoreFactory,
     private val profileManager: ProfileManager
 ) {
@@ -60,6 +64,8 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val focusedTrailerPreviewEnabledByDefault =
+        TvPerformanceProfile.detect(applicationContext).focusedTrailerPreviewEnabledByDefault
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) =
         factory.get(profileId, FEATURE)
@@ -240,7 +246,9 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     val modernHeroFullScreenBackdropEnabled: Flow<Boolean> = profileFlow { prefs ->
-        prefs[modernHeroFullScreenBackdropKey] ?: false
+        // New profiles start with the cinematic backdrop behind the first shelves.
+        // A saved false value remains respected as an explicit user preference.
+        prefs[modernHeroFullScreenBackdropKey] ?: true
     }
 
     val heroSectionEnabled: Flow<Boolean> = profileFlow { prefs ->
@@ -280,7 +288,7 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     val focusedPosterBackdropExpandEnabled: Flow<Boolean> = profileFlow { prefs ->
-        prefs[focusedPosterBackdropExpandEnabledKey] ?: true
+        prefs[focusedPosterBackdropExpandEnabledKey] ?: false
     }
 
     val focusedPosterBackdropExpandDelaySeconds: Flow<Int> = profileFlow { prefs ->
@@ -290,7 +298,7 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     val focusedPosterBackdropTrailerEnabled: Flow<Boolean> = profileFlow { prefs ->
-        prefs[focusedPosterBackdropTrailerEnabledKey] ?: false
+        prefs[focusedPosterBackdropTrailerEnabledKey] ?: focusedTrailerPreviewEnabledByDefault
     }
 
     val focusedPosterBackdropTrailerMuted: Flow<Boolean> = profileFlow { prefs ->
@@ -631,10 +639,6 @@ class LayoutPreferenceDataStore @Inject constructor(
     suspend fun setFocusedPosterBackdropExpandEnabled(enabled: Boolean) {
         store().edit { prefs ->
             prefs[focusedPosterBackdropExpandEnabledKey] = enabled
-            if (!enabled) {
-                prefs[focusedPosterBackdropTrailerEnabledKey] = false
-                prefs[focusedPosterBackdropTrailerMutedKey] = true
-            }
         }
     }
 

@@ -123,6 +123,8 @@ import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.tv.material3.IconButton
 import androidx.tv.material3.IconButtonDefaults
 import androidx.tv.material3.MaterialTheme
@@ -497,7 +499,7 @@ fun PlayerScreen(
 
     // Bump UI thread priority to THREAD_PRIORITY_DISPLAY (-4) while the player is active.
     // The Linux scheduler favors the thread under CPU pressure (background addon prefetch,
-    // Trakt sync, image decode), reducing dropped frames at scene cuts and during decoder
+    // remote sync, image decode), reducing dropped frames at scene cuts and during decoder
     // spin-up. Restored on dispose so non-player screens stay at default priority.
     DisposableEffect(Unit) {
         val tid = android.os.Process.myTid()
@@ -1278,6 +1280,12 @@ fun PlayerScreen(
         if (uiState.error != null) {
             ErrorOverlay(
                 message = uiState.error!!,
+                reportText = (uiState.playbackFailureReport ?: PlaybackFailureReport.create(
+                    source = PlaybackFailureSource.STREAM,
+                    stage = if (uiState.showLoadingOverlay) PlaybackFailureStage.STARTUP else PlaybackFailureStage.PLAYBACK,
+                    mediaUrl = uiState.currentStreamUrl,
+                    errorMessage = uiState.error
+                )).asText(),
                 showSwitchToMpvAction = uiState.showSwitchToMpvErrorAction &&
                     uiState.internalPlayerEngine != InternalPlayerEngine.MVP_PLAYER,
                 onSwitchToMpv = { viewModel.onEvent(PlayerEvent.OnSwitchToMpvPlayer) },
@@ -1472,12 +1480,11 @@ fun PlayerScreen(
                 onShowSubtitleDialog = { viewModel.onEvent(PlayerEvent.OnShowSubtitleOverlay) },
                 onShowSpeedDialog = { viewModel.onEvent(PlayerEvent.OnShowSpeedDialog) },
                 onShowSceneBookmarks = { viewModel.onEvent(PlayerEvent.OnShowSceneBookmarks) },
-                onShowSceneInfo = { scope, entries -> sceneInfoDialogState = TvSceneInfoDialogState(scope, entries) },
-                onSceneInfoEntriesChanged = { scope, entries ->
+                onShowSceneInfo = { scope, context -> sceneInfoDialogState = TvSceneInfoDialogState(scope, context) },
+                onSceneInfoContextChanged = { scope, context ->
                     val open = sceneInfoDialogState
                     if (open != null && open.scope == scope) {
-                        sceneInfoDialogState = entries.takeIf { it.isNotEmpty() }
-                            ?.let { open.copy(entries = it) }
+                        sceneInfoDialogState = context?.let { open.copy(context = it) }
                     }
                 },
                 bookmarksFocusRequester = bookmarksFocusRequester,
@@ -1532,7 +1539,11 @@ fun PlayerScreen(
         }
 
         sceneInfoDialogState?.let { state ->
-            SceneInfoDialog(entries = state.entries, onDismiss = { sceneInfoDialogState = null })
+            SceneInfoDialog(
+                context = state.context,
+                onSeekTo = { viewModel.onEvent(PlayerEvent.OnSeekTo(it)) },
+                onDismiss = { sceneInfoDialogState = null },
+            )
         }
 
         // Aspect ratio indicator (floating pill)
@@ -2300,8 +2311,8 @@ private fun PlayerControlsOverlay(
     onShowSubtitleDialog: () -> Unit,
     onShowSpeedDialog: () -> Unit,
     onShowSceneBookmarks: () -> Unit,
-    onShowSceneInfo: (TimedMetadataScope, List<TvSceneInfoEntry>) -> Unit,
-    onSceneInfoEntriesChanged: (TimedMetadataScope?, List<TvSceneInfoEntry>) -> Unit,
+    onShowSceneInfo: (TimedMetadataScope, TvSceneInfoChapterContext) -> Unit,
+    onSceneInfoContextChanged: (TimedMetadataScope?, TvSceneInfoChapterContext?) -> Unit,
     bookmarksFocusRequester: FocusRequester,
     onToggleAspectRatio: () -> Unit,
     onSwitchPlayerEngine: () -> Unit,
@@ -2352,12 +2363,15 @@ private fun PlayerControlsOverlay(
             trustedSceneProviderIds = setOf(provider.id),
         ).timeline
     }
-    val activeSceneInfo = remember(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition) {
-        sceneInfoEntriesAt(sceneInfoTimeline, sceneInfoScope, playbackTimeline.currentPosition)
+    val sceneInfoChapters = remember(sceneInfoTimeline, sceneInfoScope) {
+        sceneInfoChapterEntries(sceneInfoTimeline, sceneInfoScope)
     }
-    val currentOnSceneInfoEntriesChanged by rememberUpdatedState(onSceneInfoEntriesChanged)
-    LaunchedEffect(sceneInfoScope, activeSceneInfo) {
-        currentOnSceneInfoEntriesChanged(sceneInfoScope, activeSceneInfo)
+    val activeSceneInfoContext = remember(sceneInfoChapters, playbackTimeline.currentPosition) {
+        sceneInfoChapterContextAt(sceneInfoChapters, playbackTimeline.currentPosition)
+    }
+    val currentOnSceneInfoContextChanged by rememberUpdatedState(onSceneInfoContextChanged)
+    LaunchedEffect(sceneInfoScope, activeSceneInfoContext) {
+        currentOnSceneInfoContextChanged(sceneInfoScope, activeSceneInfoContext)
     }
     val progressUpTarget = if (isLivePlayback) {
         progressBarUpFocusRequester ?: playPauseFocusRequester
@@ -2370,12 +2384,13 @@ private fun PlayerControlsOverlay(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(190.dp)
                 .align(Alignment.TopCenter)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.7f),
+                            Color.Black.copy(alpha = 0.82f),
+                            Color.Black.copy(alpha = 0.24f),
                             Color.Transparent
                         )
                     )
@@ -2386,13 +2401,14 @@ private fun PlayerControlsOverlay(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(270.dp)
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f)
+                            Color.Black.copy(alpha = 0.52f),
+                            Color.Black.copy(alpha = 0.94f)
                         )
                     )
                 )
@@ -2527,6 +2543,7 @@ private fun PlayerControlsOverlay(
                         iconPainter = if (uiState.isPlaying) customPausePainter else customPlayPainter,
                         contentDescription = if (uiState.isPlaying) stringResource(R.string.cd_pause) else stringResource(R.string.cd_play),
                         onClick = onPlayPause,
+                        primary = true,
                         focusRequester = playPauseFocusRequester,
                         upFocusRequester = progressUpTarget,
                         onDownKey = onHideControls,
@@ -2624,11 +2641,11 @@ private fun PlayerControlsOverlay(
                                     onFocused = onResetHideTimer
                                 )
                             }
-                            if (!isLivePlayback && activeSceneInfo.isNotEmpty()) {
+                            if (!isLivePlayback && activeSceneInfoContext?.current != null) {
                                 ControlButton(
                                     icon = Icons.Default.Info,
                                     contentDescription = stringResource(R.string.scene_info_title),
-                                    onClick = { sceneInfoScope?.let { onShowSceneInfo(it, activeSceneInfo) } },
+                                    onClick = { sceneInfoScope?.let { onShowSceneInfo(it, activeSceneInfoContext) } },
                                     upFocusRequester = progressUpTarget,
                                     onDownKey = onHideControls,
                                     onFocused = onResetHideTimer,
@@ -2848,7 +2865,12 @@ private fun PlayerControlsTimeTextHost(viewModel: PlayerViewModel) {
     Text(
         text = timeText,
         style = MaterialTheme.typography.bodyMedium,
-        color = Color.White.copy(alpha = 0.9f)
+        color = Color.White.copy(alpha = 0.9f),
+        maxLines = 1,
+        modifier = Modifier
+            .padding(start = 12.dp)
+            .background(Color.Black.copy(alpha = 0.48f), RoundedCornerShape(50))
+            .padding(horizontal = 14.dp, vertical = 8.dp)
     )
 }
 
@@ -2894,11 +2916,12 @@ private fun ReportControlButton(
 }
 
 @Composable
-private fun ControlButton(
+internal fun ControlButton(
     icon: ImageVector,
     iconPainter: Painter? = null,
     contentDescription: String,
     onClick: () -> Unit,
+    primary: Boolean = false,
     focusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
     enabled: Boolean = true,
@@ -2912,6 +2935,11 @@ private fun ControlButton(
         enabled = enabled,
         modifier = Modifier
             .size(NuvioTheme.spacing.xxxl)
+            // tv-material's Surface only handles D-pad/semantics, not pointer taps
+            // (verified on API 33), so touch/mouse input needs its own handler.
+            .pointerInput(enabled, onClick) {
+                if (enabled) detectTapGestures { onClick() }
+            }
             .then(
                 if (focusRequester != null) Modifier.focusRequester(focusRequester)
                 else Modifier
@@ -2949,7 +2977,7 @@ private fun ControlButton(
                 if (it.isFocused) onFocused?.invoke()
             },
         colors = IconButtonDefaults.colors(
-            containerColor = Color.Transparent,
+            containerColor = if (primary) Color.White.copy(alpha = 0.24f) else Color.Black.copy(alpha = 0.34f),
             focusedContainerColor = Color.White,
             contentColor = Color.White,
             focusedContentColor = Color.Black
@@ -3648,6 +3676,7 @@ private fun LoadingIssueReportAction(
 @Composable
 private fun ErrorOverlay(
     message: String,
+    reportText: String,
     showSwitchToMpvAction: Boolean = false,
     onSwitchToMpv: (() -> Unit)? = null,
     showReportAction: Boolean,
@@ -3658,16 +3687,19 @@ private fun ErrorOverlay(
     onBack: () -> Unit
 ) {
     val exitFocusRequester = remember { FocusRequester() }
+    val detailsFocusRequester = remember { FocusRequester() }
     val reportFocusRequester = remember { FocusRequester() }
     val mpvFocusRequester = remember { FocusRequester() }
     val onSwitchMpvAction = onSwitchToMpv.takeIf { showSwitchToMpvAction }
-    val targetFocusRequester = if (onSwitchMpvAction != null) mpvFocusRequester else exitFocusRequester
+    val targetFocusRequester = if (onSwitchMpvAction != null) mpvFocusRequester else detailsFocusRequester
 
     var targetButtonPlaced by remember(onSwitchMpvAction != null) { mutableStateOf(false) }
     var mpvFocused by remember(onSwitchMpvAction != null) { mutableStateOf(false) }
     var reportFocused by remember(onSwitchMpvAction != null) { mutableStateOf(false) }
+    var detailsFocused by remember(onSwitchMpvAction != null) { mutableStateOf(false) }
     var exitFocused by remember(onSwitchMpvAction != null) { mutableStateOf(false) }
-    val hasOverlayFocus = mpvFocused || reportFocused || exitFocused
+    var showDetails by remember(message) { mutableStateOf(false) }
+    val hasOverlayFocus = mpvFocused || reportFocused || detailsFocused || exitFocused
 
     LaunchedEffect(targetButtonPlaced, onSwitchMpvAction != null) {
         if (!targetButtonPlaced) return@LaunchedEffect
@@ -3751,10 +3783,22 @@ private fun ErrorOverlay(
                             .onPlaced { targetButtonPlaced = true }
                             .onFocusChanged { mpvFocused = it.isFocused }
                             .focusProperties {
-                                right = if (showReportAction) reportFocusRequester else exitFocusRequester
+                                right = detailsFocusRequester
                             }
                     )
                 }
+                PlayerOverlayButton(
+                    text = stringResource(R.string.playback_failure_details_action),
+                    onClick = { showDetails = true },
+                    primary = false,
+                    modifier = Modifier
+                        .focusRequester(detailsFocusRequester)
+                        .onFocusChanged { detailsFocused = it.isFocused }
+                        .focusProperties {
+                            if (onSwitchMpvAction != null) left = mpvFocusRequester
+                            right = if (showReportAction) reportFocusRequester else exitFocusRequester
+                        }
+                )
                 if (showReportAction) {
                     PlayerOverlayButton(
                         text = when (reportStatus) {
@@ -3770,7 +3814,7 @@ private fun ErrorOverlay(
                             .focusRequester(reportFocusRequester)
                             .onFocusChanged { reportFocused = it.isFocused }
                             .focusProperties {
-                                if (onSwitchMpvAction != null) left = mpvFocusRequester
+                                left = detailsFocusRequester
                                 right = exitFocusRequester
                             }
                     )
@@ -3786,17 +3830,15 @@ private fun ErrorOverlay(
                         }
                         .onFocusChanged { exitFocused = it.isFocused }
                         .focusProperties {
-                            left = if (showReportAction) {
-                                reportFocusRequester
-                            } else if (onSwitchMpvAction != null) {
-                                mpvFocusRequester
-                            } else {
-                                FocusRequester.Default
-                            }
+                            left = if (showReportAction) reportFocusRequester else detailsFocusRequester
                         }
                 )
             }
         }
+    }
+
+    if (showDetails) {
+        PlaybackFailureDetailsDialog(reportText = reportText, onDismiss = { showDetails = false })
     }
 }
 

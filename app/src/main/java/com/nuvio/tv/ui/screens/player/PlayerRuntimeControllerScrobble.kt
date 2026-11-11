@@ -38,12 +38,6 @@ internal fun PlayerRuntimeController.preparePlaybackBeforeStart(
     clearPendingEngineSwitchTrackPreference()
     playbackPreparationJob?.cancel()
 
-    // Fire-and-forget: warm the Trakt episode mapping in the background.
-    traktMappingJob?.cancel()
-    traktMappingJob = scope.launch {
-        warmTraktEpisodeMappingForCurrentPlayback()
-    }
-
     playbackPreparationJob = scope.launch {
         setLoadingStatus(
             phase = "preparing_metadata",
@@ -123,55 +117,4 @@ private fun String.safeScrobbleHost(): String {
     return runCatching {
         android.net.Uri.parse(this).host ?: substringBefore("://").takeIf { it.isNotBlank() } ?: "unknown"
     }.getOrDefault("unknown")
-}
-
-internal suspend fun PlayerRuntimeController.warmTraktEpisodeMappingForCurrentPlayback() {
-    if (!traktEpisodeMappingService.isTraktAuthenticated()) {
-        currentTraktEpisodeMapping = null
-        currentTraktEpisodeMappingKey = null
-        return
-    }
-
-    val normalizedType = contentType?.lowercase()
-    if (normalizedType !in listOf("series", "tv")) {
-        currentTraktEpisodeMapping = null
-        currentTraktEpisodeMappingKey = null
-        return
-    }
-
-    val resolvedContentId = contentId?.takeIf { it.isNotBlank() } ?: run {
-        currentTraktEpisodeMapping = null
-        currentTraktEpisodeMappingKey = null
-        return
-    }
-    val season = currentSeason ?: run {
-        currentTraktEpisodeMapping = null
-        currentTraktEpisodeMappingKey = null
-        return
-    }
-    val episode = currentEpisode ?: run {
-        currentTraktEpisodeMapping = null
-        currentTraktEpisodeMappingKey = null
-        return
-    }
-
-    currentTraktEpisodeMapping = withTimeoutOrNull(12_000L) {
-        traktEpisodeMappingService.prefetchEpisodeMapping(
-            contentId = resolvedContentId,
-            contentType = contentType,
-            videoId = currentVideoId,
-            season = season,
-            episode = episode
-        )
-    }
-    currentTraktEpisodeMappingKey = currentEpisodeMappingCacheKey()
-}
-
-internal fun PlayerRuntimeController.currentEpisodeMappingCacheKey(): String? {
-    val resolvedContentId = contentId?.trim()?.takeIf { it.isNotBlank() } ?: return null
-    val resolvedType = contentType?.trim()?.lowercase()?.takeIf { it.isNotBlank() } ?: return null
-    val season = currentSeason ?: return null
-    val episode = currentEpisode ?: return null
-    val videoId = currentVideoId?.trim().orEmpty()
-    return "$resolvedType|$resolvedContentId|$videoId|$season|$episode"
 }

@@ -249,7 +249,7 @@ fun PosterOptionsHost(
     if (state.listPickerActive) {
         val localTab = LibraryListTab(
             key = LOCAL_LIBRARY_LIST_KEY,
-            title = stringResource(R.string.trakt_library_source_nuvio),
+            title = stringResource(R.string.tracking_library_source_nuvio),
             type = LibraryListTab.Type.WATCHLIST
         )
         val contentType = state.listPickerContentType.orEmpty()

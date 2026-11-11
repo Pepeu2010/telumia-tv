@@ -364,6 +364,10 @@ internal fun CatalogDescriptor.isSearchOnlyCatalog(): Boolean {
 
 internal fun CatalogDescriptor.shouldShowOnHome(): Boolean {
     if (isSearchOnlyCatalog()) return false
+    val normalizedType = apiType.trim()
+    if (normalizedType.equals("channel", ignoreCase = true) || normalizedType.equals("tv", ignoreCase = true)) {
+        return false
+    }
     return !hasExplicitShowInHome || showInHome
 }
 

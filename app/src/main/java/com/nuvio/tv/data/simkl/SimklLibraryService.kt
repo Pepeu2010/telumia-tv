@@ -115,8 +115,7 @@ class SimklLibraryService @Inject constructor(
                     TrackingExternalIds(
                         simkl = item.simklId,
                         imdb = item.imdbId,
-                        tmdb = item.tmdbId?.toLong(),
-                        trakt = item.traktId?.toLong()
+                        tmdb = item.tmdbId?.toLong()
                     )
                 )
             )

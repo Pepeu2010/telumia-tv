@@ -220,6 +220,7 @@ class SearchViewModelPaginationTest {
         return SearchViewModel(
             addonRepository = SingleAddonRepository(addon),
             catalogRepository = repository,
+            tmdbCollectionSourceResolver = mockk(relaxed = true),
             metaRepository = mockk(relaxed = true),
             discoverSelectionDataStore = mockk(relaxed = true),
             layoutPreferenceDataStore = layoutPreferences,

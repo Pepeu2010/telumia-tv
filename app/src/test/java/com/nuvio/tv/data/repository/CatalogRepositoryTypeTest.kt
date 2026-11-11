@@ -1,6 +1,7 @@
 package com.nuvio.tv.data.repository
 
 import android.content.Context
+import com.nuvio.tv.core.poster.CustomPosterScreen
 import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
 import com.nuvio.tv.data.remote.api.AddonApi
@@ -31,6 +32,7 @@ class CatalogRepositoryTypeTest {
         coEvery { api.getCatalog(capture(requestedUrls)) } returns Response.success(response)
         val preferences = mockk<LayoutPreferenceDataStore> {
             every { customPosterUrlPattern } returns flowOf("")
+            every { customPosterEnabledScreens } returns flowOf(CustomPosterScreen.ALL)
         }
         val repository = CatalogRepositoryImpl(mockk<Context>(relaxed = true), api, preferences)
         val descriptor = CatalogDescriptor(ContentType.SERIES, "Series", "mdblist.123", "My shows")

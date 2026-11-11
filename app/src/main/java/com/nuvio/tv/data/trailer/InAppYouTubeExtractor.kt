@@ -478,7 +478,7 @@ class InAppYouTubeExtractor @Inject constructor() {
         }
 
         val bestProgressive = sortCandidates(progressive).firstOrNull()
-        val bestVideo = pickBestForClient(adaptiveVideo, PREFERRED_SEPARATE_CLIENT)
+        val bestVideo = pickBestForClient(preferTvTrailerVideoCandidates(adaptiveVideo), PREFERRED_SEPARATE_CLIENT)
         val bestAudio = pickBestForClient(adaptiveAudio, PREFERRED_SEPARATE_CLIENT)
 
         for (kind in sourcePreference(singleUrl)) {
@@ -741,6 +741,12 @@ class InAppYouTubeExtractor @Inject constructor() {
                 .thenBy { containerPreference(it.ext) }
                 .thenBy { it.priority }
         )
+    }
+
+    /** Prefer a lightweight preview when a known 720p-or-smaller stream exists. */
+    internal fun preferTvTrailerVideoCandidates(items: List<StreamCandidate>): List<StreamCandidate> {
+        val bounded = items.filter { it.height in 1..720 }
+        return bounded.ifEmpty { items }
     }
 
     private fun containerPreference(ext: String): Int {

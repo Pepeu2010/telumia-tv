@@ -14,7 +14,7 @@ import java.time.ZoneOffset
 /**
  * Regression tests for currently-airing series leaving Continue Watching on air day.
  *
- * Scenario (Nuvio Sync, not Trakt):
+ * Scenario (Nuvio Sync):
  * 1. User finishes all *aired* episodes of a mid-season show → fully-watched checkmark
  * 2. Next episode is still unaired → may stay on CW as countdown next-up
  * 3. Episode airs same day → old code dropped the series from CW (fully-watched + hasAired)

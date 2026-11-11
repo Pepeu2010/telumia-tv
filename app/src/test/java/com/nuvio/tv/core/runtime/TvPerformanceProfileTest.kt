@@ -28,6 +28,7 @@ class TvPerformanceProfileTest {
         assertEquals(AnimationIntensity.SUBTLE, profile.effectiveAnimationIntensity(AnimationIntensity.STANDARD))
         assertEquals(AnimationIntensity.CINEMATIC, profile.effectiveAnimationIntensity(AnimationIntensity.CINEMATIC))
         assertEquals(1_500L, profile.trailerPreviewFocusDelayMillis)
+        assertEquals(false, profile.focusedTrailerPreviewEnabledByDefault)
     }
 
     @Test
@@ -56,6 +57,7 @@ class TvPerformanceProfileTest {
         assertEquals(NavigationMotion.FULL, profile.effectiveNavigationMotion(NavigationMotion.FULL))
         assertEquals(AnimationIntensity.STANDARD, profile.effectiveAnimationIntensity(AnimationIntensity.STANDARD))
         assertEquals(1_200L, profile.trailerPreviewFocusDelayMillis)
+        assertEquals(true, profile.focusedTrailerPreviewEnabledByDefault)
     }
 
     @Test
@@ -75,6 +77,7 @@ class TvPerformanceProfileTest {
         assertEquals(4L * MIB, profile.seekFrameCacheBytes)
         assertEquals(120L, profile.seekFrameThrottleMillis)
         assertEquals(1_200L, profile.trailerPreviewFocusDelayMillis)
+        assertEquals(true, profile.focusedTrailerPreviewEnabledByDefault)
     }
 
     private companion object {

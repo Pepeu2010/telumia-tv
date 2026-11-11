@@ -21,12 +21,8 @@ data class WatchProgress(
     val duration: Long,              // Total duration in ms
     val lastWatched: Long,           // Timestamp when last watched
     val addonBaseUrl: String? = null, // Addon that was used to play
-    val progressPercent: Float? = null, // 0..100 from remote sources like Trakt playback
+    val progressPercent: Float? = null, // 0..100 from remote sources like Simkl playback
     val source: String = SOURCE_LOCAL,
-    val traktPlaybackId: Long? = null,
-    val traktMovieId: Int? = null,
-    val traktShowId: Int? = null,
-    val traktEpisodeId: Int? = null,
     val simklPlaybackId: Long? = null,
     override val trackingProviderId: String? = null,
     override val trackingProviderItemId: String? = null,
@@ -39,9 +35,6 @@ data class WatchProgress(
 
     companion object {
         const val SOURCE_LOCAL = "local"
-        const val SOURCE_TRAKT_PLAYBACK = "trakt_playback"
-        const val SOURCE_TRAKT_HISTORY = "trakt_history"
-        const val SOURCE_TRAKT_SHOW_PROGRESS = "trakt_show_progress"
         const val SOURCE_SIMKL_PLAYBACK = "simkl_playback"
         const val SOURCE_REMOTE_PLAYBACK = "remote_playback"
         const val SOURCE_REMOTE_HISTORY = "remote_history"

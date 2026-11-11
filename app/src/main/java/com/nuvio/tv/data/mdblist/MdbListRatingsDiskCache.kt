@@ -105,7 +105,6 @@ internal class MdbListRatingsDiskCache(
 
     private fun serializeEntry(entry: Entry): JSONObject = JSONObject().apply {
         put("t", entry.storedAtMs)
-        entry.ratings.trakt?.let { put("trakt", it) }
         entry.ratings.imdb?.let { put("imdb", it) }
         entry.ratings.tmdb?.let { put("tmdb", it) }
         entry.ratings.letterboxd?.let { put("letterboxd", it) }
@@ -118,7 +117,6 @@ internal class MdbListRatingsDiskCache(
     }
 
     private fun parseRatings(obj: JSONObject): MDBListRatings = MDBListRatings(
-        trakt = obj.optDoubleOrNull("trakt"),
         imdb = obj.optDoubleOrNull("imdb"),
         tmdb = obj.optDoubleOrNull("tmdb"),
         letterboxd = obj.optDoubleOrNull("letterboxd"),

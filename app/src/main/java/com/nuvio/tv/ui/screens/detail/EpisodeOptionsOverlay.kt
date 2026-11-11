@@ -97,8 +97,6 @@ internal fun EpisodeOptionsOverlay(
     onPlay: () -> Unit,
     isPlayEnabled: Boolean = true,
     onStartFromBeginning: () -> Unit = {},
-    onOpenEpisodeComments: () -> Unit = {},
-    showOpenEpisodeComments: Boolean = false,
     onPlayManually: () -> Unit = {},
     showPlayManually: Boolean = false,
     onToggleWatched: () -> Unit,
@@ -218,14 +216,6 @@ internal fun EpisodeOptionsOverlay(
                 onClick = onPlay
             )
         )
-        if (showOpenEpisodeComments) {
-            add(
-                EpisodeOverlayAction(
-                    label = stringResource(R.string.episodes_open_comments),
-                    onClick = onOpenEpisodeComments
-                )
-            )
-        }
         if (showPlayManually && isPlayEnabled) {
             add(
                 EpisodeOverlayAction(

@@ -31,7 +31,7 @@ import androidx.tv.material3.ExperimentalTvMaterial3Api
 import com.nuvio.tv.R
 import com.nuvio.tv.core.tracking.TrackingProviderId
 import com.nuvio.tv.data.local.MoreLikeThisSourcePreference
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.simkl.SimklAnimeIdPreference
 import com.nuvio.tv.data.simkl.SimklConnectionMode
@@ -42,18 +42,15 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun TrackingSettingsScreen(
-    traktViewModel: TraktViewModel = hiltViewModel(),
     simklViewModel: SimklSettingsViewModel = hiltViewModel(),
     mdbListViewModel: MdbListTrackerViewModel = hiltViewModel(),
     trackingViewModel: TrackingSettingsViewModel = hiltViewModel(),
     onBackPress: () -> Unit
 ) {
-    val traktState by traktViewModel.uiState.collectAsStateWithLifecycle()
     val simklState by simklViewModel.uiState.collectAsStateWithLifecycle()
     val mdbListState by mdbListViewModel.uiState.collectAsStateWithLifecycle()
     val mdbListLibraryLists by mdbListViewModel.libraryLists.collectAsStateWithLifecycle()
     val trackingState by trackingViewModel.uiState.collectAsStateWithLifecycle()
-    val traktFocusRequester = remember { FocusRequester() }
     val simklFocusRequester = remember { FocusRequester() }
     val mdbListFocusRequester = remember { FocusRequester() }
     val libraryFocusRequester = remember { FocusRequester() }
@@ -87,18 +84,16 @@ fun TrackingSettingsScreen(
 
     LaunchedEffect(Unit) {
         delay(160L)
-        runCatching { traktFocusRequester.requestFocus() }
+        runCatching { simklFocusRequester.requestFocus() }
     }
 
     LaunchedEffect(
         activeProvider,
         dismissOnConnected,
-        traktState.mode,
         simklState.mode,
         mdbListState.isConnected
     ) {
         val connected = when (dismissOnConnected) {
-            TrackingProviderId.TRAKT -> traktState.mode == TraktConnectionMode.CONNECTED
             TrackingProviderId.SIMKL -> simklState.mode == SimklConnectionMode.CONNECTED
             TrackingProviderId.MDBLIST -> mdbListState.isConnected
             null -> false
@@ -115,7 +110,6 @@ fun TrackingSettingsScreen(
         delay(120L)
         runCatching {
             when (target) {
-                TrackingFocusTarget.TRAKT -> traktFocusRequester.requestFocus()
                 TrackingFocusTarget.SIMKL -> simklFocusRequester.requestFocus()
                 TrackingFocusTarget.MDBLIST -> mdbListFocusRequester.requestFocus()
                 TrackingFocusTarget.LIBRARY -> libraryFocusRequester.requestFocus()
@@ -129,23 +123,12 @@ fun TrackingSettingsScreen(
 
     val openProvider: (TrackingProviderId) -> Unit = { provider ->
         restoreFocusTarget = when (provider) {
-            TrackingProviderId.TRAKT -> TrackingFocusTarget.TRAKT
             TrackingProviderId.SIMKL -> TrackingFocusTarget.SIMKL
             TrackingProviderId.MDBLIST -> TrackingFocusTarget.MDBLIST
         }
         activeProvider = provider
         disconnectProvider = null
         when (provider) {
-            TrackingProviderId.TRAKT -> {
-                if (traktState.mode == TraktConnectionMode.CONNECTED) {
-                    dismissOnConnected = null
-                } else {
-                    dismissOnConnected = provider
-                    if (traktState.mode == TraktConnectionMode.DISCONNECTED && !traktState.isLoading) {
-                        traktViewModel.onConnectClick()
-                    }
-                }
-            }
             TrackingProviderId.SIMKL -> {
                 if (simklState.mode == SimklConnectionMode.CONNECTED) {
                     dismissOnConnected = null
@@ -169,18 +152,15 @@ fun TrackingSettingsScreen(
     }
 
     TrackingSettingsOverview(
-        traktState = traktState,
         simklState = simklState,
         mdbListState = mdbListState,
         trackingState = trackingState,
-        traktFocusRequester = traktFocusRequester,
         simklFocusRequester = simklFocusRequester,
         mdbListFocusRequester = mdbListFocusRequester,
         libraryFocusRequester = libraryFocusRequester,
         watchProgressFocusRequester = watchProgressFocusRequester,
         continueWatchingFocusRequester = continueWatchingFocusRequester,
         moreLikeThisFocusRequester = moreLikeThisFocusRequester,
-        onTraktClick = { openProvider(TrackingProviderId.TRAKT) },
         onSimklClick = { openProvider(TrackingProviderId.SIMKL) },
         onMdbListClick = { openProvider(TrackingProviderId.MDBLIST) },
         onLibrarySourceClick = {
@@ -195,7 +175,6 @@ fun TrackingSettingsScreen(
             restoreFocusTarget = TrackingFocusTarget.CONTINUE_WATCHING
             showDaysCapDialog = true
         },
-        onCommentsChanged = traktViewModel::onShowMetaCommentsChanged,
         onMoreLikeThisClick = {
             restoreFocusTarget = TrackingFocusTarget.MORE_LIKE_THIS
             showMoreLikeThisSourceDialog = true
@@ -211,25 +190,6 @@ fun TrackingSettingsScreen(
     )
 
     when (activeProvider) {
-        TrackingProviderId.TRAKT -> {
-            TraktAccountDialog(
-                state = traktState,
-                onStartConnection = traktViewModel::onConnectClick,
-                onRetryPolling = traktViewModel::onRetryPolling,
-                onDisconnect = {
-                    activeProvider = null
-                    dismissOnConnected = null
-                    disconnectProvider = TrackingProviderId.TRAKT
-                },
-                onDismiss = {
-                    if (traktState.mode != TraktConnectionMode.CONNECTED) {
-                        traktViewModel.onCancelDeviceFlow()
-                    }
-                    activeProvider = null
-                    dismissOnConnected = null
-                }
-            )
-        }
         TrackingProviderId.SIMKL -> {
             SimklAccountDialog(
                 state = simklState,
@@ -279,14 +239,12 @@ fun TrackingSettingsScreen(
             },
             title = stringResource(
                 when (provider) {
-                    TrackingProviderId.TRAKT -> R.string.trakt_disconnect_title
                     TrackingProviderId.SIMKL -> R.string.simkl_disconnect_title
                     TrackingProviderId.MDBLIST -> R.string.mdblist_disconnect_title
                 }
             ),
             subtitle = stringResource(
                 when (provider) {
-                    TrackingProviderId.TRAKT -> R.string.trakt_disconnect_subtitle
                     TrackingProviderId.SIMKL -> R.string.simkl_disconnect_subtitle
                     TrackingProviderId.MDBLIST -> R.string.mdblist_disconnect_subtitle
                 }
@@ -303,11 +261,10 @@ fun TrackingSettingsScreen(
                     }
                 )
                 SettingsDialogActionButton(
-                    text = stringResource(R.string.trakt_disconnect),
+                    text = stringResource(R.string.tracking_disconnect),
                     onClick = {
                         disconnectProvider = null
                         when (provider) {
-                            TrackingProviderId.TRAKT -> traktViewModel.onDisconnectClick()
                             TrackingProviderId.SIMKL -> simklViewModel.onDisconnect()
                             TrackingProviderId.MDBLIST -> mdbListViewModel.onDisconnect()
                         }
@@ -320,7 +277,7 @@ fun TrackingSettingsScreen(
 
     if (showLibrarySourceDialog) {
         SettingsSingleChoiceDialog(
-            title = stringResource(R.string.trakt_library_source_dialog_title),
+            title = stringResource(R.string.tracking_library_source_dialog_title),
             subtitle = stringResource(R.string.tracking_library_source_dialog_subtitle),
             options = trackingState.availableLibrarySourceModes.map { mode ->
                 SettingsPickerOption(mode, librarySourceLabel(mode))
@@ -338,7 +295,7 @@ fun TrackingSettingsScreen(
 
     if (showWatchProgressDialog) {
         SettingsSingleChoiceDialog(
-            title = stringResource(R.string.trakt_watch_progress_dialog_title),
+            title = stringResource(R.string.tracking_watch_progress_dialog_title),
             subtitle = stringResource(R.string.tracking_watch_progress_dialog_subtitle),
             options = trackingState.availableWatchProgressSources.map { source ->
                 SettingsPickerOption(source, watchProgressSourceLabel(source))
@@ -363,18 +320,18 @@ fun TrackingSettingsScreen(
                 90,
                 180,
                 365,
-                TraktSettingsDataStore.CONTINUE_WATCHING_DAYS_CAP_ALL
+                TrackingSettingsDataStore.CONTINUE_WATCHING_DAYS_CAP_ALL
             )
         }
         SettingsSingleChoiceDialog(
-            title = stringResource(R.string.trakt_cw_window_title),
-            subtitle = stringResource(R.string.trakt_cw_window_subtitle),
+            title = stringResource(R.string.tracking_cw_window_title),
+            subtitle = stringResource(R.string.tracking_cw_window_subtitle),
             options = options.map { days ->
                 SettingsPickerOption(days, continueWatchingWindowLabel(days))
             },
-            selectedValue = traktState.continueWatchingDaysCap,
+            selectedValue = trackingState.continueWatchingDaysCap,
             onOptionSelected = { days ->
-                traktViewModel.onContinueWatchingDaysCapSelected(days)
+                trackingViewModel.selectContinueWatchingDaysCap(days)
                 showDaysCapDialog = false
             },
             onDismiss = { showDaysCapDialog = false },
@@ -385,25 +342,21 @@ fun TrackingSettingsScreen(
 
     if (showMoreLikeThisSourceDialog) {
         SettingsSingleChoiceDialog(
-            title = stringResource(R.string.trakt_more_like_this_source_dialog_title),
-            subtitle = stringResource(R.string.trakt_more_like_this_source_dialog_subtitle),
+            title = stringResource(R.string.tracking_more_like_this_source_dialog_title),
+            subtitle = stringResource(R.string.tracking_more_like_this_source_dialog_subtitle),
             options = listOf(
                 SettingsPickerOption(
-                    MoreLikeThisSourcePreference.TRAKT,
-                    stringResource(R.string.trakt_more_like_this_source_trakt)
-                ),
-                SettingsPickerOption(
                     MoreLikeThisSourcePreference.TMDB,
-                    stringResource(R.string.trakt_more_like_this_source_tmdb)
+                    stringResource(R.string.tracking_more_like_this_source_tmdb)
                 ),
                 SettingsPickerOption(
                     MoreLikeThisSourcePreference.SIMKL,
-                    stringResource(R.string.trakt_more_like_this_source_simkl)
+                    stringResource(R.string.tracking_more_like_this_source_simkl)
                 )
             ),
-            selectedValue = traktState.moreLikeThisSource,
+            selectedValue = trackingState.moreLikeThisSource,
             onOptionSelected = { source ->
-                traktViewModel.onMoreLikeThisSourceSelected(source)
+                trackingViewModel.selectMoreLikeThisSource(source)
                 showMoreLikeThisSourceDialog = false
             },
             onDismiss = { showMoreLikeThisSourceDialog = false },
@@ -456,35 +409,28 @@ fun TrackingSettingsScreen(
 
 @Composable
 internal fun TrackingSettingsOverview(
-    traktState: TraktUiState,
     simklState: SimklSettingsUiState,
     mdbListState: MdbListTrackerUiState,
     trackingState: TrackingSettingsUiState,
-    traktFocusRequester: FocusRequester,
     simklFocusRequester: FocusRequester,
     mdbListFocusRequester: FocusRequester,
     libraryFocusRequester: FocusRequester,
     watchProgressFocusRequester: FocusRequester,
     continueWatchingFocusRequester: FocusRequester,
     moreLikeThisFocusRequester: FocusRequester,
-    onTraktClick: () -> Unit,
     onSimklClick: () -> Unit,
     onMdbListClick: () -> Unit,
     onLibrarySourceClick: () -> Unit,
     onWatchProgressClick: () -> Unit,
     onContinueWatchingWindowClick: () -> Unit,
-    onCommentsChanged: (Boolean) -> Unit,
     onMoreLikeThisClick: () -> Unit,
     onAnimeIdClick: () -> Unit,
     mdbListLibraryLists: MdbListLibraryListsUiState = MdbListLibraryListsUiState(),
     onMdbListLibraryListsClick: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
-    val traktPresentation = traktConnectionPresentation(traktState)
     val simklPresentation = simklConnectionPresentation(simklState)
     val mdbListPresentation = mdbListConnectionPresentation(mdbListState)
-    val traktConnected = traktState.mode == TraktConnectionMode.CONNECTED
-    val traktProgressActive = trackingState.watchProgressSource == WatchProgressSource.TRAKT
 
     SettingsStandaloneScaffold(
         title = stringResource(R.string.settings_tracking_title),
@@ -513,18 +459,6 @@ internal fun TrackingSettingsOverview(
                             title = stringResource(R.string.tracking_accounts_title),
                             subtitle = stringResource(R.string.tracking_accounts_subtitle)
                         ) {
-                            SettingsActionRow(
-                                title = stringResource(R.string.trakt_name),
-                                subtitle = traktPresentation.subtitle,
-                                value = traktPresentation.value,
-                                valueColor = traktPresentation.color,
-                                leadingRawIconRes = R.raw.trakt_tv_favicon,
-                                leadingArtworkSize = 40.dp,
-                                onClick = onTraktClick,
-                                modifier = Modifier
-                                    .focusRequester(traktFocusRequester)
-                                    .testTag(TrackingSettingsTestTags.TRAKT_PROVIDER)
-                            )
                             SettingsActionRow(
                                 title = stringResource(R.string.simkl_name),
                                 subtitle = simklPresentation.subtitle,
@@ -557,8 +491,8 @@ internal fun TrackingSettingsOverview(
                             subtitle = stringResource(R.string.tracking_sources_subtitle)
                         ) {
                             SettingsActionRow(
-                                title = stringResource(R.string.trakt_library_source_title),
-                                subtitle = stringResource(R.string.trakt_library_source_subtitle),
+                                title = stringResource(R.string.tracking_library_source_title),
+                                subtitle = stringResource(R.string.tracking_library_source_subtitle),
                                 value = librarySourceLabel(trackingState.librarySourceMode),
                                 enabled = trackingState.isReady,
                                 onClick = onLibrarySourceClick,
@@ -567,8 +501,8 @@ internal fun TrackingSettingsOverview(
                                     .testTag(TrackingSettingsTestTags.LIBRARY_SOURCE)
                             )
                             SettingsActionRow(
-                                title = stringResource(R.string.trakt_watch_progress_title),
-                                subtitle = stringResource(R.string.trakt_watch_progress_subtitle),
+                                title = stringResource(R.string.tracking_watch_progress_title),
+                                subtitle = stringResource(R.string.tracking_watch_progress_subtitle),
                                 value = watchProgressSourceLabel(trackingState.watchProgressSource),
                                 enabled = trackingState.isReady,
                                 onClick = onWatchProgressClick,
@@ -576,11 +510,11 @@ internal fun TrackingSettingsOverview(
                                     .focusRequester(watchProgressFocusRequester)
                                     .testTag(TrackingSettingsTestTags.WATCH_PROGRESS_SOURCE)
                             )
-                            if (traktConnected || simklState.mode == SimklConnectionMode.CONNECTED) {
+                            if (simklState.mode == SimklConnectionMode.CONNECTED) {
                                 SettingsActionRow(
-                                    title = stringResource(R.string.trakt_more_like_this_source_title),
-                                    subtitle = stringResource(R.string.trakt_more_like_this_source_subtitle),
-                                    value = moreLikeThisSourceLabel(traktState.moreLikeThisSource),
+                                    title = stringResource(R.string.tracking_more_like_this_source_title),
+                                    subtitle = stringResource(R.string.tracking_more_like_this_source_subtitle),
+                                    value = moreLikeThisSourceLabel(trackingState.moreLikeThisSource),
                                     enabled = true,
                                     onClick = onMoreLikeThisClick,
                                     modifier = Modifier
@@ -588,39 +522,16 @@ internal fun TrackingSettingsOverview(
                                         .testTag(TrackingSettingsTestTags.MORE_LIKE_THIS)
                                 )
                             }
-                        }
-                    }
-                    if (traktConnected) {
-                        item(key = "tracking_trakt_features") {
-                            SettingsGroupCard(
-                                title = stringResource(R.string.tracking_trakt_features_title),
-                                subtitle = stringResource(R.string.tracking_trakt_features_subtitle)
-                            ) {
-                                SettingsActionRow(
-                                    title = stringResource(R.string.trakt_continue_watching_window),
-                                    subtitle = if (!traktProgressActive) {
-                                        stringResource(R.string.tracking_trakt_progress_required)
-                                    } else {
-                                        stringResource(R.string.trakt_continue_watching_subtitle)
-                                    },
-                                    value = continueWatchingWindowLabel(traktState.continueWatchingDaysCap),
-                                    enabled = traktProgressActive,
-                                    onClick = onContinueWatchingWindowClick,
-                                    modifier = Modifier
-                                        .focusRequester(continueWatchingFocusRequester)
-                                        .testTag(TrackingSettingsTestTags.CONTINUE_WATCHING)
-                                )
-                                SettingsToggleRow(
-                                    title = stringResource(R.string.trakt_comments_title),
-                                    subtitle = stringResource(R.string.trakt_comments_subtitle),
-                                    checked = traktState.showMetaComments,
-                                    enabled = true,
-                                    onToggle = {
-                                        onCommentsChanged(!traktState.showMetaComments)
-                                    },
-                                    modifier = Modifier.testTag(TrackingSettingsTestTags.COMMENTS)
-                                )
-                            }
+                            SettingsActionRow(
+                                title = stringResource(R.string.tracking_continue_watching_window),
+                                subtitle = stringResource(R.string.tracking_continue_watching_subtitle),
+                                value = continueWatchingWindowLabel(trackingState.continueWatchingDaysCap),
+                                enabled = trackingState.isReady,
+                                onClick = onContinueWatchingWindowClick,
+                                modifier = Modifier
+                                    .focusRequester(continueWatchingFocusRequester)
+                                    .testTag(TrackingSettingsTestTags.CONTINUE_WATCHING)
+                            )
                         }
                     }
                     if (simklState.mode == SimklConnectionMode.CONNECTED) {
@@ -669,35 +580,6 @@ private data class TrackingConnectionPresentation(
     val value: String,
     val color: Color
 )
-
-@Composable
-private fun traktConnectionPresentation(state: TraktUiState): TrackingConnectionPresentation {
-    return when {
-        state.isLoading && state.mode != TraktConnectionMode.CONNECTED -> TrackingConnectionPresentation(
-            subtitle = stringResource(R.string.tracking_connecting_provider, stringResource(R.string.trakt_name)),
-            value = stringResource(R.string.tracking_status_connecting),
-            color = NuvioTheme.colors.Info
-        )
-        state.mode == TraktConnectionMode.CONNECTED -> TrackingConnectionPresentation(
-            subtitle = stringResource(
-                R.string.trakt_connected_as,
-                state.username ?: stringResource(R.string.trakt_user_fallback)
-            ),
-            value = stringResource(R.string.tracking_status_connected),
-            color = NuvioTheme.colors.Success
-        )
-        state.mode == TraktConnectionMode.AWAITING_APPROVAL -> TrackingConnectionPresentation(
-            subtitle = stringResource(R.string.tracking_finish_connection),
-            value = stringResource(R.string.tracking_status_waiting),
-            color = NuvioTheme.colors.Warning
-        )
-        else -> TrackingConnectionPresentation(
-            subtitle = stringResource(R.string.trakt_description),
-            value = stringResource(R.string.tracking_status_disconnected),
-            color = NuvioTheme.colors.TextSecondary
-        )
-    }
-}
 
 @Composable
 private fun simklConnectionPresentation(state: SimklSettingsUiState): TrackingConnectionPresentation {
@@ -750,33 +632,30 @@ private fun mdbListConnectionPresentation(state: MdbListTrackerUiState): Trackin
 
 @Composable
 private fun watchProgressSourceLabel(source: WatchProgressSource): String = when (source) {
-    WatchProgressSource.TRAKT -> stringResource(R.string.trakt_name)
     WatchProgressSource.SIMKL -> stringResource(R.string.simkl_name)
     WatchProgressSource.MDBLIST -> stringResource(R.string.mdblist_name)
-    WatchProgressSource.NUVIO_SYNC -> stringResource(R.string.trakt_watch_progress_source_nuvio)
+    WatchProgressSource.NUVIO_SYNC -> stringResource(R.string.tracking_watch_progress_source_nuvio)
 }
 
 @Composable
 private fun librarySourceLabel(mode: LibrarySourceMode): String = when (mode) {
-    LibrarySourceMode.TRAKT -> stringResource(R.string.trakt_name)
     LibrarySourceMode.SIMKL -> stringResource(R.string.simkl_name)
     LibrarySourceMode.MDBLIST -> stringResource(R.string.mdblist_name)
-    LibrarySourceMode.LOCAL -> stringResource(R.string.trakt_library_source_nuvio)
+    LibrarySourceMode.LOCAL -> stringResource(R.string.tracking_library_source_nuvio)
 }
 
 @Composable
 private fun moreLikeThisSourceLabel(source: MoreLikeThisSourcePreference): String = when (source) {
-    MoreLikeThisSourcePreference.TRAKT -> stringResource(R.string.trakt_name)
-    MoreLikeThisSourcePreference.TMDB -> stringResource(R.string.trakt_more_like_this_source_tmdb)
-    MoreLikeThisSourcePreference.SIMKL -> stringResource(R.string.trakt_more_like_this_source_simkl)
+    MoreLikeThisSourcePreference.TMDB -> stringResource(R.string.tracking_more_like_this_source_tmdb)
+    MoreLikeThisSourcePreference.SIMKL -> stringResource(R.string.tracking_more_like_this_source_simkl)
 }
 
 @Composable
 private fun continueWatchingWindowLabel(days: Int): String {
-    return if (days == TraktSettingsDataStore.CONTINUE_WATCHING_DAYS_CAP_ALL) {
-        stringResource(R.string.trakt_all_history)
+    return if (days == TrackingSettingsDataStore.CONTINUE_WATCHING_DAYS_CAP_ALL) {
+        stringResource(R.string.tracking_all_history)
     } else {
-        stringResource(R.string.trakt_days_format, days)
+        stringResource(R.string.tracking_days_format, days)
     }
 }
 
@@ -789,7 +668,6 @@ private fun animeIdPreferenceLabel(preference: SimklAnimeIdPreference): String =
 }
 
 private enum class TrackingFocusTarget {
-    TRAKT,
     SIMKL,
     MDBLIST,
     LIBRARY,
@@ -800,13 +678,11 @@ private enum class TrackingFocusTarget {
 
 internal object TrackingSettingsTestTags {
     const val OVERVIEW_LIST = "tracking_overview_list"
-    const val TRAKT_PROVIDER = "tracking_provider_trakt"
     const val SIMKL_PROVIDER = "tracking_provider_simkl"
     const val MDBLIST_PROVIDER = "tracking_provider_mdblist"
     const val MDBLIST_LIBRARY_LISTS = "tracking_mdblist_library_lists"
     const val LIBRARY_SOURCE = "tracking_source_library"
     const val WATCH_PROGRESS_SOURCE = "tracking_source_watch_progress"
-    const val CONTINUE_WATCHING = "tracking_trakt_continue_watching"
-    const val COMMENTS = "tracking_trakt_comments"
-    const val MORE_LIKE_THIS = "tracking_trakt_more_like_this"
+    const val CONTINUE_WATCHING = "tracking_continue_watching_window"
+    const val MORE_LIKE_THIS = "tracking_more_like_this_source"
 }

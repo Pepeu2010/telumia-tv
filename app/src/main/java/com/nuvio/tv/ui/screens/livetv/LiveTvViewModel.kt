@@ -3,26 +3,46 @@ package com.nuvio.tv.ui.screens.livetv
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.core.profile.ProfileManager
+import com.nuvio.tv.core.network.NetworkResult
+import com.nuvio.tv.core.livetv.LiveTvAddonCatalog
+import com.nuvio.tv.core.livetv.installedLiveTvAddonCatalogs
+import com.nuvio.tv.core.livetv.project
 import com.nuvio.tv.core.livetv.LiveTvSourceImporter
 import com.nuvio.tv.core.livetv.LiveTvGuideCache
 import com.nuvio.tv.core.livetv.LiveTvRefreshScheduler
 import com.nuvio.tv.data.local.LiveTvSourceStore
 import com.nuvio.tv.data.local.LiveTvChannelStateStore
+import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.domain.model.LiveTvSource
+import com.nuvio.tv.domain.repository.AddonRepository
+import com.nuvio.tv.domain.repository.CatalogRepository
+import com.nuvio.tv.domain.repository.StreamRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import javax.inject.Inject
 
 data class LiveTvUiState(
     val sources: List<LiveTvSource> = emptyList(),
     val channels: List<LiveTvChannel> = emptyList(),
+    val addonChannels: List<LiveTvChannel> = emptyList(),
+    val isLoadingAddonChannels: Boolean = false,
+    val addonCatalogCount: Int = 0,
+    val addonCatalogErrorCount: Int = 0,
+    val resolvingChannelIds: Set<String> = emptySet(),
     val programs: List<LiveTvProgram> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
@@ -43,15 +63,21 @@ class LiveTvViewModel @Inject constructor(
     private val channelStateStore: LiveTvChannelStateStore,
     private val refreshScheduler: LiveTvRefreshScheduler,
     private val profileManager: ProfileManager,
+    private val addonRepository: AddonRepository,
+    private val catalogRepository: CatalogRepository,
+    private val streamRepository: StreamRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(LiveTvUiState(isLoading = true))
     val state: StateFlow<LiveTvUiState> = mutableState.asStateFlow()
+    private var installedAddons: List<Addon> = emptyList()
 
     init {
         viewModelScope.launch {
             profileManager.activeProfileId.collectLatest { _ ->
                 mutableState.update { it.copy(
                     sources = emptyList(), channels = emptyList(), programs = emptyList(),
+                    addonChannels = emptyList(), addonCatalogCount = 0,
+                    addonCatalogErrorCount = 0, isLoadingAddonChannels = true,
                     favoriteChannelIds = emptySet(), recentChannelIds = emptyList(),
                     sourceErrors = emptyMap(), lastUpdatedEpochMillis = emptyMap(),
                     isLoading = true, error = null, backgroundRefreshUnavailable = false,
@@ -70,6 +96,123 @@ class LiveTvViewModel @Inject constructor(
                     // Keep the screen usable if optional local channel preferences are unreadable.
                 }
                 updateScheduledRefresh()
+            }
+        }
+        viewModelScope.launch {
+            addonRepository.getInstalledAddons().collectLatest { addons ->
+                installedAddons = addons
+                loadAddonChannels(addons)
+            }
+        }
+    }
+
+    private suspend fun loadAddonChannels(addons: List<Addon>) {
+        val catalogs = installedLiveTvAddonCatalogs(addons).take(MAX_TV_ADDON_CATALOGS)
+        if (catalogs.isEmpty()) {
+            mutableState.update {
+                it.copy(
+                    addonChannels = emptyList(),
+                    addonCatalogCount = 0,
+                    addonCatalogErrorCount = 0,
+                    isLoadingAddonChannels = false,
+                )
+            }
+            return
+        }
+
+        mutableState.update {
+            it.copy(
+                isLoadingAddonChannels = true,
+                addonCatalogCount = catalogs.size,
+                addonCatalogErrorCount = 0,
+            )
+        }
+
+        val semaphore = Semaphore(MAX_PARALLEL_TV_ADDON_CATALOGS)
+        val results = coroutineScope {
+            catalogs.map { request ->
+                async {
+                    semaphore.withPermit { loadAddonCatalog(request) }
+                }
+            }.awaitAll()
+        }
+        val channels = results.flatMap(AddonCatalogLoad::channels)
+            .distinctBy(LiveTvChannel::id)
+            .take(MAX_TV_ADDON_CHANNELS)
+        mutableState.update {
+            it.copy(
+                addonChannels = channels,
+                addonCatalogCount = catalogs.size,
+                addonCatalogErrorCount = results.count(AddonCatalogLoad::failed),
+                isLoadingAddonChannels = false,
+            )
+        }
+    }
+
+    private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog): AddonCatalogLoad =
+        try {
+            val result = catalogRepository.getCatalog(
+                addonBaseUrl = request.addon.baseUrl,
+                addonId = request.addon.id,
+                addonName = request.addon.displayName,
+                catalogId = request.catalog.id,
+                catalogName = request.catalog.name,
+                type = request.catalog.apiType,
+                skip = 0,
+                supportsSkip = false,
+            ).first { it !is NetworkResult.Loading }
+            when (result) {
+                is NetworkResult.Success -> AddonCatalogLoad(request.project(result.data.items), failed = false)
+                is NetworkResult.Error -> AddonCatalogLoad(emptyList(), failed = true)
+                NetworkResult.Loading -> AddonCatalogLoad(emptyList(), failed = true)
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Addon errors are isolated and URLs may contain private config tokens.
+            AddonCatalogLoad(emptyList(), failed = true)
+        }
+
+    fun playChannel(channel: LiveTvChannel, onPlay: (LiveTvChannel) -> Unit) {
+        if (!channel.streamUrl.isNullOrBlank()) {
+            recordRecent(channel.id)
+            onPlay(channel)
+            return
+        }
+
+        val addon = installedAddons.firstOrNull {
+            it.enabled && it.id == channel.addonId && it.baseUrl == channel.addonBaseUrl
+        }
+        val type = channel.addonType
+        val contentId = channel.addonContentId
+        if (addon == null || type.isNullOrBlank() || contentId.isNullOrBlank()) {
+            mutableState.update { it.copy(error = "Este canal não está mais disponível no addon instalado.") }
+            return
+        }
+
+        viewModelScope.launch {
+            mutableState.update { it.copy(
+                resolvingChannelIds = it.resolvingChannelIds + channel.id,
+                error = null,
+            ) }
+            try {
+                val result = streamRepository.getStreamsFromAddon(addon, type, contentId)
+                val stream = (result as? NetworkResult.Success)
+                    ?.data
+                    ?.firstOrNull { candidate -> !candidate.getStreamUrl().isNullOrBlank() }
+                val streamUrl = stream?.getStreamUrl()?.takeIf(String::isNotBlank)
+                if (stream == null || streamUrl == null) {
+                    mutableState.update { it.copy(error = "O addon não retornou uma transmissão reproduzível.") }
+                    return@launch
+                }
+                recordRecent(channel.id)
+                onPlay(channel.copy(streamUrl = streamUrl, addonDisplayName = stream.addonName))
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                mutableState.update { it.copy(error = "Não foi possível abrir este canal do addon.") }
+            } finally {
+                mutableState.update { it.copy(resolvingChannelIds = it.resolvingChannelIds - channel.id) }
             }
         }
     }
@@ -281,4 +424,13 @@ class LiveTvViewModel @Inject constructor(
         }
     }
 }
+
+private data class AddonCatalogLoad(
+    val channels: List<LiveTvChannel>,
+    val failed: Boolean,
+)
+
+private const val MAX_TV_ADDON_CATALOGS = 24
+private const val MAX_TV_ADDON_CHANNELS = 600
+private const val MAX_PARALLEL_TV_ADDON_CATALOGS = 3
 

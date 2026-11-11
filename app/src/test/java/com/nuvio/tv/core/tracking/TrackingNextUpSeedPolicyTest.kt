@@ -73,14 +73,14 @@ class TrackingNextUpSeedPolicyTest {
                     season = 4,
                     episode = 8,
                     lastWatched = 300L,
-                    source = WatchProgress.SOURCE_TRAKT_HISTORY
+                    source = WatchProgress.SOURCE_SIMKL_PLAYBACK
                 ),
                 progress(
                     contentId = "show",
                     season = 4,
                     episode = 6,
                     lastWatched = 200L,
-                    source = WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS
+                    source = WatchProgress.SOURCE_LOCAL
                 )
             ),
             preferFurthestEpisode = true

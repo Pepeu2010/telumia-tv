@@ -324,7 +324,6 @@ fun LibraryScreen(
                 Text(
                     text = when {
                         viewMode == LibraryViewMode.Cloud -> stringResource(R.string.library_source_cloud).uppercase()
-                        uiState.sourceMode == LibrarySourceMode.TRAKT -> "TRAKT"
                         uiState.sourceMode == LibrarySourceMode.SIMKL -> "SIMKL"
                         uiState.sourceMode == LibrarySourceMode.MDBLIST -> "MDBLIST"
                         uiState.isNuvioAccount -> "TELUMIA"
@@ -373,6 +372,7 @@ fun LibraryScreen(
         }
 
         if (viewMode == LibraryViewMode.Saved) {
+            if (uiState.sourceMode != LibrarySourceMode.LOCAL || uiState.allItems.isNotEmpty()) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 LibrarySelectorsRow(
                     sourceMode = uiState.sourceMode,
@@ -419,6 +419,7 @@ fun LibraryScreen(
                     }
                 )
             }
+            }
 
             if (uiState.listManagement != null && uiState.isTrackingAuthenticated) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
@@ -434,25 +435,28 @@ fun LibraryScreen(
 
             if (uiState.visibleItems.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    val selectedTypeLabel = uiState.selectedTypeTab?.let { localizedTypeLabel(it.key) }?.lowercase() ?: stringResource(R.string.library_type_items)
+                    val selectedTypeLabel = uiState.selectedTypeTab
+                        ?.takeUnless { it.key == LibraryTypeTab.ALL_KEY }
+                        ?.let { localizedTypeLabel(it.key).lowercase() }
+                        ?: stringResource(R.string.library_type_items)
                     val title = when {
-                        uiState.sourceMode == LibrarySourceMode.TRAKT && !uiState.isTrackingAuthenticated -> stringResource(R.string.library_empty_trakt_not_auth_title)
                         uiState.sourceMode == LibrarySourceMode.SIMKL && !uiState.isTrackingAuthenticated -> stringResource(R.string.library_empty_simkl_not_auth_title)
-                        uiState.sourceMode == LibrarySourceMode.TRAKT || uiState.sourceMode == LibrarySourceMode.MDBLIST -> stringResource(R.string.library_empty_trakt_title, selectedTypeLabel)
+                        uiState.sourceMode == LibrarySourceMode.MDBLIST -> stringResource(R.string.library_empty_remote_title, selectedTypeLabel)
                         uiState.sourceMode == LibrarySourceMode.SIMKL -> stringResource(R.string.library_empty_simkl_title, selectedTypeLabel)
                         else -> stringResource(R.string.library_empty_local_title, selectedTypeLabel)
                     }
                     val subtitle = when {
-                        uiState.sourceMode == LibrarySourceMode.TRAKT && !uiState.isTrackingAuthenticated -> stringResource(R.string.library_empty_trakt_not_auth_subtitle)
                         uiState.sourceMode == LibrarySourceMode.SIMKL && !uiState.isTrackingAuthenticated -> stringResource(R.string.library_empty_simkl_not_auth_subtitle)
-                        uiState.sourceMode == LibrarySourceMode.TRAKT || uiState.sourceMode == LibrarySourceMode.MDBLIST -> stringResource(R.string.library_empty_trakt_subtitle)
+                        uiState.sourceMode == LibrarySourceMode.MDBLIST -> stringResource(R.string.library_empty_remote_subtitle)
                         uiState.sourceMode == LibrarySourceMode.SIMKL -> stringResource(R.string.library_empty_simkl_subtitle)
                         else -> stringResource(R.string.library_empty_local_subtitle)
                     }
                     EmptyScreenState(
                         title = title,
                         subtitle = subtitle,
-                        icon = Icons.Default.BookmarkBorder
+                        icon = Icons.Default.BookmarkBorder,
+                        height = 130.dp,
+                        iconSize = 40.dp
                     )
                 }
             }

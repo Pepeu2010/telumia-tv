@@ -3,7 +3,6 @@ package com.nuvio.tv.domain.model
 data class MDBListSettings(
     val enabled: Boolean = false,
     val apiKey: String = "",
-    val showTrakt: Boolean = true,
     val showImdb: Boolean = true,
     val showTmdb: Boolean = true,
     val showLetterboxd: Boolean = true,
@@ -15,13 +14,12 @@ data class MDBListSettings(
     val ratingOrder: List<String> = DEFAULT_RATING_ORDER
 ) {
     fun hasEnabledProviders(): Boolean =
-        showTrakt || showImdb || showTmdb || showLetterboxd ||
+        showImdb || showTmdb || showLetterboxd ||
             showTomatoes || showAudience || showMetacritic || showMal
 
     /** Returns the rating order filtered to only include enabled providers. */
     fun enabledRatingOrder(): List<String> = ratingOrder.filter { provider ->
         when (provider) {
-            "trakt" -> showTrakt
             "imdb" -> showImdb
             "tmdb" -> showTmdb
             "letterboxd" -> showLetterboxd
@@ -35,7 +33,7 @@ data class MDBListSettings(
 
     companion object {
         val DEFAULT_RATING_ORDER = listOf(
-            "imdb", "trakt", "tmdb", "tomatoes", "audience",
+            "imdb", "tmdb", "tomatoes", "audience",
             "letterboxd", "metacritic", "mal"
         )
     }

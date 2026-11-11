@@ -835,7 +835,7 @@ internal fun PlayerRuntimeController.emitScrobbleStart() {
         return
     }
 
-    // Don't start a new Trakt scrobble session if playback resumes at ≥80%.
+    // Don't start a new scrobble session if playback resumes at ≥80%.
     // This avoids creating a duplicate history entry when the user continues
     // watching something already marked as watched. If the user seeks back
     // below 80%, the next progress update will re-trigger scrobble start.
@@ -849,9 +849,6 @@ internal fun PlayerRuntimeController.emitScrobbleStart() {
     val requestGeneration = ++scrobbleStartRequestGeneration
     logScrobbleDiagnostic("start_queued", "requestGeneration=$requestGeneration")
     scope.launch {
-        // Wait for the episode mapping to finish (with its own timeout) so that
-        // the scrobble start is sent with the correct season/episode number.
-        traktMappingJob?.join()
         currentScrobbleItem = buildScrobbleItem()
         val item = currentScrobbleItem
         if (item == null) {
@@ -1631,6 +1628,7 @@ fun PlayerRuntimeController.onEvent(event: PlayerEvent) {
             _uiState.update { state ->
                 state.copy(
                     error = null,
+                    playbackFailureReport = null,
                     playbackIssueReportStatus = PlaybackIssueReportStatus.Idle,
                     playbackIssueReportId = null,
                     playbackIssueReportError = null,

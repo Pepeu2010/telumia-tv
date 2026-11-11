@@ -163,7 +163,7 @@ fun TmdbEntityBrowseScreen(
 
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-private fun TmdbEntityBrowseContent(
+internal fun TmdbEntityBrowseContent(
     data: TmdbEntityBrowseData,
     sourceType: String,
     watchedMovieIds: Set<String>,
@@ -645,7 +645,7 @@ private fun railTitle(rail: TmdbEntityRail): String {
  * pixels are both predominantly dark AND low-saturation (grayscale / monochrome).
  * This avoids treating colorful logos (red, blue, etc.) as "black".
  */
-private fun isLogoDarkAndMonochrome(bitmap: Bitmap): Boolean {
+internal fun isLogoDarkAndMonochrome(bitmap: Bitmap): Boolean {
     val width = bitmap.width
     val height = bitmap.height
     val step = maxOf(1, minOf(width, height) / 20) // sample ~20×20 grid

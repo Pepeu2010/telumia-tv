@@ -79,7 +79,6 @@ internal fun TrackingExternalIds.toMdbListIds(): MdbListIds? = MdbListIds(
     imdb = imdb?.takeIf { it.matches(Regex("tt[0-9]+")) },
     tmdb = tmdb?.takeIf { it > 0L },
     tvdb = tvdb?.toLongOrNull()?.takeIf { it > 0L },
-    trakt = trakt?.takeIf { it > 0L },
     mdblist = mdblist?.takeIf(String::isNotBlank)
 ).takeIf { it.aliases().isNotEmpty() }
 
@@ -87,6 +86,5 @@ internal fun MdbListIds.requestIds(): JsonObject = buildJsonObject {
     imdb?.let { put("imdb", it) }
     tmdb?.let { put("tmdb", it) }
     tvdb?.let { put("tvdb", it) }
-    trakt?.let { put("trakt", it) }
     mdblist?.let { put("mdblist", it) }
 }

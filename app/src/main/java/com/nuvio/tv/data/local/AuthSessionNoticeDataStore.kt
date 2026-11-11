@@ -18,8 +18,7 @@ private val Context.authSessionNoticeDataStore: DataStore<Preferences> by prefer
 )
 
 enum class StartupAuthNotice {
-    NUVIO,
-    TRAKT
+    NUVIO
 }
 
 @Singleton
@@ -30,14 +29,9 @@ class AuthSessionNoticeDataStore @Inject constructor(
     private val nuvioExplicitLogoutKey = booleanPreferencesKey("nuvio_explicit_logout")
     private val pendingNuvioNoticeKey = booleanPreferencesKey("pending_nuvio_notice")
 
-    private val hadTraktAuthKey = booleanPreferencesKey("had_trakt_auth")
-    private val traktExplicitLogoutKey = booleanPreferencesKey("trakt_explicit_logout")
-    private val pendingTraktNoticeKey = booleanPreferencesKey("pending_trakt_notice")
-
     val pendingNotice: Flow<StartupAuthNotice?> = context.authSessionNoticeDataStore.data.map { preferences ->
         when {
             preferences[pendingNuvioNoticeKey] == true -> StartupAuthNotice.NUVIO
-            preferences[pendingTraktNoticeKey] == true -> StartupAuthNotice.TRAKT
             else -> null
         }
     }
@@ -73,50 +67,10 @@ class AuthSessionNoticeDataStore @Inject constructor(
         return marked
     }
 
-    suspend fun markTraktAuthenticated() {
-        context.authSessionNoticeDataStore.edit { preferences ->
-            preferences[hadTraktAuthKey] = true
-            preferences[traktExplicitLogoutKey] = false
-            preferences[pendingTraktNoticeKey] = false
-        }
-    }
-
-    suspend fun markTraktExplicitLogout() {
-        context.authSessionNoticeDataStore.edit { preferences ->
-            preferences[hadTraktAuthKey] = false
-            preferences[traktExplicitLogoutKey] = true
-            preferences[pendingTraktNoticeKey] = false
-        }
-    }
-
-    suspend fun markUnexpectedTraktLogoutIfNeeded(): Boolean {
-        var marked = false
-        context.authSessionNoticeDataStore.edit { preferences ->
-            val hadAuth = preferences[hadTraktAuthKey] == true
-            val explicitLogout = preferences[traktExplicitLogoutKey] == true
-            if (hadAuth && !explicitLogout) {
-                preferences[pendingTraktNoticeKey] = true
-                marked = true
-            }
-            preferences[hadTraktAuthKey] = false
-            preferences[traktExplicitLogoutKey] = false
-        }
-        return marked
-    }
-
-    suspend fun markTraktReconnectRequired() {
-        context.authSessionNoticeDataStore.edit { preferences ->
-            preferences[pendingTraktNoticeKey] = true
-            preferences[hadTraktAuthKey] = false
-            preferences[traktExplicitLogoutKey] = false
-        }
-    }
-
     suspend fun consumeNotice(notice: StartupAuthNotice) {
         context.authSessionNoticeDataStore.edit { preferences ->
             when (notice) {
                 StartupAuthNotice.NUVIO -> preferences[pendingNuvioNoticeKey] = false
-                StartupAuthNotice.TRAKT -> preferences[pendingTraktNoticeKey] = false
             }
         }
     }

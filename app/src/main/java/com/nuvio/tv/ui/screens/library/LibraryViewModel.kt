@@ -999,7 +999,7 @@ class LibraryViewModel @Inject constructor(
                         .thenBy { it.id }
                 )
                 sourceMode.providerId != null -> watchedFiltered.sortedWith(
-                    compareBy<LibraryEntry> { it.listRanks[selectedListKey] ?: it.traktRank ?: Int.MAX_VALUE }
+                    compareBy<LibraryEntry> { it.listRanks[selectedListKey] ?: Int.MAX_VALUE }
                         .thenByDescending { it.listedAt }
                         .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name.ifBlank { it.id } }
                         .thenBy { it.id }

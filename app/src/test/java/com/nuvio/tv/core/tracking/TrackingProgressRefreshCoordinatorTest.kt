@@ -17,41 +17,41 @@ import org.junit.Test
 class TrackingProgressRefreshCoordinatorTest {
     @Test
     fun `refreshes every connected provider and isolates failures`() = runTest {
-        val traktFailure = IllegalStateException("trakt unavailable")
-        val trakt = FakeProgressProvider(
-            id = TrackingProviderId.TRAKT,
+        val mdblistFailure = IllegalStateException("mdblist unavailable")
+        val mdblist = FakeProgressProvider(
+            id = TrackingProviderId.MDBLIST,
             authenticated = true,
-            refreshFailure = traktFailure
+            refreshFailure = mdblistFailure
         )
         val simkl = FakeProgressProvider(
             id = TrackingProviderId.SIMKL,
             authenticated = true
         )
         val coordinator = TrackingProgressRefreshCoordinator(
-            TrackingProgressProviderRegistry(setOf(simkl, trakt))
+            TrackingProgressProviderRegistry(setOf(simkl, mdblist))
         )
 
         val failures = coordinator.refreshConnected(TrackingRefreshIntent.INVALIDATED)
 
-        assertEquals(1, trakt.refreshCount)
+        assertEquals(1, mdblist.refreshCount)
         assertEquals(1, simkl.refreshCount)
-        assertEquals(TrackingRefreshIntent.INVALIDATED, trakt.lastIntent)
+        assertEquals(TrackingRefreshIntent.INVALIDATED, mdblist.lastIntent)
         assertEquals(TrackingRefreshIntent.INVALIDATED, simkl.lastIntent)
-        assertEquals(listOf(TrackingProviderId.TRAKT), failures.map { it.providerId })
-        assertTrue(failures.single().cause === traktFailure)
+        assertEquals(listOf(TrackingProviderId.MDBLIST), failures.map { it.providerId })
+        assertTrue(failures.single().cause === mdblistFailure)
     }
 
     @Test
     fun `skips disconnected providers`() = runTest {
-        val trakt = FakeProgressProvider(TrackingProviderId.TRAKT, authenticated = false)
+        val mdblist = FakeProgressProvider(TrackingProviderId.MDBLIST, authenticated = false)
         val simkl = FakeProgressProvider(TrackingProviderId.SIMKL, authenticated = true)
         val coordinator = TrackingProgressRefreshCoordinator(
-            TrackingProgressProviderRegistry(setOf(trakt, simkl))
+            TrackingProgressProviderRegistry(setOf(mdblist, simkl))
         )
 
         val failures = coordinator.refreshConnected(TrackingRefreshIntent.AUTOMATIC)
 
-        assertEquals(0, trakt.refreshCount)
+        assertEquals(0, mdblist.refreshCount)
         assertEquals(1, simkl.refreshCount)
         assertTrue(failures.isEmpty())
     }

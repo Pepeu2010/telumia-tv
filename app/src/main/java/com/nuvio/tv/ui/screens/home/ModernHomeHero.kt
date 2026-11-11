@@ -4,6 +4,13 @@ import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -20,7 +27,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,11 +39,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -122,11 +130,13 @@ internal fun ModernHeroMediaLayer(
     requestWidthPx: Int,
     requestHeightPx: Int
 ) {
+    val motion = LocalUiMotion.current
+    val backdropScale = remember { Animatable(1f) }
     val shouldPlay by remember { derivedStateOf { shouldPlayHeroTrailer() } }
     val trailerRendered by remember { derivedStateOf { heroTrailerFirstFrameRendered() } }
     val transitionProgressState = animateFloatAsState(
         targetValue = if (shouldPlay && trailerRendered) 1f else 0f,
-        animationSpec = tween(durationMillis = 480),
+        animationSpec = tween(durationMillis = motion.durationMillis(480)),
         label = "heroBackdropTrailerCrossfadeProgress"
     )
     val localContext = LocalContext.current
@@ -156,11 +166,27 @@ internal fun ModernHeroMediaLayer(
     LaunchedEffect(displayedBackdrop) {
         displayedBackdrop?.let { HeroBackdropState.update(it) }
     }
+    LaunchedEffect(displayedBackdrop, motion.allowsSpatialEffects) {
+        if (!motion.allowsSpatialEffects || displayedBackdrop.isNullOrBlank()) {
+            backdropScale.snapTo(1f)
+        } else {
+            // A single restrained push-in per selected title gives still artwork
+            // life without a continuously running animation on TV hardware.
+            backdropScale.snapTo(1.035f)
+            backdropScale.animateTo(
+                targetValue = 1.065f,
+                animationSpec = tween(
+                    durationMillis = motion.durationMillis(12_000).coerceAtLeast(1),
+                    easing = LinearEasing
+                )
+            )
+        }
+    }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.clipToBounds()) {
         androidx.compose.animation.Crossfade(
             targetState = imageModel,
-            animationSpec = tween(durationMillis = NuvioMotion.tokens.durations.overlay),
+            animationSpec = tween(durationMillis = motion.durationMillis(NuvioMotion.tokens.durations.overlay)),
             label = "heroBackdropCrossfade"
         ) { model ->
             AsyncImage(
@@ -171,6 +197,8 @@ internal fun ModernHeroMediaLayer(
                     .graphicsLayer {
                         compositingStrategy = CompositingStrategy.Offscreen
                         alpha = 1f - transitionProgressState.value
+                        scaleX = backdropScale.value
+                        scaleY = backdropScale.value
                     },
                 contentScale = ContentScale.Crop,
                 alignment = Alignment.TopEnd
@@ -250,13 +278,13 @@ internal fun ModernHeroGradientLayer(
                     )
                 }
 
-                val bottomStripStartY = size.height * if (fullScreen) 0.64f else 0.82f
+                val bottomStripStartY = size.height * if (fullScreen) 0.77f else 0.82f
                 val verticalGradient = Brush.verticalGradient(
                     colorStops = if (fullScreen) {
                         arrayOf(
                             0.0f to Color.Transparent,
-                            0.30f to bgColor.copy(alpha = 0.35f),
-                            0.60f to bgColor.copy(alpha = 0.75f),
+                            0.30f to bgColor.copy(alpha = 0.14f),
+                            0.60f to bgColor.copy(alpha = 0.46f),
                             1.0f to bgColor
                         )
                     } else {
@@ -319,19 +347,36 @@ internal fun HeroTitleBlock(
 
     val displayPreview = if (!isEnriching && currentPreview != null) currentPreview else stablePreview
     if (displayPreview == null) return
-    
+    val motion = LocalUiMotion.current
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.BottomStart
     ) {
-        HeroTitleContent(
-            previewProvider = { displayPreview },
-            portraitMode = portraitMode,
-            showImdbRatings = showImdbRatings,
-            mdbListShowOnHero = mdbListShowOnHero,
-            mdbListRatingOrder = mdbListRatingOrder,
-            trailerPlaying = trailerPlaying
-        )
+        AnimatedContent(
+            targetState = displayPreview,
+            transitionSpec = {
+                val duration = motion.durationMillis(300)
+                if (!motion.allowsSpatialEffects) {
+                    fadeIn(tween(duration)) togetherWith fadeOut(tween(duration))
+                } else {
+                    (fadeIn(tween(duration)) + slideInVertically(
+                        animationSpec = tween(duration),
+                        initialOffsetY = { height -> height / 12 }
+                    )) togetherWith fadeOut(tween(motion.durationMillis(180)))
+                }
+            },
+            label = "telumiaHeroDetailsCrossfade",
+        ) { animatedPreview ->
+            HeroTitleContent(
+                previewProvider = { animatedPreview },
+                portraitMode = portraitMode,
+                showImdbRatings = showImdbRatings,
+                mdbListShowOnHero = mdbListShowOnHero,
+                mdbListRatingOrder = mdbListRatingOrder,
+                trailerPlaying = trailerPlaying,
+            )
+        }
     }
 }
 
@@ -343,7 +388,7 @@ internal fun HeroTitleContent(
     showImdbRatings: Boolean,
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
-    trailerPlaying: () -> Boolean = { false }
+    trailerPlaying: () -> Boolean = { false },
 ) {
     val preview = previewProvider() ?: return
     val colors = NuvioTheme.colors
@@ -353,7 +398,7 @@ internal fun HeroTitleContent(
     val motion = LocalUiMotion.current
     val metaAlpha by animateFloatAsState(
         targetValue = if (trailerPlaying()) 0f else 1f,
-        animationSpec = tween(motion.durationMillis(180)), label = "telumiaHeroMetadata")
+        animationSpec = tween(motion.durationMillis(320)), label = "telumiaHeroChrome")
     val headline = MaterialTheme.typography.headlineLarge.copy(
         fontSize = if (shortViewport) 22.sp else if (compact) 28.sp else if (portraitMode) 32.sp else 36.sp,
         lineHeight = if (shortViewport) 25.sp else if (compact) 32.sp else 39.sp,
@@ -385,27 +430,29 @@ internal fun HeroTitleContent(
         preview.languageText, preview.countryText).filter(String::isNotBlank).distinct()
     val imdb = preview.imdbText?.toFloatOrNull()?.takeIf { it.isFinite() && it in 0f..10f }
     var logoError by remember(preview.title, preview.logo) { mutableStateOf(false) }
-    val shape = RoundedCornerShape(if (compact) 16.dp else 22.dp)
-
-    Column(Modifier.fillMaxWidth().clip(shape)
-        .background(colors.Panel.copy(alpha = 0.88f))
-        .border(1.dp, colors.TextPrimary.copy(alpha = 0.10f), shape)
-        .padding(if (shortViewport) 10.dp else if (compact) 14.dp else 20.dp),
-        verticalArrangement = Arrangement.spacedBy(if (shortViewport) 6.dp else if (compact) 9.dp else 14.dp)) {
+    Column(Modifier
+        .graphicsLayer { alpha = metaAlpha }
+        .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier)
+        .fillMaxWidth()
+        .padding(
+            horizontal = if (shortViewport) 10.dp else if (compact) 8.dp else 0.dp,
+            vertical = if (shortViewport) 4.dp else if (compact) 14.dp else 20.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(if (shortViewport) 3.dp else if (compact) 9.dp else 14.dp)) {
         if (!preview.logo.isNullOrBlank() && !logoError) {
             AsyncImage(model = preview.logo, contentDescription = preview.title,
-                modifier = Modifier.height(if (shortViewport) 48.dp else if (compact) 64.dp else 96.dp).fillMaxWidth(),
+                modifier = Modifier.height(if (shortViewport) 36.dp else if (compact) 64.dp else 96.dp).fillMaxWidth(),
                 contentScale = ContentScale.Fit, alignment = Alignment.CenterStart,
+                colorFilter = ColorFilter.tint(Color.White),
                 onError = { logoError = true })
         } else if (preview.title.isNotBlank()) {
             Text(preview.title, style = headline, color = colors.TextPrimary,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
-        Column(Modifier.graphicsLayer { alpha = metaAlpha }
-            .then(if (metaAlpha < 0.01f) Modifier.clearAndSetSemantics {} else Modifier),
-            verticalArrangement = Arrangement.spacedBy(if (shortViewport) 6.dp else if (compact) 8.dp else 12.dp)) {
+        Column(Modifier,
+            verticalArrangement = Arrangement.spacedBy(if (shortViewport) 3.dp else if (compact) 8.dp else 12.dp)) {
             if (contextLine.isNotBlank()) {
-                Text(contextLine, style = MaterialTheme.typography.labelMedium,
+                Text(contextLine, style = if (shortViewport) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                     color = colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             if (secondary.isNotEmpty() || (compact && showImdbRatings && (imdb != null || preview.mdbListRatings?.isEmpty() == false))) {
@@ -439,8 +486,8 @@ internal fun HeroTitleContent(
                 }
             }
             preview.description?.takeIf(String::isNotBlank)?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium.copy(textDirection = it.contentTextDirection()),
-                    color = colors.TextSecondary, maxLines = if (compact) 1 else 2,
+                Text(it, style = (if (shortViewport) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium).copy(textDirection = it.contentTextDirection()),
+                    color = colors.TextPrimary.copy(alpha = 0.86f), maxLines = if (shortViewport) 1 else 2,
                     overflow = TextOverflow.Ellipsis)
             }
         }

@@ -153,6 +153,7 @@ internal val LocalFastScrollActive = compositionLocalOf<State<Boolean>> { mutabl
 @Composable
 private fun ModernContinueWatchingRowItem(
     payload: ModernPayload.ContinueWatching,
+    focusKey: String,
     requester: FocusRequester,
     isTargetItem: Boolean = false,
     cardWidth: Dp,
@@ -161,7 +162,9 @@ private fun ModernContinueWatchingRowItem(
     useEpisodeThumbnails: Boolean,
     continueWatchingCardStyle: ContinueWatchingCardStyle,
     continueWatchingCornerRadius: Dp,
+    cinematicPresentation: Boolean = false,
     onFocused: () -> Unit,
+    onTrailerSelectionFocused: (FocusedCatalogSelection) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onShowOptions: (ContinueWatchingItem) -> Unit,
     modifier: Modifier = Modifier
@@ -172,6 +175,7 @@ private fun ModernContinueWatchingRowItem(
     var focusEventId by remember { mutableIntStateOf(0) }
     var isCardFocused by remember { mutableStateOf(false) }
     val latestOnFocused by rememberUpdatedState(onFocused)
+    val latestOnTrailerSelectionFocused by rememberUpdatedState(onTrailerSelectionFocused)
 
     LaunchedEffect(focusEventId, isCardFocused) {
         if (focusEventId == 0 || !isCardFocused) return@LaunchedEffect
@@ -183,6 +187,7 @@ private fun ModernContinueWatchingRowItem(
         val targetEventId = focusEventId
         delay(MODERN_HORIZONTAL_FOCUS_DEBOUNCE_MS)
         if (!isCardFocused || focusEventId != targetEventId) return@LaunchedEffect
+        latestOnTrailerSelectionFocused(FocusedCatalogSelection(focusKey, payload))
     }
 
     LaunchedEffect(isTargetItem) {
@@ -201,7 +206,8 @@ private fun ModernContinueWatchingRowItem(
         useEpisodeThumbnails = useEpisodeThumbnails,
         cardStyle = continueWatchingCardStyle,
         cornerRadius = continueWatchingCornerRadius,
-        isFocused = isCardFocused,
+        cinematicPresentation = cinematicPresentation,
+        isFocused = isCardFocused || (cinematicPresentation && isTargetItem),
         modifier = modifier
             .focusRequester(requester)
             .onFocusChanged {
@@ -536,10 +542,14 @@ internal fun ModernRowSection(
         )
     ) {
         val titleMediumStyle = MaterialTheme.typography.titleMedium
-        val rowTitleStyle = remember(titleMediumStyle) {
-            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold)
+        val cinematicContinueRow = row.key == MODERN_CONTINUE_WATCHING_ROW_KEY
+        val rowTitleStyle = remember(titleMediumStyle, cinematicContinueRow) {
+            titleMediumStyle.copy(
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = if (cinematicContinueRow) 2.sp else titleMediumStyle.letterSpacing,
+            )
         }
-        val rowTitle = row.title
+        val rowTitle = if (cinematicContinueRow) stringResource(R.string.home_cinematic_continue) else row.title
         val textColor = NuvioTheme.colors.TextPrimary
         val textModifier = remember(rowTitleBottom) {
             Modifier.padding(start = 52.dp, bottom = rowTitleBottom)
@@ -965,15 +975,30 @@ internal fun ModernRowSection(
                         is ModernPayload.ContinueWatching -> {
                             ModernContinueWatchingRowItem(
                                 payload = payload,
+                                focusKey = item.key,
                                 requester = requester,
                                 isTargetItem = isTargetItem,
-                                cardWidth = continueWatchingCardWidth,
-                                imageHeight = continueWatchingCardHeight,
+                                cardWidth = if (row.key == MODERN_CONTINUE_WATCHING_ROW_KEY) {
+                                    portraitCatalogCardWidth
+                                } else {
+                                    continueWatchingCardWidth
+                                },
+                                imageHeight = if (row.key == MODERN_CONTINUE_WATCHING_ROW_KEY) {
+                                    portraitCatalogCardHeight
+                                } else {
+                                    continueWatchingCardHeight
+                                },
                                 blurUnwatchedEpisodes = blurUnwatchedEpisodes,
                                 useEpisodeThumbnails = useEpisodeThumbnails,
-                                continueWatchingCardStyle = continueWatchingCardStyle,
+                                continueWatchingCardStyle = if (row.key == MODERN_CONTINUE_WATCHING_ROW_KEY) {
+                                    ContinueWatchingCardStyle.POSTER
+                                } else {
+                                    continueWatchingCardStyle
+                                },
                                 continueWatchingCornerRadius = continueWatchingCornerRadius,
+                                cinematicPresentation = row.key == MODERN_CONTINUE_WATCHING_ROW_KEY,
                                 onFocused = onFocused,
+                                onTrailerSelectionFocused = onCatalogSelectionFocused,
                                 onContinueWatchingClick = onContinueWatchingClick,
                                 onShowOptions = onContinueWatchingOptions
                             )

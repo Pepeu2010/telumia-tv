@@ -51,8 +51,6 @@ internal fun PlayerRuntimeController.releasePlayer(flushPlaybackState: Boolean) 
     subtitleTimingRefreshJob = null
     playbackPreparationJob?.cancel()
     playbackPreparationJob = null
-    traktMappingJob?.cancel()
-    traktMappingJob = null
     delayMpvResumeSeekUntilVideoTrack = false
     mpvMediaLoadPrepared = false
     nextEpisodeAutoPlayJob?.cancel()

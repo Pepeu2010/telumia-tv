@@ -87,6 +87,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PersonDetail
+import com.nuvio.tv.ui.components.EmptyScreenState
 import com.nuvio.tv.ui.components.GridContentCard
 import com.nuvio.tv.ui.components.PosterCardStyle
 import com.nuvio.tv.ui.components.PosterCardDefaults
@@ -145,7 +146,7 @@ fun CastDetailScreen(
                         isBiographyExpanded = isBiographyExpanded,
                         onBiographyExpandedChange = { isBiographyExpanded = it },
                         onNavigateToDetail = onNavigateToDetail,
-                        posterOptions = viewModel.posterOptions,
+                        onItemLongPress = { item -> viewModel.posterOptions.show(item, null) },
                         posterCardCornerRadiusDp = viewModel.posterCardCornerRadiusDp.collectAsState().value,
                         isItemWatched = { item ->
                             if (item.apiType == "movie") item.id in watchedMovieIds
@@ -169,12 +170,12 @@ fun CastDetailScreen(
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
-private fun CastDetailContent(
+internal fun CastDetailContent(
     person: PersonDetail,
     isBiographyExpanded: Boolean,
     onBiographyExpandedChange: (Boolean) -> Unit,
     onNavigateToDetail: (itemId: String, itemType: String, addonBaseUrl: String?) -> Unit,
-    posterOptions: com.nuvio.tv.ui.components.posteroptions.PosterOptionsController,
+    onItemLongPress: (MetaPreview) -> Unit = {},
     posterCardCornerRadiusDp: Int = 12,
     isItemWatched: (MetaPreview) -> Boolean = { false }
 ) {
@@ -256,6 +257,15 @@ private fun CastDetailContent(
                     modifier = if (isBiographyExpanded) Modifier.weight(1f) else Modifier
                 )
 
+                if (allCredits.isEmpty() && !isBiographyExpanded) {
+                    EmptyScreenState(
+                        title = stringResource(R.string.tmdb_entity_empty_title),
+                        subtitle = stringResource(R.string.tmdb_entity_empty_subtitle),
+                        modifier = Modifier.weight(1f),
+                        height = 280.dp
+                    )
+                }
+
                 AnimatedVisibility(
                     visible = allCredits.isNotEmpty() && !isBiographyExpanded,
                     enter = fadeIn() +
@@ -281,9 +291,7 @@ private fun CastDetailContent(
                                 pendingRestoreItemId = item.id
                                 onNavigateToDetail(item.id, item.apiType, null)
                             },
-                            onItemLongPress = { item ->
-                                posterOptions.show(item, null)
-                            },
+                            onItemLongPress = onItemLongPress,
                             isItemWatched = isItemWatched
                         )
                     }

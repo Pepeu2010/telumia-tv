@@ -17,7 +17,7 @@ import com.nuvio.tv.data.local.PlayerSettingsDataStore
 import com.nuvio.tv.data.local.StartupAuthNotice
 import com.nuvio.tv.data.local.MDBListSettingsDataStore
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.ContinueWatchingEnrichmentCache
 import com.nuvio.tv.data.trailer.TrailerService
 import com.nuvio.tv.domain.model.Addon
@@ -74,7 +74,7 @@ class HomeViewModel @Inject constructor(
     internal val playerSettingsDataStore: PlayerSettingsDataStore,
     internal val tmdbSettingsDataStore: TmdbSettingsDataStore,
     internal val mdbListSettingsDataStore: MDBListSettingsDataStore,
-    internal val traktSettingsDataStore: TraktSettingsDataStore,
+    internal val trackingSettingsDataStore: TrackingSettingsDataStore,
     internal val authSessionNoticeDataStore: AuthSessionNoticeDataStore,
     internal val tmdbService: TmdbService,
     internal val tmdbMetadataService: TmdbMetadataService,
@@ -622,15 +622,15 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * When the watch-progress source changes (e.g. Trakt login/logout, or
-     * switching between Trakt and Nuvio Sync), clear the CW disk cache and
+     * When the watch-progress source changes (e.g. provider login/logout, or
+     * switching between a provider and Nuvio Sync), clear the CW disk cache and
      * in-memory state so items from the old source don't leak into the new one.
      */
     private fun observeProgressSourceChanges() {
         viewModelScope.launch {
             var previousSource: com.nuvio.tv.data.local.WatchProgressSource? = null
             var previousProfileId: Int? = null
-            traktSettingsDataStore.watchProgressSource
+            trackingSettingsDataStore.watchProgressSource
                 .collect { source ->
                     val currentProfileId = profileManager.activeProfileId.value
                     val profileChanged = previousProfileId != null && previousProfileId != currentProfileId
@@ -702,8 +702,8 @@ class HomeViewModel @Inject constructor(
             val cachedInProgress = runCatching { cwEnrichmentCache.getInProgressSnapshot() }.getOrDefault(emptyList())
             val cachedNextUp = runCatching { cwEnrichmentCache.getNextUpSnapshot() }.getOrDefault(emptyList())
             if (cachedInProgress.isEmpty() && cachedNextUp.isEmpty()) return@launch
-            val dismissedNextUp = traktSettingsDataStore.dismissedNextUpKeys.first()
-            // Render cached items immediately — don't wait for Trakt/allProgress.
+            val dismissedNextUp = trackingSettingsDataStore.dismissedNextUpKeys.first()
+            // Render cached items immediately — don't wait for remote/allProgress.
             // The pipeline will replace these with live data once it completes.
             val inProgressItems = cachedInProgress
                 .filter { !watchProgressRepository.isDroppedShow(it.contentId) }

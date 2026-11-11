@@ -62,11 +62,13 @@ class SettingsStructureTest {
     }
 
     @Test
-    fun `essential layout only offers the home layout`() {
+    fun `essential layout exposes focused poster options when available`() {
         assertEquals(
-            listOf(LayoutSection.HOME_LAYOUT),
+            listOf(LayoutSection.HOME_LAYOUT, LayoutSection.FOCUSED_POSTER),
             visibleLayoutSections(essentialMode = true, focusedPosterHasOptions = true)
         )
+        assertEquals(listOf(LayoutSection.HOME_LAYOUT),
+            visibleLayoutSections(essentialMode = true, focusedPosterHasOptions = false))
     }
 
     @Test

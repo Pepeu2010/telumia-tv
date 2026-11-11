@@ -5,6 +5,8 @@ import android.view.KeyEvent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,10 +21,19 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.tv.material3.Button
 import androidx.tv.material3.Text
 import com.nuvio.tv.domain.model.NavigationMotion
+import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.core.player.LocalTrailerPlayerPool
+import com.nuvio.tv.core.player.TrailerPlayerPool
+import com.nuvio.tv.ui.screens.player.originalTimelineVideo
+import android.net.Uri
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.AtomicBoolean
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,6 +47,82 @@ class TelumiaHomeHeroTvTest {
         contentTypeText = "Filme", yearText = "2026", runtimeText = "124 min", imdbText = "8.1",
         ageRatingText = "12", languageText = "Português", genres = StableList(listOf("Drama")),
         poster = null, backdrop = null, imageUrl = null)
+
+    @Test fun continueWatchingTrailerHidesChromeAndRemoteRestoresIt() {
+        val context = instrumentation.targetContext
+        val video = originalTimelineVideo(context, durationSeconds = 15)
+        val pool = TrailerPlayerPool(context, forceNative = false)
+        val progress = WatchProgress("series-preview", "series", "Série de prévia", null, null, null,
+            "episode-preview", 1, 2, "Episódio", 500, 1000, 0)
+        val entry = ContinueWatchingItem.InProgress(progress)
+        val presentation = buildModernHomePresentation(
+            ModernHomePresentationInput(emptyList(), emptyList(), listOf(entry), emptyList(), false, false, true, true, "pt-BR"),
+            ModernCarouselRowBuildCache(), context
+        )
+        val urls = mutableStateMapOf<String, String>()
+        val fullscreen = AtomicBoolean(false)
+        val resumed = AtomicReference<ContinueWatchingItem>()
+        try {
+            compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+                CompositionLocalProvider(LocalTrailerPlayerPool provides pool) {
+                    ModernHomeContent(
+                        uiState = HomeUiState(isLoading = false, continueWatchingItems = listOf(entry),
+                            focusedPosterBackdropTrailerEnabled = true, focusedPosterBackdropExpandEnabled = false,
+                            focusedPosterBackdropExpandDelaySeconds = 0),
+                        modernPresentation = presentation, focusState = HomeScreenFocusState(),
+                        trailerPreviewUrls = urls,
+                        onNavigateToDetail = { _, _, _ -> }, onContinueWatchingClick = { resumed.set(it) },
+                        onRequestTrailerPreview = { id, _, _, _ -> urls[id] = Uri.fromFile(video).toString() },
+                        onLoadMoreCatalog = { _, _, _ -> }, onRemoveContinueWatching = { _, _, _, _ -> },
+                        onSaveFocusState = { _, _, _, _, _, _, _, _ -> },
+                        onFullscreenTrailerChanged = { fullscreen.set(it) }
+                    )
+                }
+            } }
+            compose.waitUntil(timeoutMillis = 20_000) { fullscreen.get() }
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+            compose.waitUntil(timeoutMillis = 5_000) { !fullscreen.get() }
+            assertEquals(null, resumed.get())
+            instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+            compose.waitUntil(timeoutMillis = 5_000) { resumed.get() != null }
+            assertEquals(entry, resumed.get())
+        } finally {
+            compose.runOnIdle { urls.clear() }
+            instrumentation.runOnMainSync { pool.release() }
+            video.delete()
+        }
+    }
+
+    @Test fun continueWatchingFocusRequestsParentTrailerAndClickStillResumes() {
+        val progress = WatchProgress("series-fixture", "series", "Série de teste", null, null, null,
+            "episode-fixture", 1, 2, "Episódio", 500, 1000, 0)
+        val entry = ContinueWatchingItem.InProgress(progress, releaseInfo = "2024")
+        val input = ModernHomePresentationInput(
+            homeRows = emptyList(), catalogRows = emptyList(), continueWatchingItems = listOf(entry),
+            upcomingItems = emptyList(), useLandscapePosters = false, showCatalogTypeSuffix = false,
+            showFullReleaseDate = true, showImdbRatings = true, localeTag = "pt-BR"
+        )
+        val presentation = buildModernHomePresentation(input, ModernCarouselRowBuildCache(), instrumentation.targetContext)
+        val requested = AtomicReference<List<String?>>()
+        val resumed = AtomicReference<ContinueWatchingItem>()
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            ModernHomeContent(
+                uiState = HomeUiState(isLoading = false, continueWatchingItems = listOf(entry),
+                    focusedPosterBackdropTrailerEnabled = true, focusedPosterBackdropExpandEnabled = false,
+                    focusedPosterBackdropExpandDelaySeconds = 0),
+                modernPresentation = presentation, focusState = HomeScreenFocusState(),
+                onNavigateToDetail = { _, _, _ -> }, onContinueWatchingClick = { resumed.set(it) },
+                onRequestTrailerPreview = { id, title, year, type -> requested.set(listOf(id, title, year, type)) },
+                onLoadMoreCatalog = { _, _, _ -> }, onRemoveContinueWatching = { _, _, _, _ -> },
+                onSaveFocusState = { _, _, _, _, _, _, _, _ -> }
+            )
+        } }
+        compose.waitUntil(timeoutMillis = 15_000) { requested.get() != null }
+        assertEquals(listOf("series-fixture", "Série de teste", "2024", "series"), requested.get())
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.waitUntil(timeoutMillis = 5_000) { resumed.get() != null }
+        assertEquals(entry, resumed.get())
+    }
 
     @Test fun dpadSelectionUpdatesTheHeroWithoutRetainingAnotherTitlesMetadata() {
         val second = movie.copy(title = "Histórias de uma cidade", contentTypeText = "Série", isSeries = true,
@@ -91,8 +178,31 @@ class TelumiaHomeHeroTvTest {
         compose.onNodeWithText("2026", substring = true).assertIsDisplayed()
         compose.runOnIdle { trailer.value = true }
         compose.onNodeWithText("2026", substring = true).assertDoesNotExist()
-        compose.onNodeWithText(movie.title).assertIsDisplayed()
+        compose.onNodeWithText(movie.title).assertDoesNotExist()
         compose.runOnIdle { trailer.value = false }
         compose.onNodeWithText("2026", substring = true).assertIsDisplayed()
+        compose.onNodeWithText(movie.title).assertIsDisplayed()
+    }
+
+    @Test fun dpadInputDismissesImmersiveTrailerAndKeepsFocusUsable() {
+        val trailerPlaying = mutableStateOf(true)
+        val firstFocus = FocusRequester()
+        var dismissals = 0
+        compose.setContent { NuvioTheme(navigationMotion = NavigationMotion.OFF) {
+            Box(Modifier.fillMaxSize().exitImmersiveTrailerOnKey(
+                isTrailerPlaying = { trailerPlaying.value },
+                onExit = { trailerPlaying.value = false; dismissals++ }
+            )) {
+                Button(onClick = {}, modifier = Modifier.focusRequester(firstFocus)) { Text("Home preview") }
+            }
+            LaunchedEffect(Unit) { firstFocus.requestFocusAfterFrames() }
+        } }
+        compose.onNodeWithText("Home preview").assertIsFocused()
+        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_RIGHT)
+        compose.runOnIdle {
+            assertFalse(trailerPlaying.value)
+            assertEquals(1, dismissals)
+        }
+        compose.onNodeWithText("Home preview").assertIsFocused()
     }
 }

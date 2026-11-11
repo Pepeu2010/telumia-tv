@@ -51,6 +51,10 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
@@ -61,6 +65,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.MetaCompany
 import com.nuvio.tv.ui.theme.NuvioTheme
 
@@ -259,14 +264,19 @@ private fun CompanyLogoCard(
         }
     }
     var logoLoadFailed by remember(company.logo) { mutableStateOf(false) }
+    val canNavigate = company.tmdbId?.let { it > 0 } == true
+    val unavailableLabel = context.getString(R.string.episodes_unavailable)
 
     Card(
-        onClick = {
-            if (company.tmdbId != null) {
-                onClick()
-            }
-        },
+        onClick = { if (canNavigate) onClick() },
         modifier = Modifier
+            .semantics {
+                contentDescription = company.name
+                if (!canNavigate) {
+                    disabled()
+                    stateDescription = unavailableLabel
+                }
+            }
             .width(140.dp)
             .height(NuvioTheme.spacing.huge)
             .then(

@@ -92,14 +92,12 @@
     <string name="web_import_error_source_invalid_format">Bộ sưu tập \"{collection}\", thư mục \"{folder}\", nguồn {index}: sai định dạng</string>
     <string name="web_import_error_source_missing_addon_fields">Bộ sưu tập \"{collection}\", thư mục \"{folder}\", nguồn {index}: thiếu trường bắt buộc (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">Bộ sưu tập \"{collection}\", thư mục \"{folder}\", nguồn {index}: thiếu loại nguồn TMDB</string>
-    <string name="web_import_error_source_missing_trakt_id">Bộ sưu tập \"{collection}\", thư mục \"{folder}\", nguồn {index}: thiếu ID danh sách Trakt</string>
     <string name="web_import_success">Đã nhập {count} bộ sưu tập. Đánh giá và nhấn Lưu thay đổi để áp dụng..</string>
     <string name="web_import_invalid_json">JSON không hợp lệ</string>
 
     <string name="home_no_addons">Chưa cài đặt tiện ích nào. Thêm một tiện ích để bắt đầu.</string>
     <string name="home_no_catalog_addons">Chưa cài đặt tiện ích danh mục nào. Cài đặt tiện ích danh mục để xem nội dung.</string>
     <string name="auth_notice_nuvio_logged_out">Bạn đã đăng xuất khỏi Telumia. Vui lòng đăng nhập lại.</string>
-    <string name="auth_notice_trakt_logged_out">Bạn đã đăng xuất khỏi Trakt. Vui lòng kết nối lại.</string>
     <string name="error_generic">Đã xảy ra lỗi</string>
 
     <string name="action_retry">Thử lại</string>
@@ -200,7 +198,6 @@
     <string name="episodes_mark_previous_watched">Đánh dấu đã xem các tập trước</string>
     <string name="episodes_mark_previous_seasons_watched">Đánh dấu đã xem các mùa trước</string>
     <string name="episodes_play">Phát</string>
-    <string name="episodes_open_comments">Mở bình luận tập phim</string>
     <string name="play_manually">Chọn nguồn phát</string>
     <string name="episodes_season_actions">Thao tác với mùa phim</string>
 
@@ -234,30 +231,11 @@
     <string name="detail_tab_more_like_this">Nội dung tương tự</string>
     <string name="detail_tab_trailer">Trailer</string>
     <string name="detail_more_like_this_powered_by_tmdb">Cung cấp bởi TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Cung cấp bởi Trakt</string>
     <string name="detail_more_like_this_powered_by_simkl">Cung cấp bởi Simkl</string>
-    <string name="detail_comments_title">Bình luận</string>
-    <string name="detail_comments_subtitle">Đánh giá và bình luận từ Trakt</string>
-    <string name="detail_comments_subtitle_episode">Đánh giá từ Trakt cho M%1$dT%2$d</string>
-    <string name="detail_comments_mode_show">Hiển thị</string>
-    <string name="detail_comments_mode_episode">Tập</string>
-    <string name="detail_comments_mode_episode_change">Chuyển sang tập (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Chọn tập</string>
-    <string name="detail_comments_episode_picker_subtitle">Chọn một tập để xem các bài đánh giá trên Trakt</string>
     <string name="detail_section_network">Đơn vị phát sóng</string>
     <string name="detail_section_production">Hãng sản xuất</string>
-    <string name="detail_comments_empty">Chưa có đánh giá trên Trakt</string>
-    <string name="detail_comments_error">Không thể tải đánh giá Trakt lúc này.</string>
     <string name="detail_trailer_loading">Đang tải trailer...</string>
     <string name="detail_trailer_error">Không thể tải trailer lúc này.</string>
-    <string name="detail_comments_spoiler_hidden">Bài đánh giá có tiết lộ nội dung. Nhấn OK để hiển thị.</string>
-    <string name="detail_comments_reveal_spoiler">Xem nội dung tiết lộ</string>
-    <string name="detail_comments_reveal_spoiler_hint">Nhấn OK để xem nội dung tiết lộ.</string>
-    <string name="detail_comments_back_hint">Nhấn Quay lại để đóng</string>
-    <string name="detail_comments_badge_review">Đánh giá</string>
-    <string name="detail_comments_badge_spoiler">Nội dung tiết lộ</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d lượt thích</string>
     <string name="tmdb_entity_kind_company">Hãng sản xuất</string>
     <string name="tmdb_entity_kind_network">Đơn vị phát sóng</string>
     <string name="tmdb_entity_rail_popular">Phổ biến</string>
@@ -427,8 +405,6 @@
     <string name="licenses_attributions_nuvio_body">Mã nguồn và các điều khoản cấp phép có sẵn trong kho lưu trữ của dự án. Phần mềm được cấp phép theo Giấy phép Công cộng GNU phiên bản 3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia sử dụng API TMDB để lấy dữ liệu phim và TV, ảnh hiển thị, trailer, diễn viên, thông tin sản xuất, bộ sưu tập và đề xuất. Sản phẩm này sử dụng API TMDB nhưng không được TMDB xác thực hoặc chứng nhận.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia kết nối với Trakt để xác thực tài khoản, đồng bộ lịch sử đã xem, tiến độ xem, dữ liệu thư viện, đánh giá, danh sách và bình luận. Telumia không liên kết hoặc được Trakt xác nhận.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia kết nối với Simkl để xác thực tài khoản, đồng bộ danh sách theo dõi, lịch sử đã xem, tiến trình phát lại và ghi nhật ký phát lại. Dữ liệu theo dõi phim, TV và anime do Simkl cung cấp. Telumia không liên kết hoặc được xác nhận bởi Simkl.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -459,15 +435,12 @@
     <string name="settings_plugins_subtitle">Kho lưu trữ và nhà cung cấp</string>
     <string name="settings_integration">Tích hợp</string>
     <string name="settings_playback">Phát lại</string>
-    <string name="settings_trakt_subtitle">Mở màn hình kết nối Trakt</string>
     <string name="settings_tracking_title">Theo dõi</string>
     <string name="settings_tracking_description">Kết nối các dịch vụ theo dõi và chọn dịch vụ cung cấp dữ liệu cho Thư viện và Tiếp tục xem.</string>
     <string name="tracking_accounts_title">Tài khoản</string>
     <string name="tracking_accounts_subtitle">Kết nối và quản lý các dịch vụ theo dõi</string>
     <string name="tracking_sources_title">Nguồn</string>
     <string name="tracking_sources_subtitle">Chọn nơi Telumia lấy dữ liệu Thư viện và tiến độ xem của bạn. Nhật ký phát lại sẽ được đồng bộ với tất cả dịch vụ liên kết.</string>
-    <string name="tracking_trakt_features_title">Tính năng Trakt</string>
-    <string name="tracking_trakt_features_subtitle">Lịch sử, đánh giá và đề xuất riêng của Trakt</string>
     <string name="tracking_simkl_features_title">Tính năng Simkl</string>
     <string name="tracking_simkl_features_subtitle">Cài đặt riêng của Simkl</string>
     <string name="tracking_simkl_anime_id_title">Tùy chọn anime ID</string>
@@ -484,8 +457,6 @@
     <string name="tracking_connecting_provider">Đang bắt đầu %1$s kết nối…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Chọn dịch vụ mà Telumia dùng để đọc cho việc tiếp tục phát và mục Tiếp tục xem. Ghi nhật ký phát lại vẫn hoạt động trên tất cả dịch vụ liên kết.</string>
     <string name="tracking_library_source_dialog_subtitle">Chọn dịch vụ mà Telumia dùng để xem Thư viện của bạn. Nhật ký phát lại vẫn hoạt động trên tất cả dịch vụ liên kết.</string>
-    <string name="tracking_trakt_progress_required">Khả dụng khi Trakt là nguồn Tiến độ xem</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Tốc độ mạng</string>
     <string name="settings_network_subtitle">Chẩn đoán độ trễ và tốc độ tải xuống</string>
@@ -495,7 +466,7 @@
     <string name="experience_mode_advanced">Nâng cao</string>
     <string name="experience_mode_choose_title">Chọn trải nghiệm Telumia của bạn</string>
     <string name="experience_mode_choose_subtitle">Bắt đầu đơn giản hoặc mở khóa mọi tùy chọn cá nhân hóa. Bạn có thể chuyển đổi bất cứ lúc nào.</string>
-    <string name="experience_mode_essential_card_subtitle">Tập trung thiết lập, tiện ích, tùy chọn phát cơ bản, Trakt và cài đặt tài khoản.</string>
+    <string name="experience_mode_essential_card_subtitle">Tập trung thiết lập, tiện ích, tùy chọn phát cơ bản và cài đặt tài khoản.</string>
     <string name="experience_mode_advanced_card_subtitle">Đầy đủ cài đặt, tùy chọn bố cục, thứ tự danh mục, bộ sưu tập, tiện ích và chẩn đoán.</string>
     <string name="experience_mode_group_title">Chế độ trải nghiệm</string>
     <string name="essential_addon_continue_for_now">Tiếp tục ngay bây giờ</string>
@@ -1215,8 +1186,6 @@
     <string name="mdblist_ratings_credentials_subtitle">Sử dụng tài khoản MDBList đã kết nối trong mục Theo dõi hoặc nhập mã khóa API riêng để đánh giá.</string>
     <string name="mdblist_ratings_connected_account">Đang sử dụng tài khoản đã kết nối</string>
     <string name="mdblist_ratings_key_override_subtitle">Mã khóa API sẽ thay thế tài khoản đã kết nối khi đánh giá. Xóa mã này để sử dụng lại tài khoản đã kết nối.</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Hiển thị điểm Trakt</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Hiển thị điểm IMDb (và ẩn dòng IMDb mặc định khi có sẵn)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1449,11 +1418,6 @@
 
     <string name="tmdb_language_dialog_title">Ngôn ngữ TMDB</string>
 
-    <string name="trakt_description">Đồng bộ danh sách muốn xem, tiến độ xem, tiếp tục xem, nhật ký phát lại và danh sách cá nhân với Trakt.</string>
-    <string name="trakt_connected_as">Đã kết nối với %1$s</string>
-    <string name="trakt_account_login">Đăng nhập tài khoản</string>
-    <string name="trakt_awaiting_instruction">Vào trakt.tv/activate và nhập mã này:</string>
-    <string name="trakt_waiting_approval">Đang chờ phê duyệt…</string>
     <string name="qr_login_approved">Đã phê duyệt đăng nhập. Đang hoàn tất đăng nhập...</string>
     <string name="qr_login_pending">Đang chờ phê duyệt trên điện thoại của bạn…</string>
     <string name="qr_login_expired">Mã QR đã hết hạn. Tạo mã mới.</string>
@@ -1464,68 +1428,26 @@
     <string name="qr_login_signing_in">Đang đăng nhập…</string>
     <string name="qr_login_success">Đăng nhập thành công</string>
     <string name="qr_login_exchange_failed">Không thể hoàn tất đăng nhập bằng mã QR</string>
-    <string name="trakt_code_expires">Mã hết hạn sau %1$s</string>
-    <string name="trakt_token_refreshes">Token truy cập Trakt làm mới sau %1$s</string>
-    <string name="trakt_login_instruction">Nhấn Đăng nhập để bắt đầu xác thực thiết bị Trakt. Mã QR sẽ xuất hiện ở đây.</string>
-    <string name="trakt_missing_credentials">Thiếu TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET trong local.properties.</string>
-    <string name="trakt_watch_progress_title">Tiến trình xem</string>
-    <string name="trakt_watch_progress_subtitle">Chọn nguồn tiến trình dùng để tiếp tục xem</string>
-    <string name="trakt_watch_progress_dialog_title">Tiến trình xem</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Chọn nguồn tiến trình dùng để phát tiếp và tiếp tục xem như Trakt hoặc Đồng bộ Telumia, trong khi tính năng ghi nhật ký phát lại của Trakt vẫn hoạt động.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Đồng bộ Telumia</string>
-    <string name="trakt_library_source_title">Nguồn thư viện</string>
-    <string name="trakt_library_source_subtitle">Chọn thư viện để lưu và quản lý bộ sưu tập</string>
-    <string name="trakt_library_source_dialog_title">Nguồn thư viện</string>
-    <string name="trakt_library_source_dialog_subtitle">Chọn nguồn mà Telumia sử dụng cho Thư viện của bạn</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Thư viện Telumia</string>
-    <string name="trakt_library_source_trakt_selected">Đã chọn thư viện Trakt</string>
-    <string name="trakt_library_source_nuvio_selected">Đã chọn thư viện Telumia</string>
-    <string name="trakt_setting_on">Bật</string>
-    <string name="trakt_setting_off">Tắt</string>
-    <string name="trakt_watch_progress_trakt_selected">Đã đặt nguồn tiến trình xem là Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Đã đặt nguồn tiến trình xem là Đồng bộ Telumia</string>
-    <string name="trakt_continue_watching_window">Cửa sổ Xem tiếp</string>
-    <string name="trakt_continue_watching_subtitle">Lịch sử Trakt được dùng cho mục Tiếp tục xem</string>
-    <string name="trakt_unaired_next_up">Tập tiếp theo chưa phát sóng</string>
-    <string name="trakt_unaired_next_up_subtitle">Hiển thị các tập sắp tới trước khi phát sóng</string>
-    <string name="trakt_unaired_shown">Hiển thị</string>
-    <string name="trakt_unaired_hidden">Ẩn</string>
-    <string name="trakt_unaired_now_shown">Tập tiếp theo chưa phát sóng hiện đang hiển thị</string>
-    <string name="trakt_unaired_now_hidden">Tập tiếp theo chưa phát sóng hiện đang ẩn</string>
-    <string name="trakt_comments_title">Bình luận</string>
-    <string name="trakt_comments_subtitle">Hiển thị đánh giá từ Trakt trên trang thông tin phim</string>
-    <string name="trakt_comments_dialog_title">Bình luận</string>
-    <string name="trakt_comments_dialog_subtitle">Chọn có hiển thị đánh giá Trakt trên các trang thông tin khi tài khoản của bạn đã được kết nối hay không.</string>
-    <string name="trakt_comments_now_shown">Đánh giá Trakt trên các trang thông tin hiện đang hiển thị</string>
-    <string name="trakt_comments_now_hidden">Đánh giá Trakt trên các trang thông tin hiện đang ẩn</string>
-    <string name="trakt_more_like_this_source_title">Nguồn Nội dung tương tự</string>
-    <string name="trakt_more_like_this_source_subtitle">Chọn nguồn đề xuất trên các trang chi tiết</string>
-    <string name="trakt_more_like_this_source_dialog_title">Nguồn Nội dung tương tự</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Chọn nguồn đề xuất hiển thị trên các trang chi tiết</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
-    <string name="trakt_cached_label">Đã lưu bộ nhớ đệm</string>
-    <string name="trakt_stat_movies">Phim</string>
-    <string name="trakt_stat_shows">Chương trình</string>
-    <string name="trakt_stat_episodes">Tập phim</string>
-    <string name="trakt_stat_watched_hours">Giờ đã xem</string>
-    <string name="trakt_disconnect">Ngắt kết nối</string>
-    <string name="trakt_disconnect_title">Ngắt kết nối Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Thao tác này sẽ ngắt kết nối tài khoản Trakt khỏi Telumia.</string>
-    <string name="trakt_login">Đăng nhập</string>
-    <string name="trakt_retry">Thử lại</string>
-    <string name="trakt_back">Quay lại</string>
-    <string name="trakt_cw_window_title">Cửa sổ Tiếp tục Xem</string>
-    <string name="trakt_cw_window_subtitle">Chọn mức độ hoạt động Trakt hiển thị trong Tiếp tục Xem.</string>
-    <string name="trakt_unaired_dialog_title">Tập tiếp theo chưa phát sóng</string>
-    <string name="trakt_unaired_dialog_subtitle">Chọn có hiển thị các tập sắp phát hành trong Tiếp tục Xem hay không.</string>
-    <string name="trakt_show_unaired">Hiển thị tập chưa phát sóng</string>
-    <string name="trakt_hide_unaired">Ẩn tập chưa phát sóng</string>
-    <string name="trakt_all_history">Toàn bộ lịch sử</string>
-    <string name="trakt_days_format">%1$d ngày</string>
+    <string name="tracking_code_expires">Mã hết hạn sau %1$s</string>
+    <string name="tracking_watch_progress_title">Tiến trình xem</string>
+    <string name="tracking_watch_progress_subtitle">Chọn nguồn tiến trình dùng để tiếp tục xem</string>
+    <string name="tracking_watch_progress_dialog_title">Tiến trình xem</string>
+    <string name="tracking_watch_progress_source_nuvio">Đồng bộ Telumia</string>
+    <string name="tracking_library_source_title">Nguồn thư viện</string>
+    <string name="tracking_library_source_subtitle">Chọn thư viện để lưu và quản lý bộ sưu tập</string>
+    <string name="tracking_library_source_dialog_title">Nguồn thư viện</string>
+    <string name="tracking_library_source_nuvio">Thư viện Telumia</string>
+    <string name="tracking_continue_watching_window">Cửa sổ Xem tiếp</string>
+    <string name="tracking_more_like_this_source_title">Nguồn Nội dung tương tự</string>
+    <string name="tracking_more_like_this_source_subtitle">Chọn nguồn đề xuất trên các trang chi tiết</string>
+    <string name="tracking_more_like_this_source_dialog_title">Nguồn Nội dung tương tự</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Chọn nguồn đề xuất hiển thị trên các trang chi tiết</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_disconnect">Ngắt kết nối</string>
+    <string name="tracking_cw_window_title">Cửa sổ Tiếp tục Xem</string>
+    <string name="tracking_all_history">Toàn bộ lịch sử</string>
+    <string name="tracking_days_format">%1$d ngày</string>
 
     <string name="debug_title">Gỡ lỗi</string>
     <string name="debug_subtitle">Công cụ dành cho nhà phát triển và cờ tính năng (chỉ dành cho bản gỡ lỗi)</string>
@@ -1672,7 +1594,6 @@
     <string name="essential_addon_setup_subtitle">Cài đặt một tiện ích để bắt đầu phát luồng. Bạn có thể thêm các tiện ích khác sau trong mục Tiện ích.</string>
     <string name="essential_addon_show_qr">Hiển thị mã QR</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">Không tìm thấy danh sách Trakt</string>
     <string name="collection_editor_untitled_folder">Chưa có tiêu đề</string>
     <string name="collection_editor_untitled_collection">Bộ sưu tập chưa có tiêu đề</string>
     <!-- AddonManagerScreen -->
@@ -2011,7 +1932,6 @@
     <string name="search_no_results_subtitle">Thử tìm kiếm bằng từ khóa khác</string>
     <string name="search_error_no_catalogs">Không tìm thấy danh mục có thể tìm kiếm trong các tiện ích đã cài đặt</string>
 
-    <string name="library_syncing">Đang đồng bộ thư viện Trakt\u2026</string>
     <string name="library_title">Thư viện</string>
     <string name="library_filter_list">Danh sách</string>
     <string name="library_filter_type">Loại</string>
@@ -2064,7 +1984,6 @@
     <string name="genre_sporting_event">Sự kiện thể thao</string>
     <string name="genre_superhero">Siêu anh hùng</string>
     <string name="genre_suspense">Giật gân</string>
-    <string name="library_sort_trakt_order">Thứ tự Trakt</string>
     <string name="library_sort_provider_order">Thứ tự nhà cung cấp</string>
     <string name="library_sort_added_desc">Đã thêm ↓</string>
     <string name="library_sort_added_asc">Đã thêm ↑</string>
@@ -2072,7 +1991,6 @@
     <string name="library_sort_title_desc">Tên Z-A</string>
     <string name="library_error_sort_failed">Không thể tải thứ tự sắp xếp. Đang hiển thị theo thứ tự của nhà cung cấp.</string>
     <string name="library_manage_lists">Quản lý danh sách</string>
-    <string name="library_manage_trakt_lists">Quản lý danh sách Trakt</string>
     <string name="library_no_lists">Chưa có danh sách cá nhân.</string>
     <string name="library_list_create">Tạo</string>
     <string name="library_list_edit">Chỉnh sửa</string>
@@ -2085,11 +2003,9 @@
     <string name="library_list_description_label">Mô tả</string>
     <string name="library_list_privacy">Quyền riêng tư</string>
     <string name="library_delete_title">Xóa danh sách này?</string>
-    <string name="library_delete_subtitle">Thao tác này sẽ xóa danh sách và tất cả mục danh sách khỏi Trakt.</string>
     <string name="library_delete_confirm">Xóa</string>
     <string name="library_source_local">CỤC BỘ</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Đã lưu</string>
     <string name="library_source_cloud">Đám mây</string>
     <string name="library_watchlist">Danh sách theo dõi</string>
@@ -2102,11 +2018,9 @@
     <string name="library_type_all">Tất cả</string>
     <string name="library_type_items">mục</string>
     <string name="library_empty_local_title">Chưa có %1$s</string>
-    <string name="library_empty_trakt_title">Chưa có %1$s trong danh sách này</string>
+    <string name="library_empty_remote_title">Chưa có %1$s trong danh sách này</string>
     <string name="library_empty_local_subtitle">Bắt đầu lưu mục yêu thích để xem ở đây</string>
-    <string name="library_empty_trakt_subtitle">Sử dụng + trong chi tiết để thêm vào danh sách theo dõi hoặc danh sách</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt chưa được kết nối</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Kết nối tài khoản Trakt trong Cài đặt để xem thư viện Trakt của bạn</string>
+    <string name="library_empty_remote_subtitle">Sử dụng + trong chi tiết để thêm vào danh sách theo dõi hoặc danh sách</string>
     <string name="library_empty_simkl_title">Không có %1$s trong trạng thái này</string>
     <string name="library_empty_simkl_subtitle">Sử dụng + trong chi tiết để thêm mục vào trạng thái Simkl</string>
     <string name="library_empty_simkl_not_auth_title">Simkl chưa được kết nối</string>
@@ -2348,7 +2262,6 @@
     <string name="update_unknown_sources">Cho phép cài đặt từ nguồn không xác định để tiếp tục.</string>
     <!-- AccountScreen -->
     <string name="account_title">Tài khoản</string>
-    <string name="account_sign_in_description">Đăng nhập để đồng bộ thư viện, tiến trình xem, tiện ích và trình mở rộng trên các thiết bị. Tính năng đồng bộ thư viện sử dụng Đồng bộ Telumia khi chưa kết nối Trakt, còn tiến trình xem có thể sử dụng Trakt hoặc Đồng bộ Telumia.</string>
     <string name="account_sync_code_title">Mã đồng bộ</string>
     <string name="account_sync_code_description">Đồng bộ giữa các thiết bị mà không cần tạo tài khoản.</string>
     <string name="account_linked_devices">Thiết bị đã liên kết (%1$d)</string>
@@ -2441,30 +2354,7 @@
     <string name="plugin_repo_removed">Kho lưu trữ đã bị xóa</string>
     <string name="plugin_repo_refreshed">Kho lưu trữ đã làm mới</string>
 
-    <!-- Trakt errors -->
 
-    <string name="trakt_error_code_expired">Mã thiết bị đã hết hạn. Vui lòng bắt đầu lại.</string>
-    <string name="trakt_error_code_used">Mã thiết bị đã được sử dụng. Vui lòng bắt đầu lại.</string>
-    <string name="trakt_error_denied">Đã từ chối cấp quyền trên Trakt.</string>
-    <string name="trakt_error_missing_credentials">Thiếu thông tin xác thực TRAKT</string>
-    <string name="trakt_error_network_retry">Lỗi mạng, vui lòng thử lại</string>
-    <string name="trakt_error_network_will_retry">Lỗi mạng, sẽ thử lại</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt đang giới hạn tần suất yêu cầu. Vui lòng thử lại sau %1$d phút</string>
-    <string name="trakt_error_failed_start_code">Không thể bắt đầu xác thực Trakt (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Không có mã thiết bị Trakt đang hoạt động</string>
-    <string name="trakt_error_invalid_device_code">Mã thiết bị không hợp lệ</string>
-    <string name="trakt_error_token_polling_failed_code">Vấn tin token thất bại (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Yêu cầu tới Trakt thất bại</string>
-    <string name="trakt_error_list_not_found_or_private">Không tìm thấy danh sách Trakt hoặc danh sách không công khai</string>
-    <string name="trakt_error_rate_limit_reached">Đã đạt giới hạn yêu cầu của Trakt</string>
-    <string name="trakt_status_enter_activation_code">Nhập mã tại trakt.tv/activate</string>
-    <string name="trakt_status_syncing">Đang đồng bộ...</string>
-    <string name="trakt_status_sync_completed">Đồng bộ đã hoàn tất</string>
-    <string name="trakt_status_disconnected">Đã ngắt kết nối từ Trakt</string>
-    <string name="trakt_status_cw_window_updated">Cửa sổ tiếp tục xem đã được cập nhật</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Bị giới hạn tần suất, đang giảm tốc độ vấn tin...</string>
-    <string name="trakt_user_fallback">Người dùng Trakt</string>
-    <string name="trakt_error_failed_start">Không thể bắt đầu xác thực Trakt</string>
 
     <!-- General errors -->
     <string name="error_unknown">Lỗi không xác định</string>
@@ -2517,8 +2407,6 @@
     <string name="cd_test">Kiểm tra</string>
     <string name="cd_unlink">Hủy liên kết</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Logo Trakt</string>
-    <string name="cd_trakt_qr">Mã QR kích hoạt Trakt</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Mở mục khám phá</string>
     <string name="cd_clear_search">Xóa tìm kiếm</string>
@@ -2619,18 +2507,8 @@
     <string name="collections_editor_addon_missing">Tiện ích chưa cài đặt: %1$s</string>
     <string name="collections_editor_catalog_missing">Danh mục không có sẵn</string>
     <string name="collections_editor_add_tmdb_source">Thêm nguồn TMDB</string>
-    <string name="collections_editor_add_trakt_source">Thêm danh sách Trakt</string>
     <string name="collections_editor_edit_tmdb_source">Chỉnh sửa nguồn TMDB</string>
     <string name="collections_editor_tmdb_sources">Nguồn TMDB</string>
-    <string name="collections_editor_trakt_sources">Danh sách Trakt</string>
-    <string name="collections_editor_edit_trakt_source">Chỉnh sửa danh sách Trakt</string>
-    <string name="collections_editor_trakt_list">Danh sách Trakt</string>
-    <string name="collections_editor_trakt_search_results">Kết quả tìm kiếm</string>
-    <string name="collections_editor_trakt_trending"> Danh sách Đang thịnh hành</string>
-    <string name="collections_editor_trakt_popular">Danh sách Phổ biến</string>
-    <string name="collections_editor_trakt_direction">Thứ tự</string>
-    <string name="collections_editor_trakt_ascending">Tăng dần</string>
-    <string name="collections_editor_trakt_descending">Giảm dần</string>
     <string name="collections_editor_tmdb_id_or_url">ID hoặc URL TMDB</string>
     <string name="collections_editor_tmdb_public_list">Danh sách TMDB công khai</string>
     <string name="collections_editor_tmdb_network_id">ID đơn vị phát sóng</string>
@@ -2714,27 +2592,13 @@
     <string name="collections_editor_sort_votes">Lượt bình chọn</string>
     <string name="collections_editor_direction_asc_short">Tăng dần</string>
     <string name="collections_editor_direction_desc_short">Giảm dần</string>
-    <string name="collections_editor_trakt_movie_list">Danh sách phim Trakt</string>
-    <string name="collections_editor_trakt_series_list">Danh sách loạt phim Trakt</string>
-    <string name="collections_editor_trakt_list_with_id">Danh sách Trakt %1$d</string>
-    <string name="collections_editor_trakt_public_list">Danh sách công khai Trakt</string>
-    <string name="collections_editor_trakt_items_count">%1$d mục</string>
-    <string name="collections_editor_trakt_likes_count">%1$d lượt thích</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Nhập ID hoặc URL TMDB hợp lệ.</string>
     <string name="collections_editor_error_load_tmdb_source">Không thể tải nguồn TMDB</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Nhập ID hoặc URL danh sách Trakt</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Nhập tên, URL hoặc ID danh sách Trakt</string>
-    <string name="collections_editor_error_load_trakt_list">Không thể tải danh sách Trakt</string>
-    <string name="collections_editor_error_load_trakt_lists">Không thể tải danh sách Trakt</string>
-    <string name="collections_editor_error_search_trakt_lists">Không thể tải danh sách Trakt</string>
-    <string name="collections_editor_error_trakt_list_not_found">Không tìm thấy danh sách Trakt</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">Danh sách Trakt không bao gồm ID dạng số</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 hoặc 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 cho Bộ sưu tập Star Wars</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420 hoặc URL hãng sản xuất</string>
     <string name="collections_editor_tmdb_placeholder_network">213 cho Netflix, 49 cho HBO, 2739 cho Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 cho Tom Hanks hoặc URL cá nhân</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 or 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2787,9 +2651,6 @@
     <string name="collections_tab_combined">Kết hợp</string>
     <string name="collection_editor_remove_cd">Xóa</string>
     <string name="collection_editor_choice_both">Tất cả</string>
-    <string name="collection_editor_resolved_trakt_list">Danh sách Trakt đã xác thực</string>
-    <string name="collection_editor_trakt_search_placeholder">Tìm kiếm tên, URL hoặc ID danh sách Trakt</string>
-    <string name="collection_editor_trakt_name_placeholder">Xem cuối tuần, Đoạt giải thưởng</string>
     <string name="collection_editor_folder_count_one">%1$d mục</string>
     <string name="collection_editor_folder_count_other">%1$d mục</string>
     <string name="collections_editor_delete_folder_title">Xóa thư mục?</string>
@@ -2903,7 +2764,6 @@
     <string name="collections_import_error_source_invalid">Bộ sưu tập \"%1$s\", thư mục \"%2$s\", nguồn %3$d: định dạng không hợp lệ</string>
     <string name="collections_import_error_source_required_fields">Bộ sưu tập \"%1$s\", thư mục \"%2$s\", nguồn %3$d: thiếu các trường yêu cầu</string>
     <string name="collections_import_error_missing_tmdb_type">Bộ sưu tập \"%1$s\", thư mục \"%2$s\", nguồn %3$d: thiếu loại nguồn TMDB</string>
-    <string name="collections_import_error_missing_trakt_list_id">Bộ sưu tập \"%1$s\", thư mục \"%2$s\", nguồn %3$d: thiếu ID danh sách Trakt</string>
     <string name="collections_import_error_json_parse">Lỗi phân tích cú pháp JSON: %1$s</string>
 
     <!-- Library messages -->
@@ -2924,26 +2784,6 @@
     <string name="library_privacy_friends">Bạn bè</string>
     <string name="library_privacy_public">Công khai</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">Yêu cầu xác thực Trakt</string>
-    <string name="trakt_library_error_request_failed">Yêu cầu tới Trakt thất bại</string>
-    <string name="trakt_library_error_create_list_failed">Không thể tạo danh sách</string>
-    <string name="trakt_library_error_update_list_failed">Không thể cập nhật danh sách</string>
-    <string name="trakt_library_error_delete_list_failed">Không thể xóa danh sách</string>
-    <string name="trakt_library_error_reorder_lists_failed">Không thể sắp xếp lại các danh sách</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">Không thể tải danh sách phim theo dõi</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">Không thể tải danh sách chương trình theo dõi</string>
-    <string name="trakt_library_error_fetch_personal_lists">Không thể tải các danh sách cá nhân</string>
-    <string name="trakt_library_error_add_watchlist_failed">Không thể thêm vào danh sách theo dõi</string>
-    <string name="trakt_library_error_remove_watchlist_failed">Không thể xóa khỏi danh sách theo dõi</string>
-    <string name="trakt_library_error_add_to_list_failed">Không thể thêm vào danh sách</string>
-    <string name="trakt_library_error_remove_from_list_failed">Không thể xóa khỏi danh sách</string>
-    <string name="trakt_library_error_missing_compatible_ids">Thiếu ID tương thích để thực hiện thao tác với danh sách Trakt</string>
-    <string name="trakt_library_error_auth_expired">Xác thực Trakt đã hết hạn</string>
-    <string name="trakt_library_error_list_not_found">Không tìm thấy danh sách Trakt</string>
-    <string name="trakt_library_error_list_limit_reached">Đã đạt giới hạn danh sách Trakt. Cần nâng cấp.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">Không đủ ID Trakt để đánh dấu đã xem</string>
-    <string name="trakt_error_request_failed">Yêu cầu Trakt thất bại</string>
     <string name="simkl_account_title">Tài khoản Simkl</string>
     <string name="simkl_description">Kết nối Simkl để đồng bộ danh sách, lịch sử đã xem, tiến trình phát lại và nhật ký phát.</string>
     <string name="simkl_connect">Kết nối Simkl</string>
@@ -2984,7 +2824,6 @@
     <string name="action_remove_anyway">Vẫn xóa</string>
     <string name="cd_simkl_qr">Mã QR kích hoạt Simkl</string>
     <string name="cd_simkl_logo">Logo Simkl</string>
-    <string name="trakt_error_mark_watched_failed">Không thể đánh dấu đã xem trên Trakt (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">Không thể cập nhật thư viện</string>
@@ -3062,8 +2901,6 @@
     <string name="stream_error_detail_addon_request_failed">yêu cầu của tiện ích đã thất bại</string>
     <string name="stream_error_fetch_failed">Không thể tải các luồng phát</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">Tải dữ liệu phân trang từ Trakt đã thất bại (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">Không thể tải danh sách</string>
@@ -3073,10 +2910,6 @@
     <string name="profile_pin_saved_for_profile">Đã lưu mã PIN cho %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">Đã gỡ khóa mã PIN cho %1$s. %1$s.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">Yêu cầu liên quan đến Trakt đã thất bại</string>
-    <string name="trakt_comments_error_request_failed">Yêu cầu bình luận trên Trakt đã thất bại</string>
-    <string name="trakt_library_error_fetch_list_items">Không thể tải các mục danh sách</string>
 
     <string name="watchlist_removed">Đã xóa khỏi danh sách theo dõi</string>
     <string name="watchlist_added">Đã thêm vào danh sách theo dõi</string>

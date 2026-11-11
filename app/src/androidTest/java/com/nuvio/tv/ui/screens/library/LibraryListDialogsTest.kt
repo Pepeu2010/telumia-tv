@@ -31,10 +31,10 @@ class LibraryListDialogsTest {
     private val mdblist = TrackingListManagementCapabilities(listOf(LibraryListPrivacy.PRIVATE, LibraryListPrivacy.PUBLIC))
 
     @Test
-    fun remoteSelectionDistinguishesTraktAndMdbListWatchlists() {
+    fun remoteSelectionDistinguishesSimklAndMdbListWatchlists() {
         var selected: String? = null
         val tabs = listOf(
-            LibraryListTab("watchlist", "Watchlist", LibraryListTab.Type.WATCHLIST, trackingProviderId = "trakt"),
+            LibraryListTab("simkl:watchlist", "Watchlist", LibraryListTab.Type.WATCHLIST, trackingProviderId = "simkl"),
             LibraryListTab("mdblist:watchlist", "Watchlist", LibraryListTab.Type.WATCHLIST, trackingProviderId = "mdblist")
         )
         composeRule.setContent {
@@ -43,7 +43,7 @@ class LibraryListDialogsTest {
             }
         }
         val watchlist = context.getString(R.string.library_watchlist)
-        composeRule.onNodeWithText("${context.getString(R.string.trakt_name)} · $watchlist")
+        composeRule.onNodeWithText("${context.getString(R.string.simkl_name)} · $watchlist")
             .performSemanticsAction(SemanticsActions.RequestFocus) { it() }
             .assertIsFocused().performKeyInput { pressKey(Key.DirectionDown) }
         composeRule.onNodeWithText("${context.getString(R.string.mdblist_name)} · $watchlist")
@@ -67,7 +67,7 @@ class LibraryListDialogsTest {
     }
 
     @Test
-    fun traktEditorRetainsDescriptionAndAllPrivacyChoices() {
+    fun fullCapabilityEditorRetainsDescriptionAndAllPrivacyChoices() {
         composeRule.setContent {
             NuvioTheme {
                 ListEditorDialog(LibraryListEditorState(LibraryListEditorState.Mode.EDIT),

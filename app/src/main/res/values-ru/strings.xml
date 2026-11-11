@@ -65,7 +65,6 @@
     <string name="home_no_addons">Нет установленных аддонов. Добавьте один для начала.</string>
     <string name="home_no_catalog_addons">Нет установленных аддонов каталога. Установите аддон каталога, чтобы увидеть контент.</string>
     <string name="auth_notice_nuvio_logged_out">Вы вышли из системы Telumia. Пожалуйста, войдите снова.</string>
-    <string name="auth_notice_trakt_logged_out">Вы вышли из системы Trakt. Пожалуйста, переподключитесь.</string>
     <string name="error_generic">Произошла ошибка</string>
 
     <!-- ErrorState -->
@@ -204,21 +203,8 @@
     <string name="detail_tab_ratings">Рейтинги</string>
     <string name="detail_tab_more_like_this">Похожие</string>
     <string name="detail_more_like_this_powered_by_tmdb">На базе TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">На базе Trakt</string>
-    <string name="detail_comments_title">Комментарии</string>
-    <string name="detail_comments_subtitle">Отзывы из Trakt</string>
     <string name="detail_section_network">Телесеть</string>
     <string name="detail_section_production">Производство</string>
-    <string name="detail_comments_empty">Пока нет отзывов из Trakt.</string>
-    <string name="detail_comments_error">Не удалось загрузить отзывы Trakt в данный момент.</string>
-    <string name="detail_comments_spoiler_hidden">Отзыв со спойлером. Нажмите OK, чтобы показать.</string>
-    <string name="detail_comments_reveal_spoiler">Показать спойлер</string>
-    <string name="detail_comments_reveal_spoiler_hint">Нажмите OK, чтобы показать спойлер.</string>
-    <string name="detail_comments_back_hint">Нажмите Назад, чтобы закрыть</string>
-    <string name="detail_comments_badge_review">Отзыв</string>
-    <string name="detail_comments_badge_spoiler">Спойлер</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">Лайков: %1$d</string>
     <string name="tmdb_entity_kind_company">Производственная компания</string>
     <string name="tmdb_entity_kind_network">Телесеть</string>
     <string name="tmdb_entity_rail_popular">Популярное</string>
@@ -301,15 +287,12 @@
     <string name="settings_plugins_subtitle">Репозитории и провайдеры</string>
     <string name="settings_integration">Интеграции</string>
     <string name="settings_playback">Воспроизведение</string>
-    <string name="settings_trakt_subtitle">Настройка подключения к Trakt</string>
     <string name="settings_tracking_title">Отслеживание</string>
     <string name="settings_tracking_description">Подключите сервисы отслеживания и выберите, какой из них будет использоваться для Библиотеки и раздела «Продолжить просмотр».</string>
     <string name="tracking_accounts_title">Аккаунты</string>
     <string name="tracking_accounts_subtitle">Подключение и управление сервисами отслеживания</string>
     <string name="tracking_sources_title">Источники</string>
     <string name="tracking_sources_subtitle">Выберите, откуда Telumia считывает вашу библиотеку и прогресс просмотра. Воспроизведение скробблится во все подключённые сервисы.</string>
-    <string name="tracking_trakt_features_title">Функции Trakt</string>
-    <string name="tracking_trakt_features_subtitle">История, рецензии и рекомендации, специфичные для Trakt</string>
     <string name="tracking_simkl_features_title">Функции Simkl</string>
     <string name="tracking_simkl_features_subtitle">Настройки, специфичные для Simkl</string>
     <string name="tracking_simkl_anime_id_title">Идентификация аниме</string>
@@ -325,8 +308,6 @@
     <string name="tracking_connecting_provider">Подключение к %1$s…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Выберите сервис, из которого Telumia считывает продолжение просмотра и раздел «Продолжить просмотр». Скробблинг остаётся активным для всех подключённых сервисов.</string>
     <string name="tracking_library_source_dialog_subtitle">Выберите сервис, из которого Telumia считывает вашу Библиотеку. Воспроизведение скробблится во все подключённые сервисы.</string>
-    <string name="tracking_trakt_progress_required">Доступно, когда Trakt используется как источник прогресса просмотра</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Скорость сети</string>
     <string name="settings_network_subtitle">Диагностика задержки и скорости загрузки</string>
@@ -733,8 +714,6 @@
     <string name="mdblist_enable_subtitle">Получать рейтинги от внешних провайдеров на странице метаданных</string>
     <string name="mdblist_api_key_title">API Ключ</string>
     <string name="mdblist_api_key_subtitle">Требуется для получения рейтингов из MDBList</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Показывать оценку Trakt</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Показывать оценку IMDb (и скрывать дефолтную строку IMDb, если есть)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -800,62 +779,19 @@
 
     <string name="tmdb_language_dialog_title">Язык TMDB</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Синхронизируйте свой список просмотра, прогресс, историю просмотров (скробблинг) и личные списки с Trakt.</string>
-    <string name="trakt_connected_as">Подключен как %1$s</string>
-    <string name="trakt_account_login">Вход в аккаунт</string>
-    <string name="trakt_awaiting_instruction">Перейдите на trakt.tv/activate и введите этот код:</string>
-    <string name="trakt_waiting_approval">Ожидание подтверждения…</string>
     <string name="qr_login_approved">Вход подтвержден. Завершение…</string>
     <string name="qr_login_pending">Ожидание подтверждения на вашем телефоне…</string>
     <string name="qr_login_expired">QR-код устарел. Сгенерируйте новый код.</string>
-    <string name="trakt_code_expires">Код истекает через %1$s</string>
-    <string name="trakt_token_refreshes">Токен доступа Trakt обновится через %1$s</string>
-    <string name="trakt_login_instruction">Нажмите \"Войти\", чтобы начать аутентификацию устройства в Trakt. Здесь появится QR-код.</string>
-    <string name="trakt_missing_credentials">Отсутствуют TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET в local.properties.</string>
-    <string name="trakt_watch_progress_title">Прогресс просмотра</string>
-    <string name="trakt_watch_progress_subtitle">Выберите источник прогресса для продолжения просмотра</string>
-    <string name="trakt_watch_progress_dialog_title">Прогресс просмотра</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Выберите, должен ли раздел \"Продолжить просмотр\" использовать Trakt или Telumia Sync (скробблинг в Trakt останется активным).</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_setting_on">Вкл</string>
-    <string name="trakt_setting_off">Выкл</string>
-    <string name="trakt_watch_progress_trakt_selected">Источник прогресса просмотра установлен на Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Источник прогресса просмотра установлен на Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Окно \"Продолжить просмотр\"</string>
-    <string name="trakt_continue_watching_subtitle">История Trakt, учитываемая для раздела \"Продолжить просмотр\"</string>
-    <string name="trakt_unaired_next_up">Невышедшие эпизоды \"На очереди\"</string>
-    <string name="trakt_unaired_next_up_subtitle">Показывать предстоящие эпизоды до их выхода</string>
-    <string name="trakt_unaired_shown">Отображаются</string>
-    <string name="trakt_unaired_hidden">Скрыты</string>
-    <string name="trakt_unaired_now_shown">Невышедшие эпизоды \"На очереди\" теперь отображаются</string>
-    <string name="trakt_unaired_now_hidden">Невышедшие эпизоды \"На очереди\" теперь скрыты</string>
-    <string name="trakt_comments_title">Комментарии</string>
-    <string name="trakt_comments_subtitle">Показывать отзывы Trakt на страницах метаданных</string>
-    <string name="trakt_comments_dialog_title">Комментарии</string>
-    <string name="trakt_comments_dialog_subtitle">Выберите, должны ли страницы метаданных показывать отзывы Trakt при подключенном аккаунте.</string>
-    <string name="trakt_comments_now_shown">Отзывы Trakt на страницах метаданных теперь отображаются</string>
-    <string name="trakt_comments_now_hidden">Отзывы Trakt на страницах метаданных теперь скрыты</string>
-    <string name="trakt_cached_label">В кэше</string>
-    <string name="trakt_stat_movies">Фильмы</string>
-    <string name="trakt_stat_shows">Сериалы</string>
-    <string name="trakt_stat_episodes">Эпизоды</string>
-    <string name="trakt_stat_watched_hours">Часов просмотрено</string>
-    <string name="trakt_disconnect">Отключить</string>
-    <string name="trakt_disconnect_title">Отключить Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Это отключит ваш аккаунт Trakt от Telumia.</string>
-    <string name="trakt_login">Войти</string>
-    <string name="trakt_retry">Повторить</string>
-    <string name="trakt_back">Назад</string>
-    <string name="trakt_cw_window_title">Окно \"Продолжить просмотр\"</string>
-    <string name="trakt_cw_window_subtitle">Выберите, за какой период активность Trakt должна отображаться в \"Продолжить просмотр\".</string>
-    <string name="trakt_unaired_dialog_title">Невышедшие эпизоды \"На очереди\"</string>
-    <string name="trakt_unaired_dialog_subtitle">Выберите, должен ли раздел \"Продолжить просмотр\" включать предстоящие эпизоды до их релиза.</string>
-    <string name="trakt_show_unaired">Показывать невышедшие эпизоды</string>
-    <string name="trakt_hide_unaired">Скрыть невышедшие эпизоды</string>
-    <string name="trakt_all_history">Вся история</string>
-    <string name="trakt_days_format">%1$d дней</string>
+    <string name="tracking_code_expires">Код истекает через %1$s</string>
+    <string name="tracking_watch_progress_title">Прогресс просмотра</string>
+    <string name="tracking_watch_progress_subtitle">Выберите источник прогресса для продолжения просмотра</string>
+    <string name="tracking_watch_progress_dialog_title">Прогресс просмотра</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_continue_watching_window">Окно \"Продолжить просмотр\"</string>
+    <string name="tracking_disconnect">Отключить</string>
+    <string name="tracking_cw_window_title">Окно \"Продолжить просмотр\"</string>
+    <string name="tracking_all_history">Вся история</string>
+    <string name="tracking_days_format">%1$d дней</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Отладка</string>
@@ -1230,7 +1166,6 @@
     <string name="search_voice_unavailable">Голосовой поиск недоступен на этом устройстве.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Синхронизация библиотеки Trakt\u2026</string>
     <string name="library_title">Библиотека</string>
     <string name="library_filter_list">Список</string>
     <string name="library_filter_type">Тип</string>
@@ -1285,14 +1220,12 @@
     <string name="genre_sporting_event">Спортивное событие</string>
     <string name="genre_superhero">Супергерои</string>
     <string name="genre_suspense">Саспенс</string>
-    <string name="library_sort_trakt_order">Порядок Trakt</string>
     <string name="library_sort_provider_order">Порядок провайдера</string>
     <string name="library_sort_added_desc">Добавлено ↓</string>
     <string name="library_sort_added_asc">Добавлено ↑</string>
     <string name="library_sort_title_asc">Название А-Я</string>
     <string name="library_sort_title_desc">Название Я-А</string>
     <string name="library_manage_lists">Управление списками</string>
-    <string name="library_manage_trakt_lists">Управление списками Trakt</string>
     <string name="library_no_lists">Пока нет личных списков.</string>
     <string name="library_list_create">Создать</string>
     <string name="library_list_edit">Редактировать</string>
@@ -1304,18 +1237,16 @@
     <string name="library_list_description_label">Описание</string>
     <string name="library_list_privacy">Приватность</string>
     <string name="library_delete_title">Удалить этот список?</string>
-    <string name="library_delete_subtitle">Это удалит список и все его элементы из Trakt.</string>
     <string name="library_delete_confirm">Удалить</string>
     <string name="library_source_local">ЛОКАЛЬНО</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_syncing_library">Синхронизация библиотеки\u2026</string>
     <string name="library_type_all">Все</string>
     <string name="library_type_items">элементов</string>
     <string name="library_empty_local_title">Пока нет %1$s</string>
-    <string name="library_empty_trakt_title">В этом списке нет %1$s</string>
+    <string name="library_empty_remote_title">В этом списке нет %1$s</string>
     <string name="library_empty_local_subtitle">Начните сохранять любимое, чтобы увидеть это здесь</string>
-    <string name="library_empty_trakt_subtitle">Используйте + на странице деталей, чтобы добавить в список просмотра или списки</string>
+    <string name="library_empty_remote_subtitle">Используйте + на странице деталей, чтобы добавить в список просмотра или списки</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Загрузка\u2026</string>
@@ -1495,7 +1426,6 @@
     <string name="update_unknown_sources">Разрешите установку из неизвестных источников для продолжения.</string>
     <!-- AccountScreen -->
     <string name="account_title">Аккаунт</string>
-    <string name="account_sign_in_description">Войдите, чтобы синхронизировать вашу библиотеку, прогресс, аддоны и плагины между устройствами. Синхронизация библиотеки использует Telumia Sync, когда Trakt не подключен, а для прогресса просмотра можно использовать Trakt или Telumia Sync.</string>
     <string name="account_sync_code_title">Код синхронизации</string>
     <string name="account_sync_code_description">Синхронизируйтесь между устройствами без создания аккаунта.</string>
     <string name="account_linked_devices">Связанные устройства (%1$d)</string>
@@ -1607,10 +1537,6 @@
     <string name="plugin_test_no_results">Нет результатов</string>
     <string name="plugin_test_found_streams">Найдено %1$d потоков</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">Код устройства устарел. Начните заново.</string>
-    <string name="trakt_error_code_used">Код устройства уже использован. Начните заново.</string>
-    <string name="trakt_error_denied">Авторизация отклонена в Trakt.</string>
 
     <!-- Account errors -->
     <string name="account_error_signin_required">Сначала войдите в аккаунт.</string>
@@ -1670,8 +1596,6 @@
     <string name="cd_test">Тест</string>
     <string name="cd_unlink">Отвязать</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Логотип Trakt</string>
-    <string name="cd_trakt_qr">QR-код активации Trakt</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Открыть Навигатор</string>
     <string name="cd_clear_search">Очистить поиск</string>
@@ -1801,20 +1725,12 @@
     <string name="web_import_error_source_invalid_format">Коллекция \"{collection}\", папка \"{folder}\", источник {index}: неверный формат</string>
     <string name="web_import_error_source_missing_addon_fields">Коллекция \"{collection}\", папка \"{folder}\", источник {index}: отсутствуют обязательные поля (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">Коллекция \"{collection}\", папка \"{folder}\", источник {index}: отсутствует тип источника TMDB</string>
-    <string name="web_import_error_source_missing_trakt_id">Коллекция \"{collection}\", папка \"{folder}\", источник {index}: отсутствует ID списка Trakt</string>
     <string name="web_import_success">Импортировано {count} коллекций(и). Проверьте и нажмите «Сохранить изменения».</string>
     <string name="web_import_invalid_json">Неверный JSON</string>
     <string name="action_load_more">Загрузить ещё</string>
     <string name="episodes_mark_previous_seasons_watched">Отметить предыдущие сезоны как просмотренные</string>
-    <string name="episodes_open_comments">Открыть комментарии к эпизоду</string>
     <string name="detail_all_previous_seasons_watched">Все предыдущие сезоны уже просмотрены</string>
     <string name="detail_tab_trailer">Трейлер</string>
-    <string name="detail_comments_subtitle_episode">Отзывы из Trakt для С%1$dЭ%2$d</string>
-    <string name="detail_comments_mode_show">Шоу</string>
-    <string name="detail_comments_mode_episode">Эпизод</string>
-    <string name="detail_comments_mode_episode_change">Изменить эпизод (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Выберите эпизод</string>
-    <string name="detail_comments_episode_picker_subtitle">Выберите эпизод для просмотра отзывов Trakt</string>
     <string name="detail_trailer_loading">Загрузка трейлера...</string>
     <string name="detail_trailer_error">Не удалось загрузить трейлер.</string>
     <string name="tmdb_entity_rail_most_voted">С наибольшим числом голосов</string>
@@ -1894,8 +1810,6 @@
     <string name="licenses_attributions_nuvio_body">Исходный код и условия лицензии доступны в репозитории проекта. Лицензировано под GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia использует API TMDB для метаданных фильмов и ТВ, иллюстраций, трейлеров, актёров, производственных деталей, коллекций и рекомендаций. Этот продукт использует API TMDB, но не одобрен и не сертифицирован TMDB.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia подключается к Trakt для авторизации, истории просмотров, синхронизации прогресса, данных библиотеки, рейтингов, списков и комментариев. Telumia не аффилирован с Trakt и не одобрен им.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia подключается к Simkl для аутентификации аккаунта, списков просмотра, истории просмотренного, прогресса воспроизведения и скробблинга. Данные об отслеживании фильмов, сериалов и аниме предоставляются Simkl. Telumia не аффилирован с Simkl и не одобрен им.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -1917,7 +1831,7 @@
     <string name="experience_mode_advanced">Расширенный</string>
     <string name="experience_mode_choose_title">Выберите свой режим Telumia</string>
     <string name="experience_mode_choose_subtitle">Начните с простого или разблокируйте все настройки. Можно менять в любое время.</string>
-    <string name="experience_mode_essential_card_subtitle">Упрощённая настройка: аддоны, базовое воспроизведение, Trakt и аккаунт.</string>
+    <string name="experience_mode_essential_card_subtitle">Упрощённая настройка: аддоны, базовое воспроизведение и аккаунт.</string>
     <string name="experience_mode_advanced_card_subtitle">Полные настройки: интерфейс, порядок каталогов, коллекции, плагины и диагностика.</string>
     <string name="experience_mode_group_title">Режим работы</string>
     <string name="essential_addon_continue_for_now">Продолжить пока так</string>
@@ -2213,7 +2127,6 @@
     <string name="debrid_stream_codec_h264">H.264 / AVC</string>
     <string name="debrid_stream_codec_hevc">HEVC / H.265</string>
     <string name="debrid_stream_codec_av1">AV1</string>
-    <!-- Batch 6: debrid stream filters, formatter, qr_login, trakt library/more like this -->
     <string name="debrid_stream_per_resolution_limit_title">Лимит на разрешение</string>
     <string name="debrid_stream_per_resolution_limit_subtitle">Ограничить повторяющиеся результаты 2160p, 1080p, 720p после сортировки.</string>
     <string name="debrid_stream_per_quality_limit_title">Лимит на качество</string>
@@ -2291,20 +2204,15 @@
     <string name="qr_login_signing_in">Выполняется вход…</string>
     <string name="qr_login_success">Вход выполнен успешно</string>
     <string name="qr_login_exchange_failed">Не удалось завершить QR-вход</string>
-    <string name="trakt_library_source_title">Источник библиотеки</string>
-    <string name="trakt_library_source_subtitle">Выберите библиотеку для сохранения и просмотра коллекции</string>
-    <string name="trakt_library_source_dialog_title">Источник библиотеки</string>
-    <string name="trakt_library_source_dialog_subtitle">Выберите, где сохранять и управлять элементами библиотеки</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Библиотека Telumia</string>
-    <string name="trakt_library_source_trakt_selected">Выбрана библиотека Trakt</string>
-    <string name="trakt_library_source_nuvio_selected">Выбрана библиотека Telumia</string>
-    <string name="trakt_more_like_this_source_title">Источник «Похожее»</string>
-    <string name="trakt_more_like_this_source_subtitle">Выберите, откуда берутся рекомендации на страницах деталей</string>
-    <string name="trakt_more_like_this_source_dialog_title">Источник «Похожее»</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Выберите источник рекомендаций на страницах деталей.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_library_source_title">Источник библиотеки</string>
+    <string name="tracking_library_source_subtitle">Выберите библиотеку для сохранения и просмотра коллекции</string>
+    <string name="tracking_library_source_dialog_title">Источник библиотеки</string>
+    <string name="tracking_library_source_nuvio">Библиотека Telumia</string>
+    <string name="tracking_more_like_this_source_title">Источник «Похожее»</string>
+    <string name="tracking_more_like_this_source_subtitle">Выберите, откуда берутся рекомендации на страницах деталей</string>
+    <string name="tracking_more_like_this_source_dialog_title">Источник «Похожее»</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Выберите источник рекомендаций на страницах деталей.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
     <string name="debug_buffer_logs_title">Включить журналы BUFFER</string>
     <string name="debug_buffer_logs_subtitle">Периодически выводить диагностику буфера плеера в logcat (по умолчанию отключено)</string>
     <string name="profile_custom_avatar_web_panel_note">Пользовательские URL аватаров можно настроить в веб-панели Telumia.</string>
@@ -2319,7 +2227,6 @@
     <string name="essential_addon_setup_title">Настройте аддоны</string>
     <string name="essential_addon_setup_subtitle">Установите один аддон для начала стриминга. Позже можно добавить ещё из раздела Аддоны.</string>
     <string name="essential_addon_show_qr">Показать QR</string>
-    <string name="collection_editor_no_trakt_lists_found">Списки Trakt не найдены</string>
     <string name="collection_editor_untitled_folder">Без названия</string>
     <string name="collection_editor_untitled_collection">Коллекция без названия</string>
     <string name="addons_badge_disabled">Отключён</string>
@@ -2403,8 +2310,6 @@
     <string name="library_status_on_hold">Отложено</string>
     <string name="library_status_completed">Просмотрено</string>
     <string name="library_status_dropped">Брошено</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt не подключён</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Подключите аккаунт Trakt в Настройках для просмотра библиотеки Trakt</string>
     <string name="library_empty_simkl_title">Нет %1$s в этом статусе</string>
     <string name="library_empty_simkl_subtitle">Используйте + на странице описания, чтобы добавить элементы в статус Simkl</string>
     <string name="library_empty_simkl_not_auth_title">Simkl не подключён</string>
@@ -2441,7 +2346,6 @@
     <string name="cloud_library_type_files">Файлы</string>
     <string name="cloud_library_error_provider_unavailable">Облачная библиотека недоступна для %1$s.</string>
     <string name="cloud_library_error_disabled">Облачная библиотека отключена.</string>
-    <!-- Batch 8: plugin, nav, update errors, trakt errors, general errors, collections -->
     <string name="plugin_enable_plugins_title">Включить плагины глобально</string>
     <string name="plugin_enable_plugins_subtitle">Использовать плагины при поиске потоков</string>
     <string name="plugin_group_by_repository_title">Группировать плагины по репозиторию</string>
@@ -2460,25 +2364,6 @@
     <string name="plugin_repo_added_with_providers">Добавлен %1$s с %2$d провайдерами</string>
     <string name="plugin_repo_removed">Репозиторий удалён</string>
     <string name="plugin_repo_refreshed">Репозиторий обновлён</string>
-    <string name="trakt_error_missing_credentials">Отсутствуют учётные данные Trakt</string>
-    <string name="trakt_error_network_retry">Ошибка сети, попробуйте ещё раз</string>
-    <string name="trakt_error_network_will_retry">Ошибка сети, повтор...</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt ограничивает запросы. Попробуйте через ~%1$d мин</string>
-    <string name="trakt_error_failed_start_code">Не удалось запустить авторизацию Trakt (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Нет активного кода устройства Trakt</string>
-    <string name="trakt_error_invalid_device_code">Неверный код устройства</string>
-    <string name="trakt_error_token_polling_failed_code">Ошибка получения токена (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Запрос Trakt не выполнен</string>
-    <string name="trakt_error_list_not_found_or_private">Список Trakt не найден или не публичный</string>
-    <string name="trakt_error_rate_limit_reached">Достигнут лимит запросов Trakt</string>
-    <string name="trakt_status_enter_activation_code">Введите код на trakt.tv/activate</string>
-    <string name="trakt_status_syncing">Синхронизация...</string>
-    <string name="trakt_status_sync_completed">Синхронизация завершена</string>
-    <string name="trakt_status_disconnected">Отключено от Trakt</string>
-    <string name="trakt_status_cw_window_updated">Окно «Продолжить просмотр» обновлено</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Ограничение запросов, замедление опроса...</string>
-    <string name="trakt_user_fallback">Пользователь Trakt</string>
-    <string name="trakt_error_failed_start">Не удалось запустить авторизацию Trakt</string>
     <string name="error_unknown">Неизвестная ошибка</string>
     <string name="addon_error_not_found">Аддон не найден</string>
     <string name="player_error_failed_start_torrent">Не удалось запустить торрент: %1$s</string>
@@ -2499,18 +2384,8 @@
     <string name="collections_editor_sources">Источники</string>
     <string name="collections_editor_source">Источник</string>
     <string name="collections_editor_add_tmdb_source">Добавить источник TMDB</string>
-    <string name="collections_editor_add_trakt_source">Добавить список Trakt</string>
     <string name="collections_editor_edit_tmdb_source">Редактировать источник TMDB</string>
     <string name="collections_editor_tmdb_sources">Источники TMDB</string>
-    <string name="collections_editor_trakt_sources">Списки Trakt</string>
-    <string name="collections_editor_edit_trakt_source">Редактировать список Trakt</string>
-    <string name="collections_editor_trakt_list">Список Trakt</string>
-    <string name="collections_editor_trakt_search_results">Результаты поиска</string>
-    <string name="collections_editor_trakt_trending">Популярные списки</string>
-    <string name="collections_editor_trakt_popular">Известные списки</string>
-    <string name="collections_editor_trakt_direction">Направление</string>
-    <string name="collections_editor_trakt_ascending">По возрастанию</string>
-    <string name="collections_editor_trakt_descending">По убыванию</string>
     <string name="collections_editor_tmdb_id_or_url">ID TMDB или URL</string>
     <string name="collections_editor_tmdb_public_list">Публичный список TMDB</string>
     <string name="collections_editor_tmdb_network_id">ID сети</string>
@@ -2521,7 +2396,6 @@
     <string name="collections_editor_tmdb_search">Поиск</string>
     <string name="collections_editor_add_source">Добавить источник</string>
     <string name="collections_editor_save_source">Сохранить источник</string>
-    <!-- Batch 9: collections editor continued, errors, library/trakt errors, fallbacks -->
     <string name="collections_editor_tmdb_collection">Коллекция TMDB</string>
     <string name="collections_editor_tmdb_default_list">Список TMDB</string>
     <string name="collections_editor_tmdb_default_production">Производство TMDB</string>
@@ -2595,27 +2469,13 @@
     <string name="collections_editor_sort_votes">По голосам</string>
     <string name="collections_editor_direction_asc_short">По возр.</string>
     <string name="collections_editor_direction_desc_short">По убыв.</string>
-    <string name="collections_editor_trakt_movie_list">Список фильмов Trakt</string>
-    <string name="collections_editor_trakt_series_list">Список сериалов Trakt</string>
-    <string name="collections_editor_trakt_list_with_id">Список Trakt %1$d</string>
-    <string name="collections_editor_trakt_public_list">Публичный список Trakt</string>
-    <string name="collections_editor_trakt_items_count">%1$d элементов</string>
-    <string name="collections_editor_trakt_likes_count">%1$d лайков</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Введите корректный ID или URL TMDB</string>
     <string name="collections_editor_error_load_tmdb_source">Не удалось загрузить источник TMDB</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Введите ID или URL списка Trakt</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Введите название, URL или ID списка Trakt</string>
-    <string name="collections_editor_error_load_trakt_list">Не удалось загрузить список Trakt</string>
-    <string name="collections_editor_error_load_trakt_lists">Не удалось загрузить списки Trakt</string>
-    <string name="collections_editor_error_search_trakt_lists">Не удалось найти списки Trakt</string>
-    <string name="collections_editor_error_trakt_list_not_found">Список Trakt не найден</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">Список Trakt не содержит числового ID</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 или 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 для коллекции Звёздных войн</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420 или URL компании</string>
     <string name="collections_editor_tmdb_placeholder_network">213 для Netflix, 49 для HBO, 2739 для Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 для Tom Hanks или URL персоны</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 или 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2642,7 +2502,6 @@
     <string name="collections_editor_keyword_based_on_novel">По книге</string>
     <string name="collections_editor_keyword_time_travel">Путешествие во времени</string>
     <string name="collections_editor_keyword_space">Космос</string>
-    <!-- Batch 10: collections editor images/misc, emoji categories, genres, autoplay presets, player, library/trakt errors -->
     <string name="collections_editor_placeholder_cover_image">URL обложки</string>
     <string name="collections_editor_hero_backdrop">Фон Hero (Современный главный экран)</string>
     <string name="collections_editor_placeholder_hero_backdrop">URL пользовательского фона Hero (необязательно)</string>
@@ -2661,9 +2520,6 @@
     <string name="collections_editor_genre_optional">Фильтр жанра доступен</string>
     <string name="collection_editor_remove_cd">Удалить</string>
     <string name="collection_editor_choice_both">Оба</string>
-    <string name="collection_editor_resolved_trakt_list">Найденный список Trakt</string>
-    <string name="collection_editor_trakt_search_placeholder">Поиск по названию, URL Trakt или ID списка</string>
-    <string name="collection_editor_trakt_name_placeholder">Weekend Watch, Award Winners</string>
     <string name="collection_editor_folder_count_one">%1$d элемент</string>
     <string name="collection_editor_folder_count_other">%1$d элементов</string>
     <string name="collections_editor_delete_folder_title">Удалить папку?</string>
@@ -2744,7 +2600,6 @@
     <string name="subtitle_timing_load_lines_failed">Не удалось загрузить строки субтитров.</string>
     <string name="subtitle_download_failed_http">Загрузка субтитров не удалась (HTTP %1$d)</string>
     <string name="subtitle_download_empty_content">Загрузка субтитров вернула пустой контент.</string>
-    <!-- Batch 11: collection import errors, library messages, trakt library errors, detail/poster errors, stream/TMDB fallbacks, supporters/sponsors errors -->
     <string name="collections_import_error_empty_input">Пустой ввод</string>
     <string name="collections_import_error_expected_array">Неверный формат: ожидается массив</string>
     <string name="collections_import_error_empty_array">Пустой массив: коллекции не найдены</string>
@@ -2759,7 +2614,6 @@
     <string name="collections_import_error_source_invalid">Коллекция \"%1$s\", папка \"%2$s\", источник %3$d: неверный формат</string>
     <string name="collections_import_error_source_required_fields">Коллекция \"%1$s\", папка \"%2$s\", источник %3$d: отсутствуют обязательные поля</string>
     <string name="collections_import_error_missing_tmdb_type">Коллекция \"%1$s\", папка \"%2$s\", источник %3$d: отсутствует тип источника TMDB</string>
-    <string name="collections_import_error_missing_trakt_list_id">Коллекция \"%1$s\", папка \"%2$s\", источник %3$d: отсутствует ID списка Trakt</string>
     <string name="collections_import_error_json_parse">Ошибка разбора JSON: %1$s</string>
     <string name="library_synced">Библиотека синхронизирована</string>
     <string name="library_error_refresh_failed">Не удалось обновить библиотеку</string>
@@ -2776,25 +2630,6 @@
     <string name="library_privacy_link">По ссылке</string>
     <string name="library_privacy_friends">Для друзей</string>
     <string name="library_privacy_public">Публичный</string>
-    <string name="trakt_error_auth_required">Требуется авторизация Trakt</string>
-    <string name="trakt_library_error_request_failed">Запрос Trakt не выполнен</string>
-    <string name="trakt_library_error_create_list_failed">Не удалось создать список</string>
-    <string name="trakt_library_error_update_list_failed">Не удалось обновить список</string>
-    <string name="trakt_library_error_delete_list_failed">Не удалось удалить список</string>
-    <string name="trakt_library_error_reorder_lists_failed">Не удалось изменить порядок списков</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">Не удалось загрузить фильмы из списка для просмотра</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">Не удалось загрузить сериалы из списка для просмотра</string>
-    <string name="trakt_library_error_fetch_personal_lists">Не удалось загрузить личные списки</string>
-    <string name="trakt_library_error_add_watchlist_failed">Не удалось добавить в список для просмотра</string>
-    <string name="trakt_library_error_remove_watchlist_failed">Не удалось удалить из списка для просмотра</string>
-    <string name="trakt_library_error_add_to_list_failed">Не удалось добавить в список</string>
-    <string name="trakt_library_error_remove_from_list_failed">Не удалось удалить из списка</string>
-    <string name="trakt_library_error_missing_compatible_ids">Отсутствуют совместимые ID для операции со списком Trakt</string>
-    <string name="trakt_library_error_auth_expired">Авторизация Trakt истекла</string>
-    <string name="trakt_library_error_list_not_found">Список Trakt не найден</string>
-    <string name="trakt_library_error_list_limit_reached">Достигнут лимит списков Trakt. Требуется обновление.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">Недостаточно ID Trakt для отметки просмотра</string>
-    <string name="trakt_error_request_failed">Запрос Trakt не выполнен</string>
     <string name="simkl_account_title">Аккаунт Simkl</string>
     <string name="simkl_description">Подключите Simkl для синхронизации списков, истории просмотренного, прогресса воспроизведения и скробблинга.</string>
     <string name="simkl_connect">Подключить Simkl</string>
@@ -2835,7 +2670,6 @@
     <string name="action_remove_anyway">Всё равно удалить</string>
     <string name="cd_simkl_qr">QR-код активации Simkl</string>
     <string name="cd_simkl_logo">Логотип Simkl</string>
-    <string name="trakt_error_mark_watched_failed">Не удалось отметить просмотр в Trakt (%1$d)</string>
     <string name="detail_error_update_library_failed">Не удалось обновить библиотеку</string>
     <string name="detail_error_load_lists_failed">Не удалось загрузить списки</string>
     <string name="detail_error_update_lists_failed">Не удалось обновить списки</string>
@@ -2874,14 +2708,9 @@
     <string name="player_stream_error_open_external_link_failed">Не удалось открыть внешнюю ссылку</string>
     <string name="player_stream_error_invalid_url">Неверный URL потока</string>
     <string name="player_stream_error_missing_content_type">Отсутствует тип содержимого потока</string>
-    <!-- Batch 12: meta/stream errors, trakt paginated, home poster, profile pin, trakt related/comments/library, debrid picker, debrid selection/size -->
     <string name="stream_error_fetch_failed">Не удалось загрузить потоки</string>
-    <string name="trakt_library_error_paginated_fetch_failed">Не удалось загрузить список Trakt (%1$d)</string>
     <string name="profile_pin_saved_for_profile">PIN сохранён для профиля \"%1$s\"</string>
     <string name="profile_pin_lock_removed_for_profile">Блокировка PIN снята с профиля \"%1$s\"</string>
-    <string name="trakt_related_error_request_failed">Не удалось загрузить похожие</string>
-    <string name="trakt_comments_error_request_failed">Не удалось загрузить комментарии</string>
-    <string name="trakt_library_error_fetch_list_items">Не удалось загрузить элементы списка</string>
     <string name="debrid_selection_count_any">Любое количество</string>
     <plurals name="debrid_selection_count_value">
         <item quantity="one">%d выбрано</item>

@@ -93,7 +93,6 @@
     <string name="web_import_error_source_invalid_format">Kolekcia \"{collection}\", priečinok \"{folder}\", zdroj {index}: neplatný formát</string>
     <string name="web_import_error_source_missing_addon_fields">Kolekcia \"{collection}\", priečinok \"{folder}\", zdroj {index}: chýbajú povinné polia (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">Kolekcia \"{collection}\", priečinok \"{folder}\", zdroj {index}: chýba typ TMDB zdroja</string>
-    <string name="web_import_error_source_missing_trakt_id">Kolekcia \"{collection}\", priečinok \"{folder}\", zdroj {index}: chýba ID Trakt zoznamu</string>
     <string name="web_import_success">Importovaných {count} kolekcií. Skontrolujte a stlačte Uložiť zmeny pre použitie.</string>
     <string name="web_import_invalid_json">Neplatný JSON</string>
 
@@ -101,7 +100,6 @@
     <string name="home_no_addons">Žiadne doplnky nie sú nainštalované. Pridajte jeden pre začiatok.</string>
     <string name="home_no_catalog_addons">Žiadne katalógové doplnky. Nainštalujte katalógový doplnok pre zobrazenie obsahu.</string>
     <string name="auth_notice_nuvio_logged_out">Boli ste odhlásení z Telumia. Prihláste sa znova.</string>
-    <string name="auth_notice_trakt_logged_out">Boli ste odhlásení z Trakt. Znova sa pripojte.</string>
     <string name="error_generic">Vyskytla sa chyba</string>
 
     <!-- ErrorState -->
@@ -210,7 +208,6 @@
     <string name="episodes_mark_previous_watched">Označiť predchádzajúce epizódy ako videné</string>
     <string name="episodes_mark_previous_seasons_watched">Označiť predchádzajúce série ako videné</string>
     <string name="episodes_play">Prehrať</string>
-    <string name="episodes_open_comments">Otvoriť komentáre k epizóde</string>
     <string name="play_manually">Prehrať manuálne</string>
     <string name="episodes_season_actions">Akcie série</string>
 
@@ -244,29 +241,10 @@
     <string name="detail_tab_more_like_this">Podobné tituly</string>
     <string name="detail_tab_trailer">Trailer</string>
     <string name="detail_more_like_this_powered_by_tmdb">Zabezpečuje TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Zabezpečuje Trakt</string>
-    <string name="detail_comments_title">Komentáre</string>
-    <string name="detail_comments_subtitle">Recenzie z Trakt</string>
-    <string name="detail_comments_subtitle_episode">Recenzie z Trakt pre S%1$dE%2$d</string>
-    <string name="detail_comments_mode_show">Seriál</string>
-    <string name="detail_comments_mode_episode">Epizóda</string>
-    <string name="detail_comments_mode_episode_change">Zmeniť epizódu (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Vybrať epizódu</string>
-    <string name="detail_comments_episode_picker_subtitle">Vyberte epizódu pre zobrazenie jej Trakt recenzií</string>
     <string name="detail_section_network">Stanica</string>
     <string name="detail_section_production">Produkcia</string>
-    <string name="detail_comments_empty">Zatiaľ nie sú dostupné žiadne Trakt recenzie.</string>
-    <string name="detail_comments_error">Trakt recenzie sa momentálne nepodarilo načítať.</string>
     <string name="detail_trailer_loading">Načítava sa trailer...</string>
     <string name="detail_trailer_error">Trailer sa momentálne nepodarilo načítať.</string>
-    <string name="detail_comments_spoiler_hidden">Recenzia so spoilerom. Stlačte OK pre zobrazenie.</string>
-    <string name="detail_comments_reveal_spoiler">Zobraziť spoiler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Stlačte OK pre zobrazenie spoileru.</string>
-    <string name="detail_comments_back_hint">Kliknite späť pre zatvorenie</string>
-    <string name="detail_comments_badge_review">Recenzia</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d páči sa</string>
     <string name="tmdb_entity_kind_company">Produkčná spoločnosť</string>
     <string name="tmdb_entity_kind_network">Stanica</string>
     <string name="tmdb_entity_rail_popular">Populárne</string>
@@ -373,8 +351,6 @@
     <string name="licenses_attributions_nuvio_body">Zdrojový kód a licenčné podmienky sú dostupné v repozitári projektu. Licencované pod GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia používa TMDB API pre metadáta filmov a TV, grafiku, trailery, obsadenie, produkčné detaily, kolekcie a odporúčania. Tento produkt používa TMDB API, ale nie je schválený ani certifikovaný TMDB.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia sa pripája k Trakt pre autentifikáciu účtu, históriu sledovania, synchronizáciu postupu, dáta knižnice, hodnotenia, zoznamy a komentáre. Telumia nie je pridružený k Trakt ani ním schválený.</string>
     <string name="licenses_attributions_mdblist_title">MDBList</string>
     <string name="licenses_attributions_mdblist_body">Telumia používa MDBList pre hodnotenia a dáta externých poskytovateľov skóre. Telumia nie je pridružený k MDBList ani ním schválený.</string>
     <string name="licenses_attributions_introdb_title">IntroDB</string>
@@ -395,7 +371,6 @@
     <string name="settings_plugins_subtitle">Repozitáre a poskytovatelia</string>
     <string name="settings_integration">Integrácie</string>
     <string name="settings_playback">Prehrávanie</string>
-    <string name="settings_trakt_subtitle">Otvoriť obrazovku pripojenia Trakt</string>
     <string name="settings_network">Rýchlosť siete</string>
     <string name="settings_network_subtitle">Diagnostika latencie a sťahovania</string>
     <string name="settings_advanced">Pokročilé</string>
@@ -404,7 +379,7 @@
     <string name="experience_mode_advanced">Pokročilá</string>
     <string name="experience_mode_choose_title">Vyberte svoju skúsenosť s Telumia</string>
     <string name="experience_mode_choose_subtitle">Začnite jednoducho alebo odomknite každé prispôsobenie. Môžete prepínať kedykoľvek.</string>
-    <string name="experience_mode_essential_card_subtitle">Zameraná konfigurácia, doplnky, základy prehrávania, Trakt a nastavenia účtu.</string>
+    <string name="experience_mode_essential_card_subtitle">Zameraná konfigurácia, doplnky, základy prehrávania a nastavenia účtu.</string>
     <string name="experience_mode_advanced_card_subtitle">Úplné nastavenia, ovládanie rozloženia, poradie katalógov, kolekcie, pluginy a diagnostika.</string>
     <string name="experience_mode_group_title">Režim skúsenosti</string>
     <string name="essential_addon_continue_for_now">Pokračovať zatiaľ</string>
@@ -862,8 +837,6 @@
     <string name="mdblist_enable_subtitle">Získať hodnotenia z externých poskytovateľov v detaile metadát</string>
     <string name="mdblist_api_key_title">API kľúč</string>
     <string name="mdblist_api_key_subtitle">Vyžaduje sa pre získanie hodnotení z MDBList</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Zobraziť Trakt skóre</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Zobraziť IMDb skóre (a skryť predvolený IMDb riadok, ak je dostupný)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1053,12 +1026,6 @@
 
     <string name="tmdb_language_dialog_title">Jazyk TMDB</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Synchronizujte svoj watchlist, postup sledovania, pokračovanie v sledovaní, scrobbly a osobné zoznamy s Trakt.</string>
-    <string name="trakt_connected_as">Pripojený ako %1$s</string>
-    <string name="trakt_account_login">Prihlásenie do účtu</string>
-    <string name="trakt_awaiting_instruction">Prejdite na trakt.tv/activate a zadajte tento kód:</string>
-    <string name="trakt_waiting_approval">Čaká sa na schválenie…</string>
     <string name="qr_login_approved">Prihlásenie schválené. Dokončuje sa prihlásenie…</string>
     <string name="qr_login_pending">Čaká sa na schválenie na vašom telefóne…</string>
     <string name="qr_login_expired">QR prihlásenie vypršalo. Vygenerujte nový kód.</string>
@@ -1069,67 +1036,25 @@
     <string name="qr_login_signing_in">Prihlasovanie…</string>
     <string name="qr_login_success">Úspešne prihlásený</string>
     <string name="qr_login_exchange_failed">Nepodarilo sa dokončiť QR prihlásenie</string>
-    <string name="trakt_code_expires">Kód vyprší o %1$s</string>
-    <string name="trakt_token_refreshes">Prístupový token Trakt sa obnoví o %1$s</string>
-    <string name="trakt_login_instruction">Stlačte Prihlásiť sa pre spustenie autentifikácie Trakt. Tu sa zobrazí QR kód.</string>
-    <string name="trakt_missing_credentials">Chýba TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET v local.properties.</string>
-    <string name="trakt_watch_progress_title">Postup sledovania</string>
-    <string name="trakt_watch_progress_subtitle">Vyberte, ktorý zdroj postupu sledovania riadi pokračovanie a obnovenie</string>
-    <string name="trakt_watch_progress_dialog_title">Postup sledovania</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Vyberte, či má obnovenie a pokračovanie v sledovaní používať Trakt alebo Telumia Sync, kým Trakt scrobbling zostane aktívny.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">Zdroj knižnice</string>
-    <string name="trakt_library_source_subtitle">Vyberte, ktorú knižnicu použiť na ukladanie a zobrazovanie vašej kolekcie</string>
-    <string name="trakt_library_source_dialog_title">Zdroj knižnice</string>
-    <string name="trakt_library_source_dialog_subtitle">Vyberte, kde ukladať a spravovať položky knižnice</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Telumia knižnica</string>
-    <string name="trakt_library_source_trakt_selected">Vybraná Trakt knižnica</string>
-    <string name="trakt_library_source_nuvio_selected">Vybraná Telumia knižnica</string>
-    <string name="trakt_setting_on">Zapnuté</string>
-    <string name="trakt_setting_off">Vypnuté</string>
-    <string name="trakt_watch_progress_trakt_selected">Zdroj postupu sledovania nastavený na Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Zdroj postupu sledovania nastavený na Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Okno pokračovania v sledovaní</string>
-    <string name="trakt_continue_watching_subtitle">História Trakt zohľadnená pre pokračovanie v sledovaní</string>
-    <string name="trakt_unaired_next_up">Nevysielané epizódy Ďalej sledovať</string>
-    <string name="trakt_unaired_next_up_subtitle">Zobraziť nadchádzajúce epizódy pred ich odvysielaním</string>
-    <string name="trakt_unaired_shown">Zobrazené</string>
-    <string name="trakt_unaired_hidden">Skryté</string>
-    <string name="trakt_unaired_now_shown">Nevysielané epizódy Ďalej sledovať sa teraz zobrazujú</string>
-    <string name="trakt_unaired_now_hidden">Nevysielané epizódy Ďalej sledovať sú teraz skryté</string>
-    <string name="trakt_comments_title">Komentáre</string>
-    <string name="trakt_comments_subtitle">Zobraziť Trakt recenzie na stránkach metadát</string>
-    <string name="trakt_comments_dialog_title">Komentáre</string>
-    <string name="trakt_comments_dialog_subtitle">Vyberte, či majú stránky metadát zobrazovať Trakt recenzie, keď je váš účet pripojený.</string>
-    <string name="trakt_comments_now_shown">Trakt recenzie na stránkach metadát sa teraz zobrazujú</string>
-    <string name="trakt_comments_now_hidden">Trakt recenzie na stránkach metadát sú teraz skryté</string>
-    <string name="trakt_more_like_this_source_title">Zdroj Podobné tituly</string>
-    <string name="trakt_more_like_this_source_subtitle">Vyberte, odkiaľ pochádzajú odporúčania na stránkach detailov</string>
-    <string name="trakt_more_like_this_source_dialog_title">Zdroj Podobné tituly</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Vyberte zdroj odporúčaní zobrazených na stránkach detailov.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_cached_label">V cache</string>
-    <string name="trakt_stat_movies">Filmy</string>
-    <string name="trakt_stat_shows">Seriály</string>
-    <string name="trakt_stat_episodes">Epizódy</string>
-    <string name="trakt_stat_watched_hours">Hodiny sledovania</string>
-    <string name="trakt_disconnect">Odpojiť</string>
-    <string name="trakt_disconnect_title">Odpojiť Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Týmto odpojíte svoj Trakt účet od Telumia.</string>
-    <string name="trakt_login">Prihlásiť sa</string>
-    <string name="trakt_retry">Skúsiť znova</string>
-    <string name="trakt_back">Späť</string>
-    <string name="trakt_cw_window_title">Okno pokračovania v sledovaní</string>
-    <string name="trakt_cw_window_subtitle">Vyberte, koľko Trakt aktivity sa má zobrazovať v pokračovaní v sledovaní.</string>
-    <string name="trakt_unaired_dialog_title">Nevysielané epizódy Ďalej sledovať</string>
-    <string name="trakt_unaired_dialog_subtitle">Vyberte, či má Pokračovať v sledovaní zahŕňať nadchádzajúce epizódy ešte pred vydaním.</string>
-    <string name="trakt_show_unaired">Zobraziť nevysielané epizódy</string>
-    <string name="trakt_hide_unaired">Skryť nevysielané epizódy</string>
-    <string name="trakt_all_history">Celá história</string>
-    <string name="trakt_days_format">%1$d dní</string>
+    <string name="tracking_code_expires">Kód vyprší o %1$s</string>
+    <string name="tracking_watch_progress_title">Postup sledovania</string>
+    <string name="tracking_watch_progress_subtitle">Vyberte, ktorý zdroj postupu sledovania riadi pokračovanie a obnovenie</string>
+    <string name="tracking_watch_progress_dialog_title">Postup sledovania</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">Zdroj knižnice</string>
+    <string name="tracking_library_source_subtitle">Vyberte, ktorú knižnicu použiť na ukladanie a zobrazovanie vašej kolekcie</string>
+    <string name="tracking_library_source_dialog_title">Zdroj knižnice</string>
+    <string name="tracking_library_source_nuvio">Telumia knižnica</string>
+    <string name="tracking_continue_watching_window">Okno pokračovania v sledovaní</string>
+    <string name="tracking_more_like_this_source_title">Zdroj Podobné tituly</string>
+    <string name="tracking_more_like_this_source_subtitle">Vyberte, odkiaľ pochádzajú odporúčania na stránkach detailov</string>
+    <string name="tracking_more_like_this_source_dialog_title">Zdroj Podobné tituly</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Vyberte zdroj odporúčaní zobrazených na stránkach detailov.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_disconnect">Odpojiť</string>
+    <string name="tracking_cw_window_title">Okno pokračovania v sledovaní</string>
+    <string name="tracking_all_history">Celá história</string>
+    <string name="tracking_days_format">%1$d dní</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Debug</string>
@@ -1236,7 +1161,6 @@
     <string name="essential_addon_setup_subtitle">Nainštalujte jeden doplnok pre začatie streamovania. Ďalšie môžete pridať neskôr z Doplnkov.</string>
     <string name="essential_addon_show_qr">Zobraziť QR</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">Nenašli sa žiadne Trakt zoznamy</string>
     <string name="collection_editor_untitled_folder">Bez názvu</string>
     <string name="collection_editor_untitled_collection">Kolekcia bez názvu</string>
     <!-- AddonManagerScreen -->
@@ -1523,7 +1447,6 @@
     <string name="search_voice_unavailable">Hlasové vyhľadávanie nie je na tomto zariadení dostupné.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Synchronizuje sa knižnica Trakt…</string>
     <string name="library_title">Knižnica</string>
     <string name="library_filter_list">Zoznam</string>
     <string name="library_filter_type">Typ</string>
@@ -1559,13 +1482,11 @@
     <string name="genre_soap">Soap Opera</string>
     <string name="genre_talk">Talk Show</string>
     <string name="genre_war_politics">Vojna a Politika</string>
-    <string name="library_sort_trakt_order">Poradie Trakt</string>
     <string name="library_sort_added_desc">Pridané ↓</string>
     <string name="library_sort_added_asc">Pridané ↑</string>
     <string name="library_sort_title_asc">Názov A-Z</string>
     <string name="library_sort_title_desc">Názov Z-A</string>
     <string name="library_manage_lists">Spravovať zoznamy</string>
-    <string name="library_manage_trakt_lists">Spravovať Trakt zoznamy</string>
     <string name="library_no_lists">Zatiaľ žiadne osobné zoznamy.</string>
     <string name="library_list_create">Vytvoriť</string>
     <string name="library_list_edit">Upraviť</string>
@@ -1578,11 +1499,9 @@
     <string name="library_list_description_label">Popis</string>
     <string name="library_list_privacy">Súkromie</string>
     <string name="library_delete_title">Odstrániť tento zoznam?</string>
-    <string name="library_delete_subtitle">Týmto sa odstráni zoznam aj všetky položky zoznamu z Trakt.</string>
     <string name="library_delete_confirm">Odstrániť</string>
     <string name="library_source_local">LOKÁLNE</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Uložené</string>
     <string name="library_source_cloud">Cloud</string>
     <string name="library_watchlist">Watchlist</string>
@@ -1590,11 +1509,9 @@
     <string name="library_type_all">Všetko</string>
     <string name="library_type_items">položiek</string>
     <string name="library_empty_local_title">Zatiaľ žiadne %1$s</string>
-    <string name="library_empty_trakt_title">Žiadne %1$s v tomto zozname</string>
+    <string name="library_empty_remote_title">Žiadne %1$s v tomto zozname</string>
     <string name="library_empty_local_subtitle">Začnite si ukladať obľúbené položky a zobrazia sa tu</string>
-    <string name="library_empty_trakt_subtitle">Použite + v detailoch pre pridanie položiek do watchlistu alebo zoznamov</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt nie je pripojený</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Pripojte svoj účet Trakt v Nastaveniach pre zobrazenie knižnice Trakt</string>
+    <string name="library_empty_remote_subtitle">Použite + v detailoch pre pridanie položiek do watchlistu alebo zoznamov</string>
     <string name="cloud_library_connect_action">Pripojiť účet</string>
     <string name="cloud_library_connect_message">Pripojte účet v nastaveniach Pripojených služieb, aby ste mohli prehliadať prehrateľné súbory z cloudovej knižnice.</string>
     <string name="cloud_library_connect_title">Nie je pripojený žiadny cloudový účet</string>
@@ -1749,7 +1666,6 @@
     <string name="update_unknown_sources">Povoľte inštalácie z neznámych zdrojov, aby ste mohli pokračovať.</string>
     <!-- AccountScreen -->
     <string name="account_title">Účet</string>
-    <string name="account_sign_in_description">Prihláste sa, aby sa synchronizovala vaša knižnica, postup sledovania, doplnky a pluginy medzi zariadeniami. Synchronizácia knižnice používa Telumia Sync, keď Trakt nie je pripojený, a postup sledovania môže používať Trakt alebo Telumia Sync.</string>
     <string name="account_sync_code_title">Synchronizačný kód</string>
     <string name="account_sync_code_description">Synchronizujte medzi zariadeniami bez vytvorenia účtu.</string>
     <string name="account_linked_devices">Prepojené zariadenia (%1$d)</string>
@@ -1867,29 +1783,6 @@
     <string name="plugin_repo_removed">Repozitár odstránený</string>
     <string name="plugin_repo_refreshed">Repozitár obnovený</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">Kód zariadenia vypršal. Začnite znova.</string>
-    <string name="trakt_error_code_used">Kód zariadenia už bol použitý. Začnite znova.</string>
-    <string name="trakt_error_denied">Autorizácia bola na Trakt zamietnutá.</string>
-    <string name="trakt_error_missing_credentials">Chýbajú prihlasovacie údaje TRAKT</string>
-    <string name="trakt_error_network_retry">Chyba siete, skúste to znova</string>
-    <string name="trakt_error_network_will_retry">Chyba siete, bude sa opakovať pokus</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt obmedzuje požiadavky. Skúste to znova približne o %1$d min</string>
-    <string name="trakt_error_failed_start_code">Nepodarilo sa spustiť Trakt autentifikáciu (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Žiadny aktívny Trakt device code</string>
-    <string name="trakt_error_invalid_device_code">Neplatný device code</string>
-    <string name="trakt_error_token_polling_failed_code">Polling tokenu zlyhal (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Požiadavka Trakt zlyhala</string>
-    <string name="trakt_error_list_not_found_or_private">Trakt zoznam sa nenašiel alebo nie je verejný</string>
-    <string name="trakt_error_rate_limit_reached">Bol dosiahnutý limit požiadaviek Trakt</string>
-    <string name="trakt_status_enter_activation_code">Zadajte kód na trakt.tv/activate</string>
-    <string name="trakt_status_syncing">Synchronizuje sa...</string>
-    <string name="trakt_status_sync_completed">Synchronizácia dokončená</string>
-    <string name="trakt_status_disconnected">Odpojené od Trakt</string>
-    <string name="trakt_status_cw_window_updated">Okno pokračovania v sledovaní bolo aktualizované</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Obmedzenie požiadaviek, polling sa spomaľuje...</string>
-    <string name="trakt_user_fallback">Používateľ Trakt</string>
-    <string name="trakt_error_failed_start">Nepodarilo sa spustiť Trakt autentifikáciu</string>
 
     <!-- General errors -->
     <string name="error_unknown">Neznáma chyba</string>
@@ -1954,8 +1847,6 @@
     <string name="cd_test">Testovať</string>
     <string name="cd_unlink">Odpojiť</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Logo Trakt</string>
-    <string name="cd_trakt_qr">Trakt aktivačné QR</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Otvoriť Objavovanie</string>
     <string name="cd_voice_search">Hlasové vyhľadávanie</string>
@@ -2055,18 +1946,8 @@
     <string name="collections_editor_shape_square">Štvorec</string>
     <string name="collections_editor_addon_missing">Doplnok nie je nainštalovaný: %1$s</string>
     <string name="collections_editor_add_tmdb_source">Pridať zdroj TMDB</string>
-    <string name="collections_editor_add_trakt_source">Pridať Trakt zoznam</string>
     <string name="collections_editor_edit_tmdb_source">Upraviť zdroj TMDB</string>
     <string name="collections_editor_tmdb_sources">Zdroje TMDB</string>
-    <string name="collections_editor_trakt_sources">Trakt zoznamy</string>
-    <string name="collections_editor_edit_trakt_source">Upraviť Trakt zoznam</string>
-    <string name="collections_editor_trakt_list">Trakt zoznam</string>
-    <string name="collections_editor_trakt_search_results">Výsledky vyhľadávania</string>
-    <string name="collections_editor_trakt_trending">Trendujúce zoznamy</string>
-    <string name="collections_editor_trakt_popular">Populárne zoznamy</string>
-    <string name="collections_editor_trakt_direction">Smer</string>
-    <string name="collections_editor_trakt_ascending">Vzostupne</string>
-    <string name="collections_editor_trakt_descending">Zostupne</string>
     <string name="collections_editor_tmdb_id_or_url">TMDB ID alebo URL</string>
     <string name="collections_editor_tmdb_public_list">Verejný TMDB zoznam</string>
     <string name="collections_editor_tmdb_network_id">ID stanice</string>
@@ -2144,27 +2025,13 @@
     <string name="collections_editor_sort_votes">Hlasy</string>
     <string name="collections_editor_direction_asc_short">Vzost.</string>
     <string name="collections_editor_direction_desc_short">Zost.</string>
-    <string name="collections_editor_trakt_movie_list">Trakt zoznam filmov</string>
-    <string name="collections_editor_trakt_series_list">Trakt zoznam seriálov</string>
-    <string name="collections_editor_trakt_list_with_id">Trakt zoznam %1$d</string>
-    <string name="collections_editor_trakt_public_list">Verejný Trakt zoznam</string>
-    <string name="collections_editor_trakt_items_count">%1$d položiek</string>
-    <string name="collections_editor_trakt_likes_count">%1$d páči sa mi</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Zadajte platné TMDB ID alebo URL</string>
     <string name="collections_editor_error_load_tmdb_source">Nepodarilo sa načítať zdroj TMDB</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Zadajte ID alebo URL Trakt zoznamu</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Zadajte názov, URL alebo ID Trakt zoznamu</string>
-    <string name="collections_editor_error_load_trakt_list">Nepodarilo sa načítať Trakt zoznam</string>
-    <string name="collections_editor_error_load_trakt_lists">Nepodarilo sa načítať Trakt zoznamy</string>
-    <string name="collections_editor_error_search_trakt_lists">Nepodarilo sa vyhľadať Trakt zoznamy</string>
-    <string name="collections_editor_error_trakt_list_not_found">Trakt zoznam sa nenašiel</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">Trakt zoznam neobsahoval číselné ID</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 alebo 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 pre Star Wars Collection</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420 alebo URL spoločnosti</string>
     <string name="collections_editor_tmdb_placeholder_network">213 pre Netflix, 49 pre HBO, 2739 pre Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 pre Tom Hanks alebo URL osoby</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 alebo 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2216,9 +2083,6 @@
     <string name="collections_tab_combined">Kombinované</string>
     <string name="collection_editor_remove_cd">Odstrániť</string>
     <string name="collection_editor_choice_both">Oboje</string>
-    <string name="collection_editor_resolved_trakt_list">Rozpoznaný Trakt zoznam</string>
-    <string name="collection_editor_trakt_search_placeholder">Hľadať názov, Trakt URL alebo ID zoznamu</string>
-    <string name="collection_editor_trakt_name_placeholder">Víkendové pozeranie, Ocenené filmy</string>
     <string name="collection_editor_folder_count_one">%1$d položka</string>
     <string name="collection_editor_folder_count_other">%1$d položiek</string>
     <string name="collections_editor_delete_folder_title">Odstrániť priečinok?</string>
@@ -2326,7 +2190,6 @@
     <string name="collections_import_error_source_invalid">Kolekcia „%1$s“, priečinok „%2$s“, zdroj %3$d: neplatný formát</string>
     <string name="collections_import_error_source_required_fields">Kolekcia „%1$s“, priečinok „%2$s“, zdroj %3$d: chýbajú povinné polia</string>
     <string name="collections_import_error_missing_tmdb_type">Kolekcia „%1$s“, priečinok „%2$s“, zdroj %3$d: chýba typ zdroja TMDB</string>
-    <string name="collections_import_error_missing_trakt_list_id">Kolekcia „%1$s“, priečinok „%2$s“, zdroj %3$d: chýba ID Trakt zoznamu</string>
     <string name="collections_import_error_json_parse">Chyba spracovania JSON: %1$s</string>
 
     <!-- Library messages -->
@@ -2347,27 +2210,6 @@
     <string name="library_privacy_friends">Priatelia</string>
     <string name="library_privacy_public">Verejný</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">Vyžaduje sa prihlásenie do Trakt</string>
-    <string name="trakt_library_error_request_failed">Požiadavka Trakt zlyhala</string>
-    <string name="trakt_library_error_create_list_failed">Nepodarilo sa vytvoriť zoznam</string>
-    <string name="trakt_library_error_update_list_failed">Nepodarilo sa aktualizovať zoznam</string>
-    <string name="trakt_library_error_delete_list_failed">Nepodarilo sa odstrániť zoznam</string>
-    <string name="trakt_library_error_reorder_lists_failed">Nepodarilo sa zmeniť poradie zoznamov</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">Nepodarilo sa načítať filmy vo watchliste</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">Nepodarilo sa načítať seriály vo watchliste</string>
-    <string name="trakt_library_error_fetch_personal_lists">Nepodarilo sa načítať osobné zoznamy</string>
-    <string name="trakt_library_error_add_watchlist_failed">Nepodarilo sa pridať do watchlistu</string>
-    <string name="trakt_library_error_remove_watchlist_failed">Nepodarilo sa odstrániť z watchlistu</string>
-    <string name="trakt_library_error_add_to_list_failed">Nepodarilo sa pridať do zoznamu</string>
-    <string name="trakt_library_error_remove_from_list_failed">Nepodarilo sa odstrániť zo zoznamu</string>
-    <string name="trakt_library_error_missing_compatible_ids">Chýbajú kompatibilné ID pre operáciu Trakt zoznamu</string>
-    <string name="trakt_library_error_auth_expired">Prihlásenie do Trakt vypršalo</string>
-    <string name="trakt_library_error_list_not_found">Trakt zoznam sa nenašiel</string>
-    <string name="trakt_library_error_list_limit_reached">Dosiahnutý limit Trakt zoznamov. Vyžaduje sa upgrade.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">Nedostatočné Trakt ID pre označenie ako videné</string>
-    <string name="trakt_error_request_failed">Požiadavka Trakt zlyhala</string>
-    <string name="trakt_error_mark_watched_failed">Nepodarilo sa označiť ako videné v Trakt (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">Nepodarilo sa aktualizovať knižnicu</string>
@@ -2444,8 +2286,6 @@
     <string name="stream_error_detail_addon_request_failed">požiadavka doplnku zlyhala</string>
     <string name="stream_error_fetch_failed">Nepodarilo sa načítať streamy</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">Stránkované načítanie Trakt zlyhalo (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">Nepodarilo sa načítať zoznamy</string>
@@ -2455,10 +2295,6 @@
     <string name="profile_pin_saved_for_profile">PIN uložený pre %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">Zámok PIN odstránený pre %1$s.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">Požiadavka Trakt related zlyhala</string>
-    <string name="trakt_comments_error_request_failed">Požiadavka Trakt komentárov zlyhala</string>
-    <string name="trakt_library_error_fetch_list_items">Nepodarilo sa načítať položky zoznamu</string>
 
 <string name="hero_synopsis_read_more">Čítať viac</string>
 <string name="hero_synopsis_dismiss_hint">Stlačiť Späť na zatvorenie</string>
@@ -2871,8 +2707,6 @@
 <string name="tracking_accounts_subtitle">Pripojiť a spravovať služby sledovania</string>
 <string name="tracking_sources_title">Zdroje</string>
 <string name="tracking_sources_subtitle">Vyberte, odkiaľ má Telumia načítavať vašu knižnicu a priebeh sledovania. Prehrávanie sa scrobbluje do každej pripojenej služby.</string>
-<string name="tracking_trakt_features_title">Funkcie Trakt</string>
-<string name="tracking_trakt_features_subtitle">História, recenzie a odporúčania špecifické pre Trakt</string>
 <string name="tracking_simkl_features_title">Funkcie Simkl</string>
 <string name="tracking_simkl_features_subtitle">Nastavenia špecifické pre Simkl</string>
 <string name="tracking_simkl_anime_id_title">Preferencia ID pre anime</string>
@@ -2888,8 +2722,6 @@
 <string name="tracking_connecting_provider">Spúšťa sa pripojenie k %1$s…</string>
 <string name="tracking_watch_progress_dialog_subtitle">Vyberte službu, z ktorej má Telumia načítavať pozíciu prehrávania a zoznam Pokračovať v sledovaní. Scrobblovanie zostáva aktívne pre všetky pripojené služby.</string>
 <string name="tracking_library_source_dialog_subtitle">Vyberte službu, z ktorej má Telumia načítavať vašu Knižnicu. Prehrávanie sa scrobbluje do každej pripojenej služby.</string>
-<string name="tracking_trakt_progress_required">Dostupné, keď je Trakt nastavený ako zdroj priebehu sledovania</string>
-<string name="trakt_name">Trakt</string>
 <string name="simkl_name">Simkl</string>
 <string name="action_back">Späť</string>
 <string name="library_sort_provider_order">Poradie poskytovateľa</string>
@@ -3258,7 +3090,7 @@
     <string name="mdblist_ratings_credentials_subtitle">Použite svoj účet MDBList pripojený v sekcii Sledovanie (Tracking) alebo zadajte samostatný API kľúč pre hodnotenia.</string>
     <string name="mdblist_ratings_connected_account">Používa sa pripojený účet</string>
     <string name="mdblist_ratings_key_override_subtitle">API kľúč má prednosť pred pripojeným účtom pre hodnotenia. Ak ho vymažete, znova sa použije pripojený účet.</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
     <string name="player_switch_to_mpv">Prepnúť na prehrávač MPV</string>
     <string name="library_error_sort_failed">Nepodarilo sa načítať poradie triedenia. Zobrazuje sa poradie poskytovateľa.</string>
     <string name="playback_cache_write_warning">Na zariadeniach so vstavaným úložiskom je aktivita zápisu neustála a môže časom spôsobiť jeho opotrebenie.</string>

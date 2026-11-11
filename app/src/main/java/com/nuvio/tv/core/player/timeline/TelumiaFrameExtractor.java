@@ -722,7 +722,7 @@ public final class TelumiaFrameExtractor {
     }
   }
 
-  /** SDR previews on API 24/25 need ES2, without an ES3 probe terminating the EGL display. */
+  /** SDR previews on older devices use ES2 without an ES3 probe terminating the EGL display. */
   private static final class LegacyPreviewGlObjectsProvider implements GlObjectsProvider {
     private final DefaultGlObjectsProvider delegate = new DefaultGlObjectsProvider();
 
@@ -783,7 +783,7 @@ public final class TelumiaFrameExtractor {
     @Override
     protected PlaybackVideoGraphWrapper createPlaybackVideoGraphWrapper(
         Context context, VideoFrameReleaseControl frameReleaseControl) {
-      if (SDK_INT > 25) {
+      if (SDK_INT > 30) {
         return super.createPlaybackVideoGraphWrapper(context, frameReleaseControl);
       }
       // Only this bounded SDR preview graph uses ES2; the main playback engine stays unchanged.

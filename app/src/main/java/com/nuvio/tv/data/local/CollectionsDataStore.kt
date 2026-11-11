@@ -24,9 +24,6 @@ import com.nuvio.tv.domain.model.TmdbCollectionMediaType
 import com.nuvio.tv.domain.model.TmdbCollectionSort
 import com.nuvio.tv.domain.model.TmdbCollectionSource
 import com.nuvio.tv.domain.model.TmdbCollectionSourceType
-import com.nuvio.tv.domain.model.TraktCollectionSource
-import com.nuvio.tv.domain.model.TraktListSort
-import com.nuvio.tv.domain.model.TraktSortHow
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -222,15 +219,11 @@ class CollectionsDataStore @Inject constructor(
                         val provider = (source["provider"] as? String)?.lowercase()
                         val isAddonSource = provider == null || provider == "addon"
                         val isTmdbSource = provider == "tmdb"
-                        val isTraktSource = provider == "trakt"
                         if (isAddonSource && (source["addonId"] !is String || source["type"] !is String || source["catalogId"] !is String)) {
                             return ValidationResult(false, appContext.getString(com.nuvio.tv.R.string.collections_import_error_source_required_fields, title, folderTitle, k + 1))
                         }
                         if (isTmdbSource && source["tmdbSourceType"] !is String) {
                             return ValidationResult(false, appContext.getString(com.nuvio.tv.R.string.collections_import_error_missing_tmdb_type, title, folderTitle, k + 1))
-                        }
-                        if (isTraktSource && (source["traktListId"] as? Number)?.toLong() == null) {
-                            return ValidationResult(false, appContext.getString(com.nuvio.tv.R.string.collections_import_error_missing_trakt_list_id, title, folderTitle, k + 1))
                         }
                     }
                     folderCount++
@@ -296,10 +289,8 @@ class CollectionsDataStore @Inject constructor(
         val tmdbSourceType: String? = null,
         val title: String? = null,
         val tmdbId: Int? = null,
-        val traktListId: Long? = null,
         val mediaType: String? = null,
         val sortBy: String? = null,
-        val sortHow: String? = null,
         val filters: SerializableTmdbFilters? = null
     )
 
@@ -385,14 +376,6 @@ class CollectionsDataStore @Inject constructor(
                 sortBy = sortBy,
                 filters = filters.toSerializable()
             )
-            is TraktCollectionSource -> SerializableSource(
-                provider = "trakt",
-                title = title,
-                traktListId = traktListId,
-                mediaType = mediaType.name,
-                sortBy = sortBy,
-                sortHow = sortHow
-            )
         }
     }
 
@@ -475,19 +458,6 @@ class CollectionsDataStore @Inject constructor(
                     } ?: TmdbCollectionMediaType.MOVIE,
                     sortBy = normalizedSortBy,
                     filters = filters?.toDomain() ?: TmdbCollectionFilters()
-                )
-            }
-            "trakt" -> {
-                val id = traktListId?.takeIf { it > 0L } ?: return null
-                TraktCollectionSource(
-                    title = title?.takeIf { it.isNotBlank() }
-                        ?: string(R.string.collections_editor_trakt_list_with_id, id),
-                    traktListId = id,
-                    mediaType = mediaType?.let { raw ->
-                        runCatching { TmdbCollectionMediaType.valueOf(raw.uppercase()) }.getOrNull()
-                    } ?: TmdbCollectionMediaType.MOVIE,
-                    sortBy = TraktListSort.normalize(sortBy),
-                    sortHow = TraktSortHow.normalize(sortHow)
                 )
             }
             else -> {

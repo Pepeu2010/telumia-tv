@@ -1848,8 +1848,8 @@ class StreamScreenViewModel @Inject constructor(
      * Save watch progress returned by an external player.
      * Called when the external player returns position/duration data via ActivityResult.
      *
-     * Sends both scrobbleStart + scrobbleStop to Trakt so the playback session is properly
-     * recorded (Trakt requires an active session before stop will persist progress).
+     * Sends both scrobbleStart + scrobbleStop to the connected tracking providers so the
+     * playback session is properly recorded.
      */
     fun saveExternalPlayerProgress(
         playbackInfo: StreamPlaybackInfo,

@@ -3,7 +3,7 @@ package com.nuvio.tv.core.sync
 import com.nuvio.tv.core.auth.AuthManager
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.core.tracking.TrackingProgressProviderRegistry
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.local.WatchedItemsPreferences
 import com.nuvio.tv.domain.model.WatchProgress
@@ -147,7 +147,7 @@ class WatchStateSyncServiceTest {
             postgrest = postgrest,
             watchProgressPreferences = preferences,
             trackingProviderRegistry = TrackingProgressProviderRegistry(emptySet()),
-            traktSettingsDataStore = mockk(relaxed = true),
+            trackingSettingsDataStore = mockk(relaxed = true),
             profileManager = profileManager(),
             syncClientIdentity = syncClientIdentity(),
             mutationStore = mutationStore
@@ -166,7 +166,7 @@ class WatchStateSyncServiceTest {
             postgrest = postgrest,
             watchedItemsPreferences = preferences,
             trackingProviderRegistry = TrackingProgressProviderRegistry(emptySet()),
-            traktSettingsDataStore = mockk(relaxed = true),
+            trackingSettingsDataStore = mockk(relaxed = true),
             profileManager = profileManager(),
             syncClientIdentity = syncClientIdentity(),
             mutationStore = mutationStore

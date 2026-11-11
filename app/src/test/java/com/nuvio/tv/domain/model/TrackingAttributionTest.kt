@@ -11,7 +11,6 @@ class TrackingAttributionTest {
             contentId = "tt123",
             providerId = "simkl",
             items = sequenceOf(
-                attributedItem("tt123", "trakt", "https://trakt.tv/movies/123"),
                 attributedItem("tt123", "simkl", "https://simkl.com/movies/456"),
                 attributedItem("tt999", "simkl", "https://simkl.com/movies/999")
             )

@@ -10,13 +10,13 @@ class TrackingProviderRegistryTest {
     @Test
     fun `registry order is deterministic and capability lookup requires connection`() {
         val simkl = FakeProvider(TrackingProviderId.SIMKL, authenticated = true, scrobble = true)
-        val trakt = FakeProvider(TrackingProviderId.TRAKT, authenticated = false, scrobble = true)
-        val registry = TrackingProviderRegistry(listOf(simkl, trakt))
+        val mdblist = FakeProvider(TrackingProviderId.MDBLIST, authenticated = false, scrobble = true)
+        val registry = TrackingProviderRegistry(listOf(simkl, mdblist))
 
-        assertEquals(listOf(TrackingProviderId.TRAKT, TrackingProviderId.SIMKL), registry.providers().map { it.descriptor.id })
+        assertEquals(listOf(TrackingProviderId.SIMKL, TrackingProviderId.MDBLIST), registry.providers().map { it.descriptor.id })
         assertEquals(setOf(TrackingProviderId.SIMKL), registry.connectedProviderIds())
         assertEquals(listOf(TrackingProviderId.SIMKL), registry.connectedScrobblers().map { it.providerId })
-        assertFalse(registry.isAuthenticated(TrackingProviderId.TRAKT))
+        assertFalse(registry.isAuthenticated(TrackingProviderId.MDBLIST))
         assertTrue(registry.isAuthenticated(TrackingProviderId.SIMKL))
     }
 
@@ -24,8 +24,8 @@ class TrackingProviderRegistryTest {
     fun `registry rejects duplicate provider ids`() {
         TrackingProviderRegistry(
             listOf(
-                FakeProvider(TrackingProviderId.TRAKT, authenticated = true),
-                FakeProvider(TrackingProviderId.TRAKT, authenticated = false)
+                FakeProvider(TrackingProviderId.MDBLIST, authenticated = true),
+                FakeProvider(TrackingProviderId.MDBLIST, authenticated = false)
             )
         )
     }

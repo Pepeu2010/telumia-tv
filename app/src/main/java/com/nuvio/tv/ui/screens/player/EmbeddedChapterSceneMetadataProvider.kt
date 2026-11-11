@@ -64,9 +64,21 @@ internal data class TvSceneInfoEntry(
     val endMs: Long,
 )
 
+internal data class TvSceneInfoChapterContext(
+    val previous: TvSceneInfoEntry?,
+    val current: TvSceneInfoEntry?,
+    val next: TvSceneInfoEntry?,
+)
+
+internal enum class TvSceneInfoChapterPosition {
+    PREVIOUS,
+    CURRENT,
+    NEXT,
+}
+
 internal data class TvSceneInfoDialogState(
     val scope: TimedMetadataScope,
-    val entries: List<TvSceneInfoEntry>,
+    val context: TvSceneInfoChapterContext,
 )
 
 private const val MEDIA3_SCENE_PROVIDER_ID = "media3-id3-scene-chapters"
@@ -86,3 +98,55 @@ internal fun sceneInfoEntriesAt(
         TvSceneInfoEntry(event.id, chapter.title, event.startMs, endMs)
     }
 }
+
+internal fun sceneInfoChapterContextAt(
+    timeline: TimedMetadataTimeline?,
+    expectedScope: TimedMetadataScope?,
+    positionMs: Long,
+): TvSceneInfoChapterContext? {
+    return sceneInfoChapterContextAt(sceneInfoChapterEntries(timeline, expectedScope), positionMs)
+}
+
+internal fun sceneInfoChapterEntries(
+    timeline: TimedMetadataTimeline?,
+    expectedScope: TimedMetadataScope?,
+): List<TvSceneInfoEntry> {
+    if (timeline == null || expectedScope == null || timeline.scope != expectedScope ||
+        expectedScope.editionId.isNullOrBlank()
+    ) return emptyList()
+
+    return timeline.events.mapNotNull { event ->
+        val chapter = event.body as? TimedMetadataBody.Chapter ?: return@mapNotNull null
+        val endMs = event.endMs ?: return@mapNotNull null
+        if (event.provenance.providerId != MEDIA3_SCENE_PROVIDER_ID ||
+            event.confidence?.let { it >= MIN_SCENE_INFO_CONFIDENCE } != true ||
+            event.body.kind != TimedMetadataKind.CHAPTER || chapter.title.isBlank()
+        ) return@mapNotNull null
+        TvSceneInfoEntry(event.id, chapter.title, event.startMs, endMs)
+    }
+}
+
+internal fun sceneInfoChapterContextAt(
+    chapters: List<TvSceneInfoEntry>,
+    positionMs: Long,
+): TvSceneInfoChapterContext? {
+    if (chapters.isEmpty()) return null
+
+    val currentIndex = chapters.indexOfLast { positionMs >= it.startMs && positionMs < it.endMs }
+    if (currentIndex >= 0) {
+        return TvSceneInfoChapterContext(
+            previous = chapters.getOrNull(currentIndex - 1),
+            current = chapters[currentIndex],
+            next = chapters.getOrNull(currentIndex + 1),
+        )
+    }
+
+    val nextIndex = chapters.indexOfFirst { it.startMs > positionMs }
+    return TvSceneInfoChapterContext(
+        previous = chapters.getOrNull(if (nextIndex < 0) chapters.lastIndex else nextIndex - 1),
+        current = null,
+        next = chapters.getOrNull(nextIndex),
+    )
+}
+
+private const val MIN_SCENE_INFO_CONFIDENCE = 0.8

@@ -68,14 +68,30 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     suspend fun searchCompanies(query: String): List<TmdbCompanySearchResult> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
-        tmdbApi.searchCompanies(BuildConfig.TMDB_API_KEY, query.trim()).body()?.results.orEmpty()
+        val response = tmdbApi.searchCompanies(requireTmdbApiKey(), query.trim())
+        if (response.code() == 401 || response.code() == 403) {
+            error(string(R.string.search_error_tmdb_api_key_missing))
+        }
+        if (!response.isSuccessful) error(string(R.string.search_error_failed))
+        response.body()?.results.orEmpty()
     }
 
     suspend fun searchCollections(query: String): List<TmdbCollectionSearchResult> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
+        val apiKey = requireTmdbApiKey()
         val language = tmdbSettingsDataStore.settings.first().language
-        tmdbApi.searchCollections(BuildConfig.TMDB_API_KEY, query.trim(), language).body()?.results.orEmpty()
+        val response = tmdbApi.searchCollections(apiKey, query.trim(), language)
+        if (response.code() == 401 || response.code() == 403) {
+            error(string(R.string.search_error_tmdb_api_key_missing))
+        }
+        if (!response.isSuccessful) error(string(R.string.search_error_failed))
+        response.body()?.results.orEmpty()
     }
+
+    private fun requireTmdbApiKey(): String = BuildConfig.TMDB_API_KEY
+        .trim()
+        .takeIf(String::isNotBlank)
+        ?: error(string(R.string.search_error_tmdb_api_key_missing))
 
     suspend fun listImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
         val language = tmdbSettingsDataStore.settings.first().language

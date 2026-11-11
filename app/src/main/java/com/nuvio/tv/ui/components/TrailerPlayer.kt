@@ -42,6 +42,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import android.view.LayoutInflater
 import android.view.TextureView
+import android.util.Log
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.LocalUiMotion
 import kotlinx.coroutines.delay
@@ -66,7 +67,9 @@ fun TrailerPlayer(
     modifier: Modifier = Modifier,
     enter: EnterTransition? = null,
     exit: ExitTransition? = null,
-    trailerPlayerPool: TrailerPlayerPool? = null
+    trailerPlayerPool: TrailerPlayerPool? = null,
+    onPlaybackFailure: ((PlaybackException) -> Unit)? = null,
+    onFirstFrameTimeout: (() -> Unit)? = null
 ) {
     val motion = LocalUiMotion.current
     val enterTransition = if (!motion.allowsSpatialEffects) fadeIn(tween(motion.durationMillis(800)))
@@ -83,6 +86,8 @@ fun TrailerPlayer(
     val currentOnFirstFrameRendered by rememberUpdatedState(onFirstFrameRendered)
     val currentOnProgressChanged by rememberUpdatedState(onProgressChanged)
     val currentOnRemoteKey by rememberUpdatedState(onRemoteKey)
+    val currentOnPlaybackFailure by rememberUpdatedState(onPlaybackFailure)
+    val currentOnFirstFrameTimeout by rememberUpdatedState(onFirstFrameTimeout)
     val zoomScale = if (cropToFill) overscanZoom.coerceAtLeast(1f) else 1f
     var hasRenderedFirstFrame by remember(trailerUrl, trailerAudioUrl) { mutableStateOf(false) }
     val playerAlphaState = animateFloatAsState(
@@ -123,7 +128,15 @@ fun TrailerPlayer(
         if (trailerPlayer == null) return@LaunchedEffect
         delay(12_000)
         if (!hasRenderedFirstFrame && resolvedPool?.isOwner(ownerToken) == true) {
-            currentOnEnded()
+            val tracks = trailerPlayer.currentTracks.groups
+            Log.w("TelumiaTrailer", "first frame timeout; state=${trailerPlayer.playbackState}, " +
+                "playing=${trailerPlayer.isPlaying}, playWhenReady=${trailerPlayer.playWhenReady}, " +
+                "positionMs=${trailerPlayer.currentPosition}, " +
+                "videoSelected=${tracks.any { it.type == C.TRACK_TYPE_VIDEO && it.isSelected }}, " +
+                "audioSelected=${tracks.any { it.type == C.TRACK_TYPE_AUDIO && it.isSelected }}, " +
+                "separateAudio=${!trailerAudioUrl.isNullOrBlank()}")
+            val timeoutCallback = currentOnFirstFrameTimeout
+            if (timeoutCallback != null) timeoutCallback() else currentOnEnded()
             resolvedPool.stop(ownerToken)
         }
     }
@@ -233,12 +246,21 @@ fun TrailerPlayer(
 
             override fun onRenderedFirstFrame() {
                 if (resolvedPool?.isOwner(ownerToken) != true) return
+                val tracks = player.currentTracks.groups
+                Log.d("TelumiaTrailer", "first frame rendered; " +
+                    "width=${player.videoSize.width}, height=${player.videoSize.height}, " +
+                    "audioSelected=${tracks.any { it.type == C.TRACK_TYPE_AUDIO && it.isSelected }}, " +
+                    "volume=${player.volume}, separateAudio=${!currentTrailerAudioUrl.isNullOrBlank()}")
                 hasRenderedFirstFrame = true
                 currentOnFirstFrameRendered()
             }
 
             override fun onPlayerError(error: PlaybackException) {
-                if (resolvedPool?.isOwner(ownerToken) == true) currentOnEnded()
+                if (resolvedPool?.isOwner(ownerToken) == true) {
+                    Log.w("TelumiaTrailer", "playback failed; code=${error.errorCodeName}")
+                    val failureCallback = currentOnPlaybackFailure
+                    if (failureCallback != null) failureCallback(error) else currentOnEnded()
+                }
             }
         }
         val observer = LifecycleEventObserver { _, event ->

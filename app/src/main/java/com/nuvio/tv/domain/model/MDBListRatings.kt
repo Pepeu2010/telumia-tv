@@ -1,7 +1,6 @@
 package com.nuvio.tv.domain.model
 
 data class MDBListRatings(
-    val trakt: Double? = null,
     val imdb: Double? = null,
     val tmdb: Double? = null,
     val letterboxd: Double? = null,
@@ -28,7 +27,7 @@ data class MDBListRatings(
             else -> RottenTomatoesStatus.STALE
         }
 
-    fun isEmpty(): Boolean = trakt == null && imdb == null && tmdb == null &&
+    fun isEmpty(): Boolean = imdb == null && tmdb == null &&
         letterboxd == null && tomatoes == null && audience == null && metacritic == null && mal == null
 }
 

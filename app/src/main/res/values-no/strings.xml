@@ -8,7 +8,6 @@
     <string name="home_no_addons">Ingen tillegg installert. Legg til et for å komme i gang.</string>
     <string name="home_no_catalog_addons">Ingen katalogtillegg installert. Installer et katalogtillegg for å se innhold.</string>
     <string name="auth_notice_nuvio_logged_out">Du har blitt logget ut av Telumia. Logg inn igjen.</string>
-    <string name="auth_notice_trakt_logged_out">Du har blitt logget ut av Trakt. Koble til igjen.</string>
     <string name="error_generic">En feil har oppstått</string>
 
     <!-- ErrorState -->
@@ -140,20 +139,8 @@
     <string name="cast_role_writer">Skribent</string>
     <string name="detail_tab_ratings">Vurderinger</string>
     <string name="detail_tab_more_like_this">Mer som dette</string>
-    <string name="detail_comments_title">Kommentarer</string>
-    <string name="detail_comments_subtitle">Anmeldelser fra Trakt</string>
     <string name="detail_section_network">Nettverk</string>
     <string name="detail_section_production">Produksjon</string>
-    <string name="detail_comments_empty">Ingen Traktanmeldelser tilgjengelig ennå.</string>
-    <string name="detail_comments_error">Kunne ikke laste Traktanmeldelser akkurat nå.</string>
-    <string name="detail_comments_spoiler_hidden">Spoileranmeldelse. Trykk OK for å vise.</string>
-    <string name="detail_comments_reveal_spoiler">Vis spoiler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Trykk OK for å vise spoiler.</string>
-    <string name="detail_comments_back_hint">Klikk tilbake for å lukke</string>
-    <string name="detail_comments_badge_review">Anmeldelse</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d liker</string>
     <string name="tmdb_entity_kind_company">Produksjonsfirma</string>
     <string name="tmdb_entity_kind_network">Nettverk</string>
     <string name="tmdb_entity_rail_popular">Populært</string>
@@ -222,7 +209,6 @@
     <string name="settings_plugins_subtitle">Arkiver og leverandører</string>
     <string name="settings_integration">Integrasjoner</string>
     <string name="settings_playback">Avspilling</string>
-    <string name="settings_trakt_subtitle">Åpne tilkoblingsside for Trakt</string>
     <string name="settings_network">Nettverkshastighet</string>
     <string name="settings_network_subtitle">Ventetid og nedlastingsdiagnostikk</string>
     <string name="settings_advanced">Avansert</string>
@@ -519,8 +505,6 @@
     <string name="mdblist_enable_subtitle">Hent vurderinger fra eksterne leverandører i detaljedskjermen for metadata</string>
     <string name="mdblist_api_key_title">API-nøkkel</string>
     <string name="mdblist_api_key_subtitle">Kreves for å hente vurderinger fra MDBList</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Vis Trakt-poeng</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Vis IMDb-poeng (og skjul standardlinjen for IMDb når tilgjengelig)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -584,62 +568,19 @@
 
     <string name="tmdb_language_dialog_title">TMDB-språk</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Synkroniser ønskelisten, seeframgang, fortsett å se, skroblinger og personlige lister med Trakt.</string>
-    <string name="trakt_connected_as">Tilkoblet som %1$s</string>
-    <string name="trakt_account_login">Kontologging</string>
-    <string name="trakt_awaiting_instruction">Gå til trakt.tv/activate og skriv inn denne koden:</string>
-    <string name="trakt_waiting_approval">Venter på godkjenning…</string>
     <string name="qr_login_approved">Login godkjent. Avslutter pålogging…</string>
     <string name="qr_login_pending">Venter på godkjenning på telefonen din…</string>
     <string name="qr_login_expired">QR-login utløpt. Generer en ny kode.</string>
-    <string name="trakt_code_expires">Kode utløper om %1$s</string>
-    <string name="trakt_token_refreshes">Trakt-tilgangstoken oppfriskes om %1$s</string>
-    <string name="trakt_login_instruction">Trykk Login for å starte Trakt-enhetsautentisering. En QR-kode vises her.</string>
-    <string name="trakt_missing_credentials">Mangler TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET i local.properties.</string>
-    <string name="trakt_watch_progress_title">Seeframgang</string>
-    <string name="trakt_watch_progress_subtitle">Velg hvilken framgangskildes drivkraft gjenoppta og fortsett å se</string>
-    <string name="trakt_watch_progress_dialog_title">Seeframgang</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Velg om gjenopptagelse og fortsett å se skal bruke Trakt eller Telumia Sync mens Trakt-skrobletmeldinger forblir aktive.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_setting_on">På</string>
-    <string name="trakt_setting_off">Av</string>
-    <string name="trakt_watch_progress_trakt_selected">Seeframgangskilden satt til Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Seeframgangskilden satt til Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Fortsett å se vindu</string>
-    <string name="trakt_continue_watching_subtitle">Trakt-historikk vurdert for fortsett å se</string>
-    <string name="trakt_unaired_next_up">Usendte neste episoder</string>
-    <string name="trakt_unaired_next_up_subtitle">Vis kommende episoder før de sendes</string>
-    <string name="trakt_unaired_shown">Vist</string>
-    <string name="trakt_unaired_hidden">Skjult</string>
-    <string name="trakt_unaired_now_shown">Usendte neste episoder er nå vist</string>
-    <string name="trakt_unaired_now_hidden">Usendte neste episoder er nå skjult</string>
-    <string name="trakt_comments_title">Kommentarer</string>
-    <string name="trakt_comments_subtitle">Vis Trakt-anmeldelser på metadatasider</string>
-    <string name="trakt_comments_dialog_title">Kommentarer</string>
-    <string name="trakt_comments_dialog_subtitle">Velg om metadatasider skal vise Trakt-anmeldelser når kontoen din er tilkoblet.</string>
-    <string name="trakt_comments_now_shown">Trakt-anmeldelser på metadatasider er nå vist</string>
-    <string name="trakt_comments_now_hidden">Trakt-anmeldelser på metadatasider er nå skjult</string>
-    <string name="trakt_cached_label">Buffret</string>
-    <string name="trakt_stat_movies">Filmer</string>
-    <string name="trakt_stat_shows">Serier</string>
-    <string name="trakt_stat_episodes">Episoder</string>
-    <string name="trakt_stat_watched_hours">Sette timer</string>
-    <string name="trakt_disconnect">Koble fra</string>
-    <string name="trakt_disconnect_title">Koble fra Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Dette vil koble fra Trakt-kontoen din fra Telumia.</string>
-    <string name="trakt_login">Logge inn</string>
-    <string name="trakt_retry">Prøv igjen</string>
-    <string name="trakt_back">Tilbake</string>
-    <string name="trakt_cw_window_title">Fortsett å se vindu</string>
-    <string name="trakt_cw_window_subtitle">Velg hvor mye Trakt-aktivitet som skal vises i fortsett å se.</string>
-    <string name="trakt_unaired_dialog_title">Usendte neste episoder</string>
-    <string name="trakt_unaired_dialog_subtitle">Velg om fortsett å se skal inkludere kommende episoder før frigivelse.</string>
-    <string name="trakt_show_unaired">Vis ikke sendt episoder</string>
-    <string name="trakt_hide_unaired">Skjul ikke sendt episoder</string>
-    <string name="trakt_all_history">All historikk</string>
-    <string name="trakt_days_format">%1$d dager</string>
+    <string name="tracking_code_expires">Kode utløper om %1$s</string>
+    <string name="tracking_watch_progress_title">Seeframgang</string>
+    <string name="tracking_watch_progress_subtitle">Velg hvilken framgangskildes drivkraft gjenoppta og fortsett å se</string>
+    <string name="tracking_watch_progress_dialog_title">Seeframgang</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_continue_watching_window">Fortsett å se vindu</string>
+    <string name="tracking_disconnect">Koble fra</string>
+    <string name="tracking_cw_window_title">Fortsett å se vindu</string>
+    <string name="tracking_all_history">All historikk</string>
+    <string name="tracking_days_format">%1$d dager</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Feilsøking</string>
@@ -916,18 +857,15 @@
     <string name="search_voice_unavailable">Røstsøk er utilgjengelig på denne enheten.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Synkroniserer Trakt-bibliotek\u2026</string>
     <string name="library_title">Bibliotek</string>
     <string name="library_filter_list">Liste</string>
     <string name="library_filter_type">Type</string>
     <string name="library_filter_sort">Sortering</string>
-    <string name="library_sort_trakt_order">Trakt-rekkefølge</string>
     <string name="library_sort_added_desc">Lagt til ↓</string>
     <string name="library_sort_added_asc">Lagt til ↑</string>
     <string name="library_sort_title_asc">Tittel A-Å</string>
     <string name="library_sort_title_desc">Tittel Å-A</string>
     <string name="library_manage_lists">Administrer lister</string>
-    <string name="library_manage_trakt_lists">Administrer Trakt-lister</string>
     <string name="library_no_lists">Ingen personlige lister ennå.</string>
     <string name="library_list_create">Opprett</string>
     <string name="library_list_edit">Rediger</string>
@@ -939,15 +877,14 @@
     <string name="library_list_description_label">Beskrivelse</string>
     <string name="library_list_privacy">Personvern</string>
     <string name="library_delete_title">Slett denne listen?</string>
-    <string name="library_delete_subtitle">Dette fjerner listen og alle listeelementer fra Trakt.</string>
     <string name="library_delete_confirm">Slett</string>
     <string name="library_source_local">LOKAL</string>
     <string name="library_type_all">Alle</string>
     <string name="library_type_items">elementer</string>
     <string name="library_empty_local_title">Ingen %1$s ennå</string>
-    <string name="library_empty_trakt_title">Ingen %1$s i denne listen</string>
+    <string name="library_empty_remote_title">Ingen %1$s i denne listen</string>
     <string name="library_empty_local_subtitle">Start lagring av favoritter for å se dem her</string>
-    <string name="library_empty_trakt_subtitle">Bruk + i detaljer for å legge til elementer i ønskelisten eller lister</string>
+    <string name="library_empty_remote_subtitle">Bruk + i detaljer for å legge til elementer i ønskelisten eller lister</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Laster\u2026</string>
@@ -1063,7 +1000,6 @@
     <string name="update_unknown_sources">Tillat installasjon fra ukjente kilder for å fortsette.</string>
     <!-- AccountScreen -->
     <string name="account_title">Konto</string>
-    <string name="account_sign_in_description">Logg inn for å synkronisere biblioteket, seeframgang, tillegg og programtillegg på tvers av enheter. Biblioteksynk bruker Telumia Sync når Trakt ikke er tilkoblet, og seeframgang kan bruke enten Trakt eller Telumia Sync.</string>
     <string name="account_sync_code_title">Synkkode</string>
     <string name="account_sync_code_description">Synkroniser på tvers av enheter uten å opprette en konto.</string>
     <string name="account_linked_devices">Koblede enheter (%1$d)</string>

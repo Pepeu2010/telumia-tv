@@ -25,8 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Border
@@ -95,17 +98,38 @@ internal fun SettingsSectionLabel(
             ),
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xxs)
     ) {
-        Text(
-            text = text.uppercase(),
-            style = MaterialTheme.typography.labelMedium,
-            letterSpacing = 1.2.sp,
-            color = NuvioTheme.colors.TextTertiary
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm),
+            modifier = Modifier.semantics { heading() }
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(14.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                NuvioTheme.colors.Secondary,
+                                NuvioTheme.colors.SecondaryVariant.copy(alpha = 0.72f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(SettingsPillRadius)
+                    )
+            )
+            Text(
+                text = text.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                letterSpacing = 1.2.sp,
+                color = NuvioTheme.colors.TextTertiary
+            )
+        }
         if (!description.isNullOrBlank()) {
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = NuvioTheme.colors.TextTertiary
+                color = NuvioTheme.colors.TextTertiary,
+                modifier = Modifier.padding(start = 11.dp)
             )
         }
     }
@@ -143,7 +167,15 @@ internal fun SettingsRailDivider() {
             .fillMaxWidth()
             .padding(start = SettingsRowContentInset, end = SettingsRowContentInset, bottom = 10.dp)
             .height(NuvioTheme.spacing.hairline)
-            .background(NuvioTheme.colors.Border)
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        NuvioTheme.colors.Border.copy(alpha = 0.45f),
+                        NuvioTheme.colors.Secondary.copy(alpha = 0.3f),
+                        NuvioTheme.colors.Border.copy(alpha = 0.45f)
+                    )
+                )
+            )
     )
 }
 

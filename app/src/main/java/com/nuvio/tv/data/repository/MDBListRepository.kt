@@ -87,7 +87,6 @@ class MDBListRepository internal constructor(
 
         val ratings = ratingsLoader.getRatings(ref.provider, ref.mediaType, ref.id, credential)?.let { allRatings ->
             MDBListRatings(
-                trakt = allRatings.trakt.takeIf { settings.showTrakt },
                 imdb = allRatings.imdb.takeIf { settings.showImdb },
                 tmdb = allRatings.tmdb.takeIf { settings.showTmdb },
                 letterboxd = allRatings.letterboxd.takeIf { settings.showLetterboxd },
@@ -104,7 +103,7 @@ class MDBListRepository internal constructor(
     }
 
     private fun MDBListSettings.hasEnabledProviders(): Boolean =
-        showTrakt || showImdb || showTmdb || showLetterboxd || showTomatoes || showAudience || showMetacritic || showMal
+        showImdb || showTmdb || showLetterboxd || showTomatoes || showAudience || showMetacritic || showMal
 
     private suspend fun resolveMediaRef(
         meta: Meta,

@@ -20,7 +20,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -58,6 +61,8 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -85,6 +90,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -180,6 +186,8 @@ import com.nuvio.tv.domain.model.resolveCustomThemeColors
 import com.nuvio.tv.domain.deeplink.AppDeepLink
 import com.nuvio.tv.domain.repository.AddonRepository
 import com.nuvio.tv.ui.components.NuvioScrollDefaults
+import com.nuvio.tv.ui.components.TopNavigationBar
+import com.nuvio.tv.ui.components.TopNavigationItem
 import com.nuvio.tv.ui.components.BrandWordmark
 import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.LocalLandscapePosterMode
@@ -269,6 +277,30 @@ private data class MainUiPrefs(
 
 @AndroidEntryPoint
 open class MainActivity : ComponentActivity() {
+
+    private var launchSoundPool: android.media.SoundPool? = null
+    private var launchSoundStarted = false
+    @Volatile private var launchSplashVisible = false
+
+    private fun playLaunchSoundOnce() {
+        if (launchSoundStarted) return
+        launchSoundStarted = true
+        runCatching {
+            val attributes = android.media.AudioAttributes.Builder()
+                .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            val pool = android.media.SoundPool.Builder().setMaxStreams(1).setAudioAttributes(attributes).build()
+            launchSoundPool = pool
+            pool.setOnLoadCompleteListener { soundPool, sampleId, status ->
+                if (status == 0 && launchSplashVisible && !isFinishing && !isDestroyed) {
+                    soundPool.play(sampleId, 0.72f, 0.72f, 1, 0, 1f)
+                }
+            }
+            pool.load(this, R.raw.telumia_launch, 1)
+        }.onFailure { launchSoundPool?.release(); launchSoundPool = null }
+    }
+
 
     @Inject
     lateinit var themeDataStore: ThemeDataStore
@@ -894,11 +926,6 @@ open class MainActivity : ComponentActivity() {
                             }
                         )
                     } else {
-                    val sidebarCollapsed = mainUiPrefs.sidebarCollapsed
-                    val modernSidebarEnabled = mainUiPrefs.modernSidebarEnabled
-                    val modernSidebarBlurEnabled =
-                        mainUiPrefs.modernSidebarBlurPref && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-                    val hideBuiltInHeadersForFloatingPill = modernSidebarEnabled && !sidebarCollapsed
 
                     val startDestination = when {
                         needsExperienceSelection -> Screen.ExperienceModeSelection.route
@@ -906,20 +933,25 @@ open class MainActivity : ComponentActivity() {
                         else -> Screen.LayoutSelection.route
                     }
                     val navController = rememberNavController()
+                    var homeTrailerFullscreen by remember { mutableStateOf(false) }
+                    val reportHomeTrailerFullscreen: (Boolean) -> Unit = remember {
+                        { playing -> homeTrailerFullscreen = playing }
+                    }
                     val latestStartDestination by rememberUpdatedState(startDestination)
                     // Preserve registration order: destination Back handlers keep priority.
-                    val sidebarBackHandler = remember {
+                    val rootBackHandler = remember {
                         movableContentOf<Boolean, () -> Unit> { enabled, onBack ->
                             BackHandler(enabled = enabled, onBack = onBack)
                         }
                     }
-                    // Keep destination composition and focus when switching sidebar layouts.
-                    val navigationContent = remember(navController) {
+                    // Keep destination composition and focus stable as the root shell changes routes.
+                    val navigationContent = remember(navController, reportHomeTrailerFullscreen) {
                         movableContentOf<Boolean> { hideHeaders ->
                             NuvioNavHost(
                                 navController = navController,
                                 startDestination = latestStartDestination,
-                                hideBuiltInHeaders = hideHeaders
+                                hideBuiltInHeaders = hideHeaders,
+                                onHomeTrailerFullscreenChanged = reportHomeTrailerFullscreen
                             )
                         }
                     }
@@ -931,6 +963,7 @@ open class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(actualRoute) {
                         optimisticRoute = null
+                        if (actualRoute != Screen.Home.route) homeTrailerFullscreen = false
                     }
 
                     // Auto-play next episode for EXTERNAL players: the tracker resolves the
@@ -1137,42 +1170,42 @@ open class MainActivity : ComponentActivity() {
                                     icon = Icons.Default.LiveTv
                                 )
                             )
-                            if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
-                                add(
-                                    DrawerItem(
-                                        route = Screen.Discover.route,
-                                        label = strNavDiscover,
-                                        icon = Icons.Default.Explore
-                                    )
-                                )
-                            }
                             add(
                                 DrawerItem(
                                     route = Screen.Search.route,
                                     label = strNavSearch,
-                                    iconRes = R.raw.sidebar_search
+                                    icon = Icons.Default.Search
                                 )
                             )
                             add(
                                 DrawerItem(
                                     route = Screen.Library.route,
                                     label = strNavLibrary,
-                                    iconRes = R.raw.sidebar_library
+                                    icon = Icons.Default.VideoLibrary
                                 )
                             )
                             add(
                                 DrawerItem(
                                     route = Screen.Settings.route,
                                     label = strNavSettings,
-                                    iconRes = R.raw.sidebar_settings
+                                    icon = Icons.Default.Settings
                                 )
                             )
                         }
                     }
-                    val selectedDrawerRoute = drawerItems.firstOrNull { item ->
+                    val topNavigationItems = remember(drawerItems, strNavDiscover, discoverLocation) {
+                        buildList {
+                            addAll(drawerItems.map { item ->
+                                TopNavigationItem(item.route, item.label, item.icon ?: Icons.Default.Home)
+                            })
+                            if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
+                                add(TopNavigationItem(Screen.Discover.route, strNavDiscover, Icons.Default.Explore))
+                            }
+                        }
+                    }
+                    val selectedDrawerRoute = topNavigationItems.firstOrNull { item ->
                         currentRoute == item.route || currentRoute?.startsWith("${item.route}/") == true
                     }?.route
-                    val selectedDrawerItem = drawerItems.firstOrNull { it.route == selectedDrawerRoute } ?: drawerItems.first()
 
                     val confirmExitEnabled by profileManager.confirmExitEnabled.collectAsState()
                     var backPressedOnce by remember { mutableStateOf(false) }
@@ -1222,49 +1255,23 @@ open class MainActivity : ComponentActivity() {
                             hasSelectedProfileThisSession = false
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
-                            if (modernSidebarEnabled) {
-                                ModernSidebarScaffold(
-                                    longPressBackHeld = longPressBackHeld,
-                                    navController = navController,
-                                    navigationContent = navigationContent,
-                                    sidebarBackHandler = sidebarBackHandler,
-                                    currentRoute = currentRoute,
-                                    rootRoutes = rootRoutes,
-                                    drawerItems = drawerItems,
-                                    selectedDrawerRoute = selectedDrawerRoute,
-                                    selectedDrawerItem = selectedDrawerItem,
-                                    sidebarCollapsed = sidebarCollapsed,
-                                    modernSidebarBlurEnabled = modernSidebarBlurEnabled,
-                                    hideBuiltInHeaders = hideBuiltInHeadersForFloatingPill,
-                                    activeProfileName = activeProfile?.name ?: "",
-                                    activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
-                                    activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
-                                    showProfileSelector = profiles.size > 1,
-                                    onSwitchProfile = handleSwitchProfile,
-                                    onNavigate = { optimisticRoute = it },
-                                    onExitApp = handleExitApp
-                                )
-                            } else {
-                                LegacySidebarScaffold(
-                                    longPressBackHeld = longPressBackHeld,
-                                    navController = navController,
-                                    navigationContent = navigationContent,
-                                    sidebarBackHandler = sidebarBackHandler,
-                                    currentRoute = currentRoute,
-                                    rootRoutes = rootRoutes,
-                                    drawerItems = drawerItems,
-                                    selectedDrawerRoute = selectedDrawerRoute,
-                                    sidebarCollapsed = sidebarCollapsed,
-                                    hideBuiltInHeaders = false,
-                                    activeProfileName = activeProfile?.name ?: "",
-                                    activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
-                                    activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
-                                    showProfileSelector = profiles.size > 1,
-                                    onSwitchProfile = handleSwitchProfile,
-                                    onNavigate = { optimisticRoute = it },
-                                    onExitApp = handleExitApp
-                                )
-                            }
+                            TopNavigationScaffold(
+                                navController = navController,
+                                navigationContent = navigationContent,
+                                rootBackHandler = rootBackHandler,
+                                currentRoute = currentRoute,
+                                rootRoutes = rootRoutes,
+                                items = topNavigationItems,
+                                selectedRoute = selectedDrawerRoute,
+                                activeProfileName = activeProfile?.name ?: "",
+                                activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
+                                activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
+                                showProfileSelector = profiles.size > 1,
+                                homeTrailerFullscreen = homeTrailerFullscreen,
+                                onSwitchProfile = handleSwitchProfile,
+                                onNavigate = { optimisticRoute = it },
+                                onExitApp = handleExitApp
+                            )
 
                             val autoNextOverlay by externalPlaybackTracker.autoNextOverlay.collectAsState()
                             autoNextOverlay?.let { ov ->
@@ -1295,6 +1302,10 @@ open class MainActivity : ComponentActivity() {
                         complete = startupLoadingState.complete,
                         destination = startupDestination
                     )
+                    LaunchedEffect(showSplash) {
+                        launchSplashVisible = showSplash
+                        if (showSplash) playLaunchSoundOnce()
+                    }
                     val animatedSplashAlpha by animateFloatAsState(
                         targetValue = if (showSplash) 1f else 0f,
                         animationSpec = tween(if (showSplash) 0 else 400),
@@ -1374,6 +1385,8 @@ open class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        launchSplashVisible = false
+        launchSoundPool?.autoPause()
         super.onPause()
         if (::jankStats.isInitialized) jankStats.isTrackingEnabled = false
     }
@@ -1428,6 +1441,9 @@ open class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        launchSplashVisible = false
+        launchSoundPool?.release()
+        launchSoundPool = null
         motionSettingsObserver?.let { contentResolver.unregisterContentObserver(it) }
         motionSettingsObserver = null
         if (isFinishing) phoneRemoteController.shutdown()
@@ -1454,6 +1470,123 @@ private fun SidebarFocusRecoveryEffect(
         val requester = drawerItemFocusRequesters[fallbackRoute] ?: return@LaunchedEffect
         repeat(2) { withFrameNanos { } }
         runCatching { requester.requestFocus() }
+    }
+}
+
+@Composable
+private fun TopNavigationScaffold(
+    navController: NavHostController,
+    navigationContent: @Composable (Boolean) -> Unit,
+    rootBackHandler: @Composable (Boolean, () -> Unit) -> Unit,
+    currentRoute: String?,
+    rootRoutes: Set<String>,
+    items: List<TopNavigationItem>,
+    selectedRoute: String?,
+    activeProfileName: String,
+    activeProfileColorHex: String,
+    activeProfileAvatarImageUrl: String?,
+    showProfileSelector: Boolean,
+    homeTrailerFullscreen: Boolean,
+    onSwitchProfile: () -> Unit,
+    onNavigate: (String) -> Unit,
+    onExitApp: () -> Unit
+) {
+    val showNavigation = currentRoute in rootRoutes
+    val contentFocusRequester = remember { FocusRequester() }
+    val selectedNavigationFocusRequester = remember { FocusRequester() }
+    var lastFocusedNavigationRoute by remember { mutableStateOf<String?>(null) }
+    var pendingTopFocusCheck by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(selectedRoute) {
+        lastFocusedNavigationRoute = null
+    }
+
+    LaunchedEffect(pendingTopFocusCheck) {
+        if (!pendingTopFocusCheck) return@LaunchedEffect
+        repeat(2) { withFrameNanos { } }
+        val focusedRoute = lastFocusedNavigationRoute
+        if (focusedRoute != null && focusedRoute != selectedRoute) {
+            runCatching { selectedNavigationFocusRequester.requestFocus() }
+        }
+        pendingTopFocusCheck = false
+    }
+
+    rootBackHandler(showNavigation, onExitApp)
+
+    CompositionLocalProvider(
+        LocalSidebarExpanded provides false,
+        LocalContentFocusRequester provides contentFocusRequester
+    ) {
+        if (showNavigation) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                AnimatedVisibility(
+                    visible = !homeTrailerFullscreen,
+                    // Home's edge-to-edge hero is offset above its own content viewport.
+                    // Raise this sibling (not only TopNavigationBar inside it) so the
+                    // hero surface cannot draw over the navigation hit targets/chrome.
+                    modifier = Modifier.zIndex(1f),
+                    enter = fadeIn(animationSpec = tween(220)),
+                    exit = fadeOut(animationSpec = tween(220)) +
+                        shrinkVertically(
+                            animationSpec = tween(260, easing = FastOutSlowInEasing),
+                            shrinkTowards = Alignment.Top
+                        )
+                ) {
+                    TopNavigationBar(
+                        items = items,
+                        selectedRoute = selectedRoute,
+                        activeProfileName = activeProfileName,
+                        activeProfileColorHex = activeProfileColorHex,
+                        activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
+                        showProfileSelector = showProfileSelector,
+                        onSwitchProfile = onSwitchProfile,
+                        onNavigate = { targetRoute ->
+                            keyboardController?.hide()
+                            onNavigate(targetRoute)
+                            navigateToDrawerRoute(
+                                navController = navController,
+                                currentRoute = currentRoute,
+                                targetRoute = targetRoute
+                            )
+                        },
+                        onMoveToContent = {
+                            runCatching { contentFocusRequester.requestFocus() }
+                        },
+                        selectedItemFocusRequester = selectedNavigationFocusRequester,
+                        showClock = selectedRoute == Screen.Home.route,
+                        onNavigationItemFocused = { route -> lastFocusedNavigationRoute = route },
+                        modifier = Modifier.zIndex(1f)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .onFocusChanged { if (it.hasFocus) lastFocusedNavigationRoute = null }
+                        .onPreviewKeyEvent { event ->
+                            if (event.type == KeyEventType.KeyDown && event.key == Key.DirectionUp) {
+                                if (focusManager.moveFocus(FocusDirection.Up)) {
+                                    pendingTopFocusCheck = true
+                                    true
+                                } else {
+                                    runCatching { selectedNavigationFocusRequester.requestFocus() }
+                                    true
+                                }
+                            } else {
+                                false
+                            }
+                        }
+                ) {
+                    navigationContent(false)
+                }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize()) {
+                navigationContent(false)
+            }
+        }
     }
 }
 

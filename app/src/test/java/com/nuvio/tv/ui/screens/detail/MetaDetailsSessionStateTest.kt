@@ -13,7 +13,7 @@ class MetaDetailsSessionStateTest {
 
         state.putNextToWatch(
             profileId = 2,
-            progressSource = "trakt",
+            progressSource = "simkl",
             contentId = " TT123 ",
             contentType = "Series",
             nextToWatch = nextToWatch
@@ -23,7 +23,7 @@ class MetaDetailsSessionStateTest {
             nextToWatch,
             state.getNextToWatch(
                 profileId = 2,
-                progressSource = "TRAKT",
+                progressSource = "SIMKL",
                 contentId = "tt123",
                 contentType = "series"
             )
@@ -36,14 +36,14 @@ class MetaDetailsSessionStateTest {
 
         state.putNextToWatch(
             profileId = 1,
-            progressSource = "TRAKT",
+            progressSource = "SIMKL",
             contentId = "tt123",
             contentType = "series",
             nextToWatch = nextToWatch("Play S1E1")
         )
 
-        assertNull(state.getNextToWatch(2, "TRAKT", "tt123", "series"))
-        assertNull(state.getNextToWatch(1, "SIMKL", "tt123", "series"))
+        assertNull(state.getNextToWatch(2, "SIMKL", "tt123", "series"))
+        assertNull(state.getNextToWatch(1, "NUVIO_SYNC", "tt123", "series"))
     }
 
     private fun nextToWatch(label: String) = NextToWatch(

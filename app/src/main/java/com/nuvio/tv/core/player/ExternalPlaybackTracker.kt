@@ -176,7 +176,7 @@ internal fun resolveExternalNextEpisodeSnapshot(
  * - Process ActivityResult data when external player returns
  * - Run Zidoo REST API polling on Zidoo devices
  * - Save progress to WatchProgressRepository
- * - Send Trakt scrobble (start + stop)
+ * - Send scrobble to connected tracking providers (start + stop)
  * - Start/stop the keep-alive foreground service
  */
 @Singleton
@@ -1408,7 +1408,7 @@ class ExternalPlaybackTracker @Inject constructor(
         }
     }
 
-    // ===================== Progress save + Trakt scrobble =====================
+    // ===================== Progress save + scrobble =====================
 
     private fun saveProgress(
         metadata: ExternalPlaybackMetadata,

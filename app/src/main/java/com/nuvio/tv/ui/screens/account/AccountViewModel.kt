@@ -25,7 +25,6 @@ import com.nuvio.tv.core.sync.ProfileSettingsSyncService
 import com.nuvio.tv.core.sync.ProviderCredentialSyncService
 import com.nuvio.tv.data.local.LibraryPreferences
 import com.nuvio.tv.data.local.WatchedItemsPreferences
-import com.nuvio.tv.data.local.TraktAuthDataStore
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.repository.AddonRepositoryImpl
 import com.nuvio.tv.data.repository.AuthDiagnosticReportRepository
@@ -77,7 +76,6 @@ class AccountViewModel @Inject constructor(
     private val watchProgressPreferences: WatchProgressPreferences,
     private val libraryPreferences: LibraryPreferences,
     private val watchedItemsPreferences: WatchedItemsPreferences,
-    private val traktAuthDataStore: TraktAuthDataStore,
     private val postgrest: Postgrest,
     private val profileManager: ProfileManager,
     private val authDiagnosticReportRepository: AuthDiagnosticReportRepository,
@@ -741,60 +739,38 @@ class AccountViewModel @Inject constructor(
             val remoteAddonUrls = addonSyncService.getRemoteAddonUrls().getOrElse { throw it }
             addonRepository.isSyncingFromRemote = false
 
-            val isTraktConnected = traktAuthDataStore.isEffectivelyAuthenticated.first()
-            val shouldUseSupabaseWatchProgressSync = watchProgressSyncService.shouldUseSupabaseWatchProgressSync(profileId)
-            Log.d(
-                "AccountViewModel",
-                "pullRemoteData: isTraktConnected=$isTraktConnected shouldUseSupabaseWatchProgressSync=$shouldUseSupabaseWatchProgressSync"
+            watchProgressRepository.isSyncingFromRemote = true
+            val progressResult = watchProgressSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
+            watchProgressRepository.hasCompletedInitialPull = true
+            Log.d("AccountViewModel", "pullRemoteData: watch progress sync applied ${progressResult.upsertedEntries} upserts and ${progressResult.deletedEntries} deletes (snapshot=${progressResult.usedSnapshot})")
+            if (progressResult.preservedLocalItems) {
+                Log.d("AccountViewModel", "pullRemoteData: detected unsynced watch progress, pushing")
+                watchProgressSyncService.pushToRemote(profileId)
+            }
+            watchProgressRepository.isSyncingFromRemote = false
+
+            libraryRepository.isSyncingFromRemote = true
+            librarySyncService.syncFromRemote(profileId).fold(
+                onSuccess = { result ->
+                    Log.d(
+                        "AccountViewModel",
+                        "pullRemoteData: library sync snapshot=${result.usedSnapshot} " +
+                            "upserts=${result.appliedUpserts} deletes=${result.appliedDeletes}"
+                    )
+                },
+                onFailure = { e ->
+                    Log.e("AccountViewModel", "pullRemoteData: failed to pull library items error=${e.diagnosticSummary()}")
+                }
             )
-            if (!isTraktConnected) {
-                watchProgressRepository.isSyncingFromRemote = true
-                val progressResult = watchProgressSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
-                watchProgressRepository.hasCompletedInitialPull = true
-                Log.d("AccountViewModel", "pullRemoteData: watch progress sync applied ${progressResult.upsertedEntries} upserts and ${progressResult.deletedEntries} deletes (snapshot=${progressResult.usedSnapshot})")
-                if (progressResult.preservedLocalItems) {
-                    Log.d("AccountViewModel", "pullRemoteData: detected unsynced watch progress, pushing")
-                    watchProgressSyncService.pushToRemote(profileId)
-                }
-                watchProgressRepository.isSyncingFromRemote = false
+            libraryRepository.hasCompletedInitialPull = true
+            libraryRepository.isSyncingFromRemote = false
 
-                libraryRepository.isSyncingFromRemote = true
-                librarySyncService.syncFromRemote(profileId).fold(
-                    onSuccess = { result ->
-                        Log.d(
-                            "AccountViewModel",
-                            "pullRemoteData: library sync snapshot=${result.usedSnapshot} " +
-                                "upserts=${result.appliedUpserts} deletes=${result.appliedDeletes}"
-                        )
-                    },
-                    onFailure = { e ->
-                        Log.e("AccountViewModel", "pullRemoteData: failed to pull library items error=${e.diagnosticSummary()}")
-                    }
-                )
-                libraryRepository.hasCompletedInitialPull = true
-                libraryRepository.isSyncingFromRemote = false
-
-                val watchedItemsResult = watchedItemsSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
-                watchProgressRepository.hasCompletedInitialWatchedItemsPull = true
-                Log.d("AccountViewModel", "pullRemoteData: watched items sync applied ${watchedItemsResult.upsertedItems} upserts and ${watchedItemsResult.deletedItems} deletes (snapshot=${watchedItemsResult.usedSnapshot})")
-                if (watchedItemsResult.preservedLocalItems) {
-                    Log.d("AccountViewModel", "pullRemoteData: detected unsynced watched items, pushing")
-                    watchedItemsSyncService.pushToRemote(profileId)
-                }
-            } else if (shouldUseSupabaseWatchProgressSync) {
-                watchProgressRepository.isSyncingFromRemote = true
-                val progressResult = watchProgressSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
-                watchProgressRepository.hasCompletedInitialPull = true
-                Log.d("AccountViewModel", "pullRemoteData: watch progress sync applied ${progressResult.upsertedEntries} upserts and ${progressResult.deletedEntries} deletes in Trakt mode (snapshot=${progressResult.usedSnapshot})")
-                watchProgressRepository.isSyncingFromRemote = false
-
-                val watchedItemsResult = watchedItemsSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
-                watchProgressRepository.hasCompletedInitialWatchedItemsPull = true
-                Log.d("AccountViewModel", "pullRemoteData: watched items sync applied ${watchedItemsResult.upsertedItems} upserts and ${watchedItemsResult.deletedItems} deletes in Trakt mode (snapshot=${watchedItemsResult.usedSnapshot})")
-                if (watchedItemsResult.preservedLocalItems) {
-                    Log.d("AccountViewModel", "pullRemoteData: detected unsynced watched items in Trakt mode, pushing")
-                    watchedItemsSyncService.pushToRemote(profileId)
-                }
+            val watchedItemsResult = watchedItemsSyncService.syncDeltaFromRemote(profileId).getOrElse { throw it }
+            watchProgressRepository.hasCompletedInitialWatchedItemsPull = true
+            Log.d("AccountViewModel", "pullRemoteData: watched items sync applied ${watchedItemsResult.upsertedItems} upserts and ${watchedItemsResult.deletedItems} deletes (snapshot=${watchedItemsResult.usedSnapshot})")
+            if (watchedItemsResult.preservedLocalItems) {
+                Log.d("AccountViewModel", "pullRemoteData: detected unsynced watched items, pushing")
+                watchedItemsSyncService.pushToRemote(profileId)
             }
             return Result.success(Unit)
         } catch (e: Exception) {

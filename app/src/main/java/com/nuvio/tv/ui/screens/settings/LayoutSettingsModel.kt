@@ -37,7 +37,7 @@ internal fun visibleLayoutSections(
     focusedPosterHasOptions: Boolean
 ): List<LayoutSection> =
     if (essentialMode) {
-        listOf(LayoutSection.HOME_LAYOUT)
+        listOfNotNull(LayoutSection.HOME_LAYOUT, LayoutSection.FOCUSED_POSTER.takeIf { focusedPosterHasOptions })
     } else {
         LayoutSection.entries.filter { section ->
             section != LayoutSection.FOCUSED_POSTER || focusedPosterHasOptions

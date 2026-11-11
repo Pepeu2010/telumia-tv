@@ -7,7 +7,7 @@ import com.nuvio.tv.core.sync.WatchStateMutationStore
 import com.nuvio.tv.core.sync.WatchedItemsSyncService
 import android.os.SystemClock
 import android.util.Log
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.local.WatchedItemsPreferences
@@ -126,7 +126,7 @@ internal fun resolveProviderEpisodeProgress(
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchProgressRepositoryImpl @Inject constructor(
     private val watchProgressPreferences: WatchProgressPreferences,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val layoutPreferenceDataStore: com.nuvio.tv.data.local.LayoutPreferenceDataStore,
     private val watchProgressSyncService: WatchProgressSyncService,
     private val watchedItemsPreferences: WatchedItemsPreferences,
@@ -278,7 +278,6 @@ class WatchProgressRepositoryImpl @Inject constructor(
         val idCandidates = buildList {
             add(contentId)
             if (contentId.startsWith("tmdb:")) add(contentId.substringAfter(':'))
-            if (contentId.startsWith("trakt:")) add(contentId.substringAfter(':'))
         }.distinct()
 
         for (type in typeCandidates) {
@@ -354,7 +353,7 @@ class WatchProgressRepositoryImpl @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private val activeProgressProviderState: StateFlow<TrackingProgressProvider?> = combine(
-        traktSettingsDataStore.watchProgressSource,
+        trackingSettingsDataStore.watchProgressSource,
         progressProviderConnections
     ) { requested, connections ->
         effectiveWatchProgressSource(requested) { providerId -> connections[providerId] == true }
@@ -605,10 +604,8 @@ class WatchProgressRepositoryImpl @Inject constructor(
         val lowered = trimmed.lowercase()
         return lowered == "tmdb" ||
             lowered == "imdb" ||
-            lowered == "trakt" ||
             lowered == "tmdb:" ||
-            lowered == "imdb:" ||
-            lowered == "trakt:"
+            lowered == "imdb:"
     }
 
     override fun observeOptimisticContinueWatchingUpdates(): Flow<WatchProgress> {
@@ -747,7 +744,7 @@ class WatchProgressRepositoryImpl @Inject constructor(
     ) {
         if (progress.contentType.equals("series", ignoreCase = true) ||
             progress.contentType.equals("tv", ignoreCase = true)) {
-            traktSettingsDataStore.removeDismissedNextUpKeysForContent(progress.contentId, profileId)
+            trackingSettingsDataStore.removeDismissedNextUpKeysForContent(progress.contentId, profileId)
         }
         val progressKey = progressKey(progress)
         val shouldPushRemote = syncRemote &&
@@ -946,7 +943,7 @@ class WatchProgressRepositoryImpl @Inject constructor(
     ) {
         if (progress.contentType.equals("series", ignoreCase = true) ||
             progress.contentType.equals("tv", ignoreCase = true)) {
-            traktSettingsDataStore.removeDismissedNextUpKeysForContent(progress.contentId, profileId)
+            trackingSettingsDataStore.removeDismissedNextUpKeysForContent(progress.contentId, profileId)
         }
         val now = System.currentTimeMillis()
         val progressKey = progressKey(progress)
@@ -983,7 +980,7 @@ class WatchProgressRepositoryImpl @Inject constructor(
         val firstProgress = progressList.first()
         if (firstProgress.contentType.equals("series", ignoreCase = true) ||
             firstProgress.contentType.equals("tv", ignoreCase = true)) {
-            traktSettingsDataStore.removeDismissedNextUpKeysForContent(firstProgress.contentId, profileId)
+            trackingSettingsDataStore.removeDismissedNextUpKeysForContent(firstProgress.contentId, profileId)
         }
         val now = System.currentTimeMillis()
         val rawEntries = watchProgressPreferences.getAllRawEntries(profileId)
@@ -1089,9 +1086,9 @@ class WatchProgressRepositoryImpl @Inject constructor(
         val provider = activeProgressProvider()
         if (provider != null) {
             provider.clearOptimistic()
-            watchProgressPreferences.clearAllPreservingNonTraktIds(
+            watchProgressPreferences.clearAllPreservingIds(
                 profileId = profileId,
-                isNonTraktId = provider::retainsLocalProgress
+                shouldPreserveId = provider::retainsLocalProgress
             )
             return
         }

@@ -926,6 +926,14 @@ internal fun PlayerRuntimeController.handleVc1PlaybackFailure(errorMessage: Stri
     _uiState.update {
         it.copy(
             error = displayMessage,
+            playbackFailureReport = PlaybackFailureReport.create(
+                source = PlaybackFailureSource.STREAM,
+                stage = if (hasRenderedFirstFrame) PlaybackFailureStage.PLAYBACK else PlaybackFailureStage.STARTUP,
+                mimeType = currentStreamMimeType,
+                mediaUrl = currentStreamUrl,
+                firstFrameRendered = hasRenderedFirstFrame,
+                errorMessage = displayMessage
+            ),
             showSwitchToMpvErrorAction = true,
             isPlaying = false,
             showControls = false,
@@ -953,6 +961,7 @@ internal fun PlayerRuntimeController.scheduleDeferredPlayerReinitialize(
         it.copy(
             pendingSeekPosition = if (fromPositionMs > 0L) fromPositionMs else null,
             error = null,
+            playbackFailureReport = null,
             showLoadingOverlay = it.loadingOverlayEnabled
         )
     }
@@ -965,6 +974,14 @@ internal fun PlayerRuntimeController.scheduleDeferredPlayerReinitialize(
             _uiState.update {
                 it.copy(
                     error = e.toDisplayMessage(context),
+                    playbackFailureReport = PlaybackFailureReport.create(
+                        source = PlaybackFailureSource.STREAM,
+                        stage = if (hasRenderedFirstFrame) PlaybackFailureStage.PLAYBACK else PlaybackFailureStage.STARTUP,
+                        mimeType = currentStreamMimeType,
+                        mediaUrl = currentStreamUrl,
+                        firstFrameRendered = hasRenderedFirstFrame,
+                        errorMessage = e.toDisplayMessage(context)
+                    ),
                     showLoadingOverlay = false,
                     showPauseOverlay = false
                 )

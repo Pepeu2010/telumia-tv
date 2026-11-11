@@ -93,7 +93,6 @@
     <string name="web_import_error_source_invalid_format">\"{collection}\" koleksiyonu, \"{folder}\" klasörü, {index}. kaynak: geçersiz format</string>
     <string name="web_import_error_source_missing_addon_fields">\"{collection}\" koleksiyonu, \"{folder}\" klasörü, {index}. kaynak: zorunlu alanlar eksik (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">\"{collection}\" koleksiyonu, \"{folder}\" klasörü, {index}. kaynak: TMDB kaynak türü eksik</string>
-    <string name="web_import_error_source_missing_trakt_id">\"{collection}\" koleksiyonu, \"{folder}\" klasörü, {index}. kaynak: Trakt liste ID\'si eksik</string>
     <string name="web_import_success">{count} koleksiyon içe aktarıldı. İnceleyin ve uygulamak için Değişiklikleri Kaydet\'e basın.</string>
     <string name="web_import_invalid_json">Geçersiz JSON</string>
 
@@ -101,7 +100,6 @@
     <string name="home_no_addons">Yüklü eklenti yok. Başlamak için bir eklenti ekleyin.</string>
     <string name="home_no_catalog_addons">Katalog eklentisi yok. İçerikleri görmek için bir katalog eklentisi yükleyin.</string>
     <string name="auth_notice_nuvio_logged_out">Telumia hesabınızdan çıkış yapıldı. Lütfen tekrar giriş yapın.</string>
-    <string name="auth_notice_trakt_logged_out">Trakt hesabınızdan çıkış yapıldı. Lütfen yeniden bağlanın.</string>
     <string name="error_generic">Bir hata oluştu</string>
 
     <!-- ErrorState -->
@@ -207,7 +205,6 @@
     <string name="episodes_mark_previous_watched">Bu sezondaki öncekileri izlendi işaretle</string>
     <string name="episodes_mark_previous_seasons_watched">Önceki sezonları izlendi olarak işaretle</string>
     <string name="episodes_play">Oynat</string>
-    <string name="episodes_open_comments">Yorumları Aç</string>
     <string name="play_manually">Manuel oynat</string>
     <string name="episodes_season_actions">Sezon ayarları</string>
 
@@ -243,30 +240,11 @@
     <string name="detail_tab_more_like_this">Benzer İçerikler</string>
     <string name="detail_tab_trailer">Fragman</string>
     <string name="detail_more_like_this_powered_by_tmdb">TMDB tarafından desteklenmektedir</string>
-    <string name="detail_more_like_this_powered_by_trakt">Trakt tarafından desteklenmektedir</string>
     <string name="detail_more_like_this_powered_by_simkl">Simkl tarafından desteklenmektedir</string>
-    <string name="detail_comments_title">Yorumlar</string>
-    <string name="detail_comments_subtitle">Trakt incelemeleri</string>
-    <string name="detail_comments_subtitle_episode">S%1$dE%2$d için Trakt incelemeleri</string>
-    <string name="detail_comments_mode_show">Dizi Yorumları</string>
-    <string name="detail_comments_mode_episode">Bölüm Yorumları</string>
-    <string name="detail_comments_mode_episode_change">Bölümü Değiştir (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Bölüm Seçin</string>
-    <string name="detail_comments_episode_picker_subtitle">Yorumlarını görmek istediğiniz bölümü seçin</string>
     <string name="detail_section_network">Kanal</string>
     <string name="detail_section_production">Yapım</string>
-    <string name="detail_comments_empty">Henüz Trakt incelemesi yok.</string>
-    <string name="detail_comments_error">Trakt incelemeleri şu an yüklenemiyor.</string>
     <string name="detail_trailer_loading">Fragman yükleniyor...</string>
     <string name="detail_trailer_error">Fragman yüklenemedi</string>
-    <string name="detail_comments_spoiler_hidden">Spoiler içeriyor. Görmek için Tamam\'a basın.</string>
-    <string name="detail_comments_reveal_spoiler">Spoiler\'ı göster</string>
-    <string name="detail_comments_reveal_spoiler_hint">Spoiler\'ı görmek için Tamam\'a basın.</string>
-    <string name="detail_comments_back_hint">Kapatmak için geri tuşuna basın</string>
-    <string name="detail_comments_badge_review">İnceleme</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d beğeni</string>
     <string name="tmdb_entity_kind_company">Yapım Şirketi</string>
     <string name="tmdb_entity_kind_network">Kanal</string>
     <string name="tmdb_entity_rail_popular">Popüler</string>
@@ -430,8 +408,6 @@
     <string name="licenses_attributions_nuvio_body">Kaynak kodu ve lisans koşulları proje deposunda mevcuttur. GNU Genel Kamu Lisansı v3.0 altında lisanslanmıştır.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia, film ve dizi meta verileri, görseller, fragmanlar, oyuncular, yapım detayları, koleksiyonlar ve öneriler için TMDB API\'sini kullanır. Bu ürün TMDB API\'sini kullanır ancak TMDB tarafından onaylanmamıştır veya sertifikalandırılmamıştır.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia, hesap doğrulama, izleme geçmişi, ilerleme senkronizasyonu, kütüphane verileri, puanlar, listeler ve yorumlar için Trakt\'a bağlanır. Telumia Trakt ile bağlantılı veya onaylanmış değildir.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia; hesap doğrulama, izleme listeleri, izleme geçmişi, oynatma ilerlemesi ve scrobbling için Simkl\'a bağlanır. Film, dizi ve anime takip verileri Simkl tarafından sağlanır. Telumia, Simkl ile bağlantılı veya onaylanmış değildir.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -462,15 +438,12 @@
     <string name="settings_plugins_subtitle">Depolar ve sağlayıcılar</string>
     <string name="settings_integration">Entegrasyonlar</string>
     <string name="settings_playback">Oynatma</string>
-    <string name="settings_trakt_subtitle">Trakt bağlantı ekranını aç</string>
     <string name="settings_tracking_title">Takip</string>
     <string name="settings_tracking_description">Takip servislerini bağla ve Kütüphane ile İzlemeye Devam Et için hangisinin kullanılacağını seç.</string>
     <string name="tracking_accounts_title">Hesaplar</string>
     <string name="tracking_accounts_subtitle">Takip servislerini bağla ve yönet</string>
     <string name="tracking_sources_title">Kaynaklar</string>
     <string name="tracking_sources_subtitle">Telumia\'nun kütüphane ve izleme ilerlemesini nereden okuyacağını seç. Oynatma, bağlı tüm servislere scrobble edilir.</string>
-    <string name="tracking_trakt_features_title">Trakt özellikleri</string>
-    <string name="tracking_trakt_features_subtitle">Trakt\'a özel geçmiş, incelemeler ve öneriler</string>
     <string name="tracking_simkl_features_title">Simkl özellikleri</string>
     <string name="tracking_simkl_features_subtitle">Simkl\'a özel ayarlar</string>
     <string name="tracking_simkl_anime_id_title">Anime kimlik tercihi</string>
@@ -487,8 +460,6 @@
     <string name="tracking_connecting_provider">%1$s bağlantısı başlatılıyor…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Telumia\'nun devam etme ve İzlemeye Devam Et için okuyacağı servisi seç. Scrobbling bağlı tüm servislerde açık kalır.</string>
     <string name="tracking_library_source_dialog_subtitle">Telumia\'nun Kütüphane için okuyacağı servisi seç. Oynatma, bağlı tüm servislere scrobble edilir.</string>
-    <string name="tracking_trakt_progress_required">İzleme İlerlemesi kaynağı Trakt olduğunda kullanılabilir</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Ağ Hızı</string>
     <string name="settings_network_subtitle">Gecikme ve indirme hızı testleri</string>
@@ -500,7 +471,7 @@
     <string name="experience_mode_advanced">Gelişmiş</string>
     <string name="experience_mode_choose_title">Telumia deneyimini seç</string>
     <string name="experience_mode_choose_subtitle">Basit başla veya tüm özelleştirmeleri aç. İstediğin zaman değiştirebilirsin.</string>
-    <string name="experience_mode_essential_card_subtitle">Odaklı kurulum, eklentiler, oynatma temelleri, Trakt ve hesap ayarları.</string>
+    <string name="experience_mode_essential_card_subtitle">Odaklı kurulum, eklentiler, oynatma temelleri ve hesap ayarları.</string>
     <string name="experience_mode_advanced_card_subtitle">Tam ayarlar, düzen kontrolleri, katalog sırası, koleksiyonlar, uzantılar ve teşhis.</string>
     <string name="experience_mode_group_title">Deneyim modu</string>
     <string name="essential_addon_continue_for_now">Şimdilik devam et</string>
@@ -1215,8 +1186,6 @@
     <string name="mdblist_ratings_credentials_subtitle">İzleme Takibi bölümünde bağlı MDBList hesabınızı kullanın veya derecelendirmeler için ayrı bir API anahtarı girin.</string>
     <string name="mdblist_ratings_connected_account">Bağlı hesap kullanılıyor</string>
     <string name="mdblist_ratings_key_override_subtitle">Girilen API anahtarı, derecelendirmeler için bağlı hesabınızın yerine geçer. Bağlı hesabı tekrar kullanmak için anahtarı temizleyin.</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Trakt puanını göster</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">IMDb puanını göster</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1448,12 +1417,6 @@
 
     <string name="tmdb_language_dialog_title">TMDB Dili</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">İzleme listenizi, oynatma ilerlemenizi, izlemeye devam ettiklerinizi ve kişisel listelerinizi Trakt ile eşitleyin.</string>
-    <string name="trakt_connected_as">%1$s olarak bağlı</string>
-    <string name="trakt_account_login">Hesap Girişi</string>
-    <string name="trakt_awaiting_instruction">trakt.tv/activate adresine gidin ve bu kodu girin:</string>
-    <string name="trakt_waiting_approval">Onay bekleniyor…</string>
     <string name="qr_login_approved">Giriş onaylandı. Oturum açılıyor…</string>
     <string name="qr_login_pending">Telefonunuzdan onay vermeniz bekleniyor…</string>
     <string name="qr_login_expired">QR kodun süresi doldu. Yeni bir kod oluşturun.</string>
@@ -1464,61 +1427,20 @@
     <string name="qr_login_signing_in">Giriş yapılıyor…</string>
     <string name="qr_login_success">Giriş başarılı</string>
     <string name="qr_login_exchange_failed">QR ile giriş tamamlanamadı</string>
-    <string name="trakt_code_expires">Kodun süresi %1$s sonra dolacak</string>
-    <string name="trakt_token_refreshes">Trakt erişim jetonu %1$s içinde yenilenir</string>
-    <string name="trakt_login_instruction">Trakt cihazı kimlik doğrulamasını başlatmak için Giriş\'e basın. Burada bir QR kodu görünecektir.</string>
-    <string name="trakt_missing_credentials">local.properties içinde TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET eksik.</string>
-    <string name="trakt_watch_progress_title">İzleme İlerlemesi</string>
-    <string name="trakt_watch_progress_subtitle">Devam etme ve izlemeye devam etme için hangi ilerleme kaynağının kullanılacağını seçin</string>
-    <string name="trakt_watch_progress_dialog_title">İzleme İlerlemesi</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Trakt scrobbling aktifken devam etme ve izlemeye devam etmenin Trakt mı yoksa Telumia Sync mi kullanacağını seçin.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">Kütüphane Kaynağı</string>
-    <string name="trakt_library_source_subtitle">Koleksiyonunuzu kaydetmek ve görüntülemek için hangi kütüphanenin kullanılacağını seçin</string>
-    <string name="trakt_library_source_dialog_title">Kütüphane Kaynağı</string>
-    <string name="trakt_library_source_dialog_subtitle">Kütüphane öğelerinizi nerede kaydedeceğinizi ve yöneteceğinizi seçin</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Telumia Kütüphanesi</string>
-    <string name="trakt_library_source_trakt_selected">Trakt kütüphanesi seçildi</string>
-    <string name="trakt_library_source_nuvio_selected">Telumia kütüphanesi seçildi</string>
-    <string name="trakt_setting_on">Açık</string>
-    <string name="trakt_setting_off">Kapalı</string>
-    <string name="trakt_watch_progress_trakt_selected">İzleme ilerlemesi kaynağı Trakt olarak ayarlandı</string>
-    <string name="trakt_watch_progress_nuvio_selected">İzleme ilerlemesi kaynağı Telumia Sync olarak ayarlandı</string>
-    <string name="trakt_continue_watching_window">İzlemeye Devam Etme Penceresi</string>
-    <string name="trakt_continue_watching_subtitle">İzlemeye devam etme için dikkate alınan Trakt geçmişi</string>
-    <string name="trakt_unaired_next_up">Yayınlanmamış Sıradaki Bölümler</string>
-    <string name="trakt_unaired_next_up_subtitle">Yaklaşan bölümleri yayınlanmadan önce göster</string>
-    <string name="trakt_unaired_shown">Gösterilen</string>
-    <string name="trakt_unaired_hidden">Gizlenen</string>
-    <string name="trakt_unaired_now_shown">Yayınlanmamış sıradaki bölümler artık gösteriliyor</string>
-    <string name="trakt_unaired_now_hidden">Yayınlanmamış sıradaki bölümler artık gizleniyor</string>
-    <string name="trakt_comments_title">Yorumlar</string>
-    <string name="trakt_comments_subtitle">Meta veri sayfalarında Trakt incelemelerini göster</string>
-    <string name="trakt_comments_dialog_title">Yorumlar</string>
-    <string name="trakt_comments_dialog_subtitle">Hesabınız bağlıyken meta veri sayfalarının Trakt incelemelerini gösterip göstermeyeceğini seçin.</string>
-    <string name="trakt_comments_now_shown">Meta veri sayfalarındaki Trakt incelemeleri artık gösteriliyor</string>
-    <string name="trakt_comments_now_hidden">Meta veri sayfalarındaki Trakt incelemeleri artık gizleniyor</string>
-    <string name="trakt_cached_label">Önbellekte</string>
-    <string name="trakt_stat_movies">Filmler</string>
-    <string name="trakt_stat_shows">Diziler</string>
-    <string name="trakt_stat_episodes">Bölümler</string>
-    <string name="trakt_stat_watched_hours">İzlenen Saat</string>
-    <string name="trakt_disconnect">Bağlantıyı Kes</string>
-    <string name="trakt_disconnect_title">Trakt bağlantısı kesilsin mi?</string>
-    <string name="trakt_disconnect_subtitle">Bu işlem Trakt hesabınızın Telumia ile bağlantısını kesecektir.</string>
-    <string name="trakt_login">Giriş Yap</string>
-    <string name="trakt_retry">Tekrar Dene</string>
-    <string name="trakt_back">Geri</string>
-    <string name="trakt_cw_window_title">İzlemeye Devam Etme Penceresi</string>
-    <string name="trakt_cw_window_subtitle">Trakt aktivitenizin ne kadarının \u0027izlemeye devam ediliyor\u0027 kısmında görüneceğini seçin.</string>
-    <string name="trakt_unaired_dialog_title">Yayınlanmamış Sıradaki Bölümler</string>
-    <string name="trakt_unaired_dialog_subtitle">Yaklaşan bölümlerin yayınlanmadan önce \"İzlemeye Devam Et\" sekmesine dahil edilip edilmeyeceğini seçin.</string>
-    <string name="trakt_show_unaired">Yayınlanmamış bölümleri göster</string>
-    <string name="trakt_hide_unaired">Yayınlanmamış bölümleri gizle</string>
-    <string name="trakt_all_history">Tüm geçmiş</string>
-    <string name="trakt_days_format">%1$d gün</string>
+    <string name="tracking_code_expires">Kodun süresi %1$s sonra dolacak</string>
+    <string name="tracking_watch_progress_title">İzleme İlerlemesi</string>
+    <string name="tracking_watch_progress_subtitle">Devam etme ve izlemeye devam etme için hangi ilerleme kaynağının kullanılacağını seçin</string>
+    <string name="tracking_watch_progress_dialog_title">İzleme İlerlemesi</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">Kütüphane Kaynağı</string>
+    <string name="tracking_library_source_subtitle">Koleksiyonunuzu kaydetmek ve görüntülemek için hangi kütüphanenin kullanılacağını seçin</string>
+    <string name="tracking_library_source_dialog_title">Kütüphane Kaynağı</string>
+    <string name="tracking_library_source_nuvio">Telumia Kütüphanesi</string>
+    <string name="tracking_continue_watching_window">İzlemeye Devam Etme Penceresi</string>
+    <string name="tracking_disconnect">Bağlantıyı Kes</string>
+    <string name="tracking_cw_window_title">İzlemeye Devam Etme Penceresi</string>
+    <string name="tracking_all_history">Tüm geçmiş</string>
+    <string name="tracking_days_format">%1$d gün</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Hata Ayıklama</string>
@@ -1667,7 +1589,6 @@
     <string name="essential_addon_setup_subtitle">Yayın başlatmak için bir eklenti kurun. Daha fazlasını Eklentiler bölümünden ekleyebilirsiniz.</string>
     <string name="essential_addon_show_qr">QR göster</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">Trakt listesi bulunamadı</string>
     <string name="collection_editor_untitled_folder">İsimsiz</string>
     <string name="collection_editor_untitled_collection">İsimsiz Koleksiyon</string>
     <!-- AddonManagerScreen -->
@@ -2007,7 +1928,6 @@
     <string name="search_voice_unavailable">Bu cihazda sesli arama kullanılamıyor.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Trakt kütüphanesi senkronize ediliyor\u2026</string>
     <string name="library_title">Kütüphane</string>
     <string name="library_filter_list">Liste</string>
     <string name="library_filter_type">Tür</string>
@@ -2062,7 +1982,6 @@
     <string name="genre_sporting_event">Spor Etkinliği</string>
     <string name="genre_superhero">Süper Kahraman</string>
     <string name="genre_suspense">Heyecan</string>
-    <string name="library_sort_trakt_order">Trakt Sıralaması</string>
     <string name="library_sort_provider_order">Sağlayıcı Sırası</string>
     <string name="library_sort_added_desc">En Son Eklenenler</string>
     <string name="library_sort_added_asc">İlk Eklenenler</string>
@@ -2070,7 +1989,6 @@
     <string name="library_sort_title_desc">Z\'den A\'ya İsim</string>
     <string name="library_error_sort_failed">Sıralama düzeni yüklenemedi. Sağlayıcı sırası gösteriliyor.</string>
     <string name="library_manage_lists">Listeleri Yönet</string>
-    <string name="library_manage_trakt_lists">Trakt Listelerini Yönet</string>
     <string name="library_no_lists">Henüz kişisel liste yok.</string>
     <string name="library_list_create">Oluştur</string>
     <string name="library_list_edit">Düzenle</string>
@@ -2083,11 +2001,9 @@
     <string name="library_list_description_label">Açıklama</string>
     <string name="library_list_privacy">Gizlilik</string>
     <string name="library_delete_title">Listeyi silmek istediğinizden emin misiniz?</string>
-    <string name="library_delete_subtitle">Bu işlem listeyi ve içindeki tüm öğeleri Trakt hesabınızdan kaldırır.</string>
     <string name="library_delete_confirm">Sil</string>
     <string name="library_source_local">YEREL</string>
     <string name="library_source_nuvio">NUVİO</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Kaydedildi</string>
     <string name="library_source_cloud">Bulut</string>
     <string name="library_watchlist">İzleme Listesi</string>
@@ -2100,11 +2016,9 @@
     <string name="library_type_all">Tümü</string>
     <string name="library_type_items">içerik bulundu</string>
     <string name="library_empty_local_title">Henüz %1$s yok</string>
-    <string name="library_empty_trakt_title">Bu listede %1$s yok</string>
+    <string name="library_empty_remote_title">Bu listede %1$s yok</string>
     <string name="library_empty_local_subtitle">İçerik eklemek için içerik detaylarındaki + tuşunu kullanın</string>
-    <string name="library_empty_trakt_subtitle">İçerikleri izleme listenize eklemek için içerik detaylarındaki + tuşunu kullanın</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt bağlı değil</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Trakt kütüphanenizi görüntülemek için Ayarlar\'dan Trakt hesabınızı bağlayın</string>
+    <string name="library_empty_remote_subtitle">İçerikleri izleme listenize eklemek için içerik detaylarındaki + tuşunu kullanın</string>
     <string name="library_empty_simkl_title">Bu durumda %1$s yok</string>
     <string name="library_empty_simkl_subtitle">Bir Simkl durumuna eklemek için detaylarda + tuşunu kullan</string>
     <string name="library_empty_simkl_not_auth_title">Simkl bağlı değil</string>
@@ -2329,7 +2243,6 @@
     <string name="update_unknown_sources">Telumia\'nun indirdiği eklentileri yüklayabilmek adına `Bilinmeyen kaynaklar` veya `Dışarıdan yükleme` iznine ihtiyaç var.</string>
     <!-- AccountScreen -->
     <string name="account_title">Hesap</string>
-    <string name="account_sign_in_description">Kütüphanenizi, izleme ilerlemenizi, eklenti ve uzantılarınızı cihazlar arasında eşleyin. Trakt bağlı değilken Telumia Sync kullanılır.</string>
     <string name="account_sync_code_title">Eşleştirme Kodu</string>
     <string name="account_sync_code_description">Hesap oluşturmadan cihazlarınızı eşleyin.</string>
     <string name="account_linked_devices">Bağlı Cihazlar (%1$d)</string>
@@ -2669,33 +2582,6 @@
     <string name="plugin_repo_removed">Uzantı deposu kaldırıldı</string>
     <string name="plugin_repo_refreshed">Uzantı deposu yenilendi</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">Cihaz kodunun süresi doldu. Yeniden başlayın.</string>
-    <string name="trakt_error_code_used">Cihaz kodu zaten kullanılmış. Yeniden başlayın.</string>
-    <string name="trakt_error_denied">Trakt tarafında yetki reddedildi.</string>
-    <string name="trakt_error_missing_credentials">TRAKT kimlik bilgileri eksik</string>
-    <string name="trakt_error_network_retry">Ağ hatası, lütfen tekrar deneyin</string>
-    <string name="trakt_error_network_will_retry">Ağ hatası, tekrar denenecek</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt istekleri kısıtlıyor. ~%1$d dk sonra tekrar deneyin</string>
-    <string name="trakt_error_failed_start_code">Trakt kimlik doğrulaması başlatılamadı (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Aktif Trakt cihaz kodu yok</string>
-    <string name="trakt_error_invalid_device_code">Geçersiz cihaz kodu</string>
-    <string name="trakt_error_token_polling_failed_code">Token anketlemesi başarısız (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Trakt isteği başarısız</string>
-    <string name="trakt_error_list_not_found_or_private">Trakt listesi bulunamadı veya herkese açık değil</string>
-    <string name="trakt_error_rate_limit_reached">Trakt limitine ulaşıldı</string>
-    <string name="trakt_status_enter_activation_code">trakt.tv/activate adresine kodu girin</string>
-    <string name="trakt_status_syncing">Senkronize ediliyor...</string>
-    <string name="trakt_status_sync_completed">Senkronizasyon tamamlandı</string>
-    <string name="trakt_status_disconnected">Trakt bağlantısı kesildi</string>
-    <string name="trakt_status_cw_window_updated">İzlemeye devam etme penceresi güncellendi</string>
-    <string name="trakt_status_rate_limited_slowing_polling">İstek limiti aşıldı, anketleme yavaşlatılıyor...</string>
-    <string name="trakt_user_fallback">Trakt kullanıcısı</string>
-    <string name="trakt_error_failed_start">Trakt kimlik doğrulaması başlatılamadı</string>
-    <string name="trakt_related_error_request_failed">Trakt benzer içerik isteği başarısız oldu</string>
-    <string name="trakt_comments_error_request_failed">Trakt yorum isteği başarısız oldu</string>
-    <string name="trakt_library_error_paginated_fetch_failed">Trakt sayfalı veri alınamadı (%1$d)</string>
-    <string name="trakt_library_error_fetch_list_items">Liste öğeleri alınamadı</string>
 
     <!-- General errors -->
     <string name="error_unknown">Bilinmeyen hata</string>
@@ -2766,8 +2652,6 @@
     <string name="cd_test">Test et</string>
     <string name="cd_unlink">Bağlantıyı kes</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Trakt logosu</string>
-    <string name="cd_trakt_qr">Trakt etkinleştirme QR kodu</string>
     <string name="cd_simkl_qr">Simkl etkinleştirme QR kodu</string>
     <string name="cd_simkl_logo">Simkl logosu</string>
     <string name="cd_imdb">IMDb</string>
@@ -2873,18 +2757,8 @@
     <string name="collections_editor_addon_missing">Eklenti kurulu değil: %1$s</string>
     <string name="collections_editor_catalog_missing">Katalog kullanılamıyor</string>
     <string name="collections_editor_add_tmdb_source">TMDB Kaynağı Ekle</string>
-    <string name="collections_editor_add_trakt_source">Trakt Listesi Ekle</string>
     <string name="collections_editor_edit_tmdb_source">TMDB Kaynağını Düzenle</string>
     <string name="collections_editor_tmdb_sources">TMDB Kaynakları</string>
-    <string name="collections_editor_trakt_sources">Trakt Listeleri</string>
-    <string name="collections_editor_edit_trakt_source">Trakt Listesini Düzenle</string>
-    <string name="collections_editor_trakt_list">Trakt listesi</string>
-    <string name="collections_editor_trakt_search_results">Arama sonuçları</string>
-    <string name="collections_editor_trakt_trending">Trend listeler</string>
-    <string name="collections_editor_trakt_popular">Popüler listeler</string>
-    <string name="collections_editor_trakt_direction">Sıralama</string>
-    <string name="collections_editor_trakt_ascending">Artan</string>
-    <string name="collections_editor_trakt_descending">Azalan</string>
     <string name="collections_editor_tmdb_id_or_url">TMDB ID veya URL</string>
     <string name="collections_editor_tmdb_public_list">Herkese Açık TMDB Listesi</string>
     <string name="collections_editor_tmdb_network_id">Ağ (Network) ID</string>
@@ -2968,27 +2842,13 @@
     <string name="collections_editor_sort_votes">Oy</string>
     <string name="collections_editor_direction_asc_short">Artan</string>
     <string name="collections_editor_direction_desc_short">Azalan</string>
-    <string name="collections_editor_trakt_movie_list">Trakt Film Listesi</string>
-    <string name="collections_editor_trakt_series_list">Trakt Dizi Listesi</string>
-    <string name="collections_editor_trakt_list_with_id">Trakt Listesi %1$d</string>
-    <string name="collections_editor_trakt_public_list">Trakt herkese açık liste</string>
-    <string name="collections_editor_trakt_items_count">%1$d öğe</string>
-    <string name="collections_editor_trakt_likes_count">%1$d beğeni</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Geçerli bir TMDB ID veya URL girin</string>
     <string name="collections_editor_error_load_tmdb_source">TMDB kaynağı yüklenemedi</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Trakt liste ID\'si veya URL\'si girin</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Trakt liste adı, URL veya ID girin</string>
-    <string name="collections_editor_error_load_trakt_list">Trakt listesi yüklenemedi</string>
-    <string name="collections_editor_error_load_trakt_lists">Trakt listeleri yüklenemedi</string>
-    <string name="collections_editor_error_search_trakt_lists">Trakt listeleri aranamadı</string>
-    <string name="collections_editor_error_trakt_list_not_found">Trakt listesi bulunamadı</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">Trakt listesinde sayısal ID yok</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 veya 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 - Star Wars Koleksiyonu</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420 veya şirket URL\'si</string>
     <string name="collections_editor_tmdb_placeholder_network">213 Netflix, 49 HBO, 2739 Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 - Tom Hanks veya kişi URL\'si</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 veya 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -3041,9 +2901,6 @@
     <string name="collections_tab_combined">Birleşik</string>
     <string name="collection_editor_remove_cd">Kaldır</string>
     <string name="collection_editor_choice_both">İkisi de</string>
-    <string name="collection_editor_resolved_trakt_list">Trakt listesi çözüldü</string>
-    <string name="collection_editor_trakt_search_placeholder">Başlık, Trakt URL veya liste ID ara...</string>
-    <string name="collection_editor_trakt_name_placeholder">Hafta Sonu İzlemeleri, Ödül Kazananlar</string>
     <string name="collection_editor_folder_count_one">%1$d öğe</string>
     <string name="collection_editor_folder_count_other">%1$d öğe</string>
     <string name="collections_editor_tmdb_movie_title_placeholder">Marvel Filmleri, Netflix Orijinalleri, Pixar</string>
@@ -3167,7 +3024,6 @@
     <string name="collections_import_error_source_invalid">\"%1$s\" koleksiyonu, \"%2$s\" klasörü, %3$d. kaynak: geçersiz format</string>
     <string name="collections_import_error_source_required_fields">\"%1$s\" koleksiyonu, \"%2$s\" klasörü, %3$d. kaynak: zorunlu alanlar eksik</string>
     <string name="collections_import_error_missing_tmdb_type">\"%1$s\" koleksiyonu, \"%2$s\" klasörü, %3$d. kaynak: TMDB kaynak türü eksik</string>
-    <string name="collections_import_error_missing_trakt_list_id">\"%1$s\" koleksiyonu, \"%2$s\" klasörü, %3$d. kaynak: Trakt liste ID\'si eksik</string>
     <string name="collections_import_error_json_parse">JSON ayrıştırma hatası: %1$s</string>
 
     <!-- Library messages -->
@@ -3188,26 +3044,6 @@
     <string name="library_privacy_friends">Arkadaşlar</string>
     <string name="library_privacy_public">Herkese Açık</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">Trakt kimlik doğrulaması gerekli</string>
-    <string name="trakt_library_error_request_failed">Trakt isteği başarısız</string>
-    <string name="trakt_library_error_create_list_failed">Liste oluşturulamadı</string>
-    <string name="trakt_library_error_update_list_failed">Liste güncellenemedi</string>
-    <string name="trakt_library_error_delete_list_failed">Liste silinemedi</string>
-    <string name="trakt_library_error_reorder_lists_failed">Listeler yeniden sıralanamadı</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">İzleme listesindeki filmler alınamadı</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">İzleme listesindeki diziler alınamadı</string>
-    <string name="trakt_library_error_fetch_personal_lists">Kişisel listeler alınamadı</string>
-    <string name="trakt_library_error_add_watchlist_failed">İzleme listesine eklenemedi</string>
-    <string name="trakt_library_error_remove_watchlist_failed">İzleme listesinden kaldırılamadı</string>
-    <string name="trakt_library_error_add_to_list_failed">Listeye eklenemedi</string>
-    <string name="trakt_library_error_remove_from_list_failed">Listeden kaldırılamadı</string>
-    <string name="trakt_library_error_missing_compatible_ids">Trakt liste işlemi için uyumlu ID\'ler eksik</string>
-    <string name="trakt_library_error_auth_expired">Trakt kimlik doğrulamasının süresi doldu</string>
-    <string name="trakt_library_error_list_not_found">Trakt listesi bulunamadı</string>
-    <string name="trakt_library_error_list_limit_reached">Trakt liste limitine ulaşıldı. Yükseltme gerekli.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">İzlenendi olarak işaretlemek için yeterli Trakt ID\'si yok</string>
-    <string name="trakt_error_request_failed">Trakt isteği başarısız</string>
     <string name="simkl_account_title">Simkl hesabı</string>
     <string name="simkl_description">Listeleri, izleme geçmişini, oynatma ilerlemesini ve scrobble\'ları eşitlemek için Simkl\'ı bağla.</string>
     <string name="simkl_connect">Simkl\'ı Bağla</string>
@@ -3246,14 +3082,12 @@
     <string name="tracking_removal_impact_rating">puanını</string>
     <string name="tracking_removal_impact_history_rating">izleme geçmişini ve puanını</string>
     <string name="action_remove_anyway">Yine de kaldır</string>
-    <string name="trakt_error_mark_watched_failed">Trakt\'ta izlenendi olarak işaretlenemedi (%1$d)</string>
-    <string name="trakt_more_like_this_source_title">Benzer İçerik Kaynağı</string>
-    <string name="trakt_more_like_this_source_subtitle">Detay sayfasındaki önerilerin nereden geleceğini seçin</string>
-    <string name="trakt_more_like_this_source_dialog_title">Benzer İçerik Kaynağı</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Detay sayfalarında gösterilen öneriler için kaynağı seçin.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_more_like_this_source_title">Benzer İçerik Kaynağı</string>
+    <string name="tracking_more_like_this_source_subtitle">Detay sayfasındaki önerilerin nereden geleceğini seçin</string>
+    <string name="tracking_more_like_this_source_dialog_title">Benzer İçerik Kaynağı</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Detay sayfalarında gösterilen öneriler için kaynağı seçin.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">Kütüphane güncellenemedi</string>

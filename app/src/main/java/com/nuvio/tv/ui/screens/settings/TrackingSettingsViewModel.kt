@@ -9,8 +9,8 @@ import com.nuvio.tv.core.tracking.TrackingSourceSelection
 import com.nuvio.tv.core.tracking.availableLibrarySourceModes
 import com.nuvio.tv.core.tracking.availableWatchProgressSources
 import com.nuvio.tv.core.tracking.effectiveTrackingSourceSelection
-import com.nuvio.tv.data.local.TraktAuthDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.MoreLikeThisSourcePreference
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.simkl.SimklAnimeIdPreference
 import com.nuvio.tv.data.simkl.SimklAuthRepository
@@ -31,6 +31,8 @@ data class TrackingSettingsUiState(
     val librarySourceMode: LibrarySourceMode = LibrarySourceMode.LOCAL,
     val connectedProviderIds: Set<TrackingProviderId> = emptySet(),
     val simklAnimeIdPreference: SimklAnimeIdPreference = SimklAnimeIdPreference.DEFAULT,
+    val continueWatchingDaysCap: Int = TrackingSettingsDataStore.DEFAULT_CONTINUE_WATCHING_DAYS_CAP,
+    val moreLikeThisSource: MoreLikeThisSourcePreference = TrackingSettingsDataStore.DEFAULT_MORE_LIKE_THIS_SOURCE,
     val isReady: Boolean = false
 ) {
     val availableWatchProgressSources: List<WatchProgressSource>
@@ -43,9 +45,8 @@ data class TrackingSettingsUiState(
 @HiltViewModel
 class TrackingSettingsViewModel @Inject constructor(
     private val sourceController: TrackingSourceController,
-    private val settingsDataStore: TraktSettingsDataStore,
+    private val settingsDataStore: TrackingSettingsDataStore,
     private val simklSyncRepository: SimklSyncRepository,
-    traktAuthDataStore: TraktAuthDataStore,
     simklAuthRepository: SimklAuthRepository,
     mdbListAuth: MdbListAuthStore,
     profiles: ProfileManager
@@ -55,9 +56,8 @@ class TrackingSettingsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val connected = combine(traktAuthDataStore.state, simklAuthRepository.state, mdbListAuth.state, profiles.activeProfileId) { trakt, simkl, mdblist, profileId ->
+            val connected = combine(simklAuthRepository.state, mdbListAuth.state, profiles.activeProfileId) { simkl, mdblist, profileId ->
                 if (mdblist.scope.profileId != profileId) null else buildSet<TrackingProviderId> {
-                    if (trakt.isAuthenticated) add(TrackingProviderId.TRAKT)
                     if (simkl.isAuthenticated) add(TrackingProviderId.SIMKL)
                     if (mdblist.isAuthenticated) add(TrackingProviderId.MDBLIST)
                 }
@@ -66,8 +66,13 @@ class TrackingSettingsViewModel @Inject constructor(
                 sourceController.watchProgressSource,
                 sourceController.librarySourceMode,
                 connected,
-                settingsDataStore.simklAnimeIdPreference
-            ) { watchProgressSource, librarySourceMode, connectedProviderIds, animeIdPref ->
+                combine(
+                    settingsDataStore.simklAnimeIdPreference,
+                    settingsDataStore.continueWatchingDaysCap,
+                    settingsDataStore.moreLikeThisSource
+                ) { animeIdPref, daysCap, moreLikeThis -> Triple(animeIdPref, daysCap, moreLikeThis) }
+            ) { watchProgressSource, librarySourceMode, connectedProviderIds, preferences ->
+                val (animeIdPref, daysCap, moreLikeThis) = preferences
                 if (connectedProviderIds == null) return@combine TrackingSettingsUiState()
                 val effective = effectiveTrackingSourceSelection(
                     requested = TrackingSourceSelection(watchProgressSource, librarySourceMode),
@@ -78,6 +83,8 @@ class TrackingSettingsViewModel @Inject constructor(
                     librarySourceMode = effective.librarySourceMode,
                     connectedProviderIds = connectedProviderIds,
                     simklAnimeIdPreference = animeIdPref,
+                    continueWatchingDaysCap = daysCap,
+                    moreLikeThisSource = moreLikeThis,
                     isReady = true
                 )
             }.collect { state ->
@@ -99,6 +106,14 @@ class TrackingSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             sourceController.selectLibrarySourceMode(mode)
         }
+    }
+
+    fun selectContinueWatchingDaysCap(days: Int) {
+        viewModelScope.launch { settingsDataStore.setContinueWatchingDaysCap(days) }
+    }
+
+    fun selectMoreLikeThisSource(source: MoreLikeThisSourcePreference) {
+        viewModelScope.launch { settingsDataStore.setMoreLikeThisSource(source) }
     }
 
     fun selectSimklAnimeIdPreference(preference: SimklAnimeIdPreference) {

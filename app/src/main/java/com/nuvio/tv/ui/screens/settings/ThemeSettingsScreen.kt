@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTvMaterial3Api::class)
+@file:OptIn(ExperimentalTvMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 
 package com.nuvio.tv.ui.screens.settings
 
@@ -12,6 +12,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +39,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +51,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
@@ -163,6 +168,19 @@ fun ThemeSettingsContent(
     }
 
     val themeScrollState = rememberScrollState()
+    val inheritedScrollSpec = LocalBringIntoViewSpec.current
+    val nearestEdgeScrollSpec = remember(inheritedScrollSpec) {
+        @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+        object : BringIntoViewSpec {
+            override val scrollAnimationSpec: AnimationSpec<Float> = inheritedScrollSpec.scrollAnimationSpec
+            override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
+                when {
+                    offset < 0f -> offset
+                    offset + size > containerSize -> offset + size - containerSize
+                    else -> 0f
+                }
+        }
+    }
     val themeRowState = rememberLazyListState()
     var initialTheme by remember { mutableStateOf<AppTheme?>(null) }
     LaunchedEffect(uiState.themesLoaded) {
@@ -176,15 +194,21 @@ fun ThemeSettingsContent(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(themeScrollState),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             SettingsDetailHeader(
                 title = stringResource(R.string.appearance_title),
-                subtitle = stringResource(R.string.appearance_subtitle)
+                subtitle = stringResource(R.string.appearance_subtitle),
+                compact = LocalConfiguration.current.screenHeightDp < 440,
             )
 
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+            CompositionLocalProvider(LocalBringIntoViewSpec provides nearestEdgeScrollSpec) {
+            Column(
+                modifier = Modifier.fillMaxSize().verticalScroll(themeScrollState),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
             SettingsGroupCard(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.appearance_color_theme),
@@ -336,8 +360,11 @@ fun ThemeSettingsContent(
                     onClick = { showLanguageDialog = true }
                 )
             }
+            }
+            }
+            SettingsVerticalScrollIndicators(state = themeScrollState)
+            }
         }
-        SettingsVerticalScrollIndicators(state = themeScrollState)
     }
 
     if (showCustomThemeDialog && AppTheme.CUSTOM in uiState.availableThemes) {
@@ -470,13 +497,14 @@ private fun ThemeSwatchChip(
     modifier: Modifier = Modifier
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 440
     val palette = remember(theme, customColors) { ThemeColors.getColorPalette(theme, customColors) }
     val chipShape = RoundedCornerShape(18.dp)
 
     Card(
         onClick = onClick,
         modifier = modifier
-            .width(96.dp)
+            .width(if (compactHeight) 72.dp else 96.dp)
             .onFocusChanged { state ->
                 val nowFocused = state.isFocused
                 if (isFocused != nowFocused) {
@@ -500,12 +528,12 @@ private fun ThemeSwatchChip(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = NuvioTheme.spacing.sm, vertical = NuvioTheme.spacing.md),
+                .padding(horizontal = NuvioTheme.spacing.sm, vertical = if (compactHeight) NuvioTheme.spacing.xs else NuvioTheme.spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(if (compactHeight) 28.dp else 40.dp)
                     .clip(CircleShape)
                     .background(palette.accentBrush()),
                 contentAlignment = Alignment.Center
@@ -520,7 +548,7 @@ private fun ThemeSwatchChip(
                 }
             }
 
-            Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))
+            Spacer(modifier = Modifier.height(if (compactHeight) NuvioTheme.spacing.xs else NuvioTheme.spacing.sm))
 
             Text(
                 text = theme.localizedName(),

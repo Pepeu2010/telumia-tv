@@ -7,7 +7,6 @@
     <string name="home_no_addons">Inga tillägg installerade. Lägg till ett tillägg för att komma igång.</string>
     <string name="home_no_catalog_addons">Inga tillägg med kataloger installerade. Installera ett katalogtillägg för att se innehåll.</string>
     <string name="auth_notice_nuvio_logged_out">Du har loggats ut från Telumia. Logga in igen.</string>
-    <string name="auth_notice_trakt_logged_out">Du har loggats ut från Trakt. Anslut igen.</string>
     <string name="error_generic">Ett fel uppstod</string>
 
     <!-- ErrorState -->
@@ -198,7 +197,6 @@
     <string name="settings_plugins_subtitle">Arkiv och leverantörer</string>
     <string name="settings_integration">Integrationer</string>
     <string name="settings_playback">Uppspelning</string>
-    <string name="settings_trakt_subtitle">Öppna Trakt anslutningsskärm</string>
     <string name="settings_debug">Debug</string>
     <string name="settings_plugins_section_subtitle">Hantera arkiv, leverantörer, och plugin-status</string>
     <string name="settings_account_section_subtitle">Konto och synkroniseringsstatus</string>
@@ -474,8 +472,6 @@
     <string name="mdblist_enable_subtitle">Hämta betyg från externa leverantörer på metadataskärmen</string>
     <string name="mdblist_api_key_title">API-nyckel</string>
     <string name="mdblist_api_key_subtitle">Krävs för att hämta betyg från MDBList</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Visa Trakt-poäng</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Visa IMDb-poäng (och dölj standard-IMDb-raden när tillgänglig)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -535,54 +531,19 @@
 
     <string name="tmdb_language_dialog_title">TMDB-språk</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Synkronisera din bevakningslista, tittarframsteg, fortsätt titta, scrobbles och personliga listor med Trakt.</string>
-    <string name="trakt_connected_as">Ansluten som %1$s</string>
-    <string name="trakt_account_login">Kontoinloggning</string>
-    <string name="trakt_awaiting_instruction">Gå till trakt.tv/activate och ange denna kod:</string>
-    <string name="trakt_waiting_approval">Väntar på godkännande…</string>
     <string name="qr_login_approved">Inloggning godkänd. Slutför inloggning…</string>
     <string name="qr_login_pending">Väntar på godkännande på din telefon…</string>
     <string name="qr_login_expired">QR-inloggningen har gått ut. Generera en ny kod.</string>
-    <string name="trakt_code_expires">Koden går ut om %1$s</string>
-    <string name="trakt_token_refreshes">Trakt-åtkomsttoken uppdateras om %1$s</string>
-    <string name="trakt_login_instruction">Tryck på Logga in för att starta Trakt-enhetsautentisering. En QR-kod visas här.</string>
-    <string name="trakt_missing_credentials">TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET saknas i local.properties.</string>
-    <string name="trakt_watch_progress_title">Tittarframsteg</string>
-    <string name="trakt_watch_progress_subtitle">Välj vilken framstegskälla som styr återupptagning och fortsätt titta</string>
-    <string name="trakt_watch_progress_dialog_title">Tittarframsteg</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Välj om återupptagning och fortsätt titta ska använda Trakt eller Telumia Sync medan Trakt-scrobbling förblir aktiv.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_watch_progress_trakt_selected">Tittarframstegskälla satt till Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Tittarframstegskälla satt till Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Fortsätt titta-fönster</string>
-    <string name="trakt_continue_watching_subtitle">Trakt-historik som beaktas för fortsätt titta</string>
-    <string name="trakt_unaired_next_up">Osända nästa avsnitt</string>
-    <string name="trakt_unaired_next_up_subtitle">Visa kommande avsnitt innan de sänds</string>
-    <string name="trakt_unaired_shown">Visas</string>
-    <string name="trakt_unaired_hidden">Dold</string>
-    <string name="trakt_unaired_now_shown">Osända nästa avsnitt visas nu</string>
-    <string name="trakt_unaired_now_hidden">Osända nästa avsnitt är nu dolda</string>
-    <string name="trakt_cached_label">Cachad</string>
-    <string name="trakt_stat_movies">Filmer</string>
-    <string name="trakt_stat_shows">Serier</string>
-    <string name="trakt_stat_episodes">Avsnitt</string>
-    <string name="trakt_stat_watched_hours">Tittade timmar</string>
-    <string name="trakt_disconnect">Koppla från</string>
-    <string name="trakt_disconnect_title">Koppla från Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Detta kopplar från ditt Trakt-konto från Telumia.</string>
-    <string name="trakt_login">Logga in</string>
-    <string name="trakt_retry">Försök igen</string>
-    <string name="trakt_back">Tillbaka</string>
-    <string name="trakt_cw_window_title">Fortsätt titta-fönster</string>
-    <string name="trakt_cw_window_subtitle">Välj hur mycket Trakt-aktivitet som ska visas i fortsätt titta.</string>
-    <string name="trakt_unaired_dialog_title">Osända nästa avsnitt</string>
-    <string name="trakt_unaired_dialog_subtitle">Välj om Fortsätt titta ska inkludera kommande avsnitt före premiär.</string>
-    <string name="trakt_show_unaired">Visa osända avsnitt</string>
-    <string name="trakt_hide_unaired">Dölj osända avsnitt</string>
-    <string name="trakt_all_history">All historik</string>
-    <string name="trakt_days_format">%1$d dagar</string>
+    <string name="tracking_code_expires">Koden går ut om %1$s</string>
+    <string name="tracking_watch_progress_title">Tittarframsteg</string>
+    <string name="tracking_watch_progress_subtitle">Välj vilken framstegskälla som styr återupptagning och fortsätt titta</string>
+    <string name="tracking_watch_progress_dialog_title">Tittarframsteg</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_continue_watching_window">Fortsätt titta-fönster</string>
+    <string name="tracking_disconnect">Koppla från</string>
+    <string name="tracking_cw_window_title">Fortsätt titta-fönster</string>
+    <string name="tracking_all_history">All historik</string>
+    <string name="tracking_days_format">%1$d dagar</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Debug</string>
@@ -819,7 +780,6 @@
     <string name="search_voice_unavailable">Röstsökning är inte tillgänglig på denna enhet.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Synkroniserar Trakt-bibliotek\u2026</string>
     <string name="library_title">Bibliotek</string>
     <string name="library_filter_list">Lista</string>
     <string name="library_filter_type">Typ</string>
@@ -855,13 +815,11 @@
     <string name="genre_soap">Såpa</string>
     <string name="genre_talk">Talkshow</string>
     <string name="genre_war_politics">Krig &amp; politik</string>
-    <string name="library_sort_trakt_order">Trakt-ordning</string>
     <string name="library_sort_added_desc">Tillagd ↓</string>
     <string name="library_sort_added_asc">Tillagd ↑</string>
     <string name="library_sort_title_asc">Titel A-Ö</string>
     <string name="library_sort_title_desc">Titel Ö-A</string>
     <string name="library_manage_lists">Hantera listor</string>
-    <string name="library_manage_trakt_lists">Hantera Trakt-listor</string>
     <string name="library_no_lists">Inga personliga listor ännu.</string>
     <string name="library_list_create">Skapa</string>
     <string name="library_list_edit">Redigera</string>
@@ -873,18 +831,16 @@
     <string name="library_list_description_label">Beskrivning</string>
     <string name="library_list_privacy">Sekretess</string>
     <string name="library_delete_title">Radera denna lista?</string>
-    <string name="library_delete_subtitle">Detta tar bort listan och alla listobjekt från Trakt.</string>
     <string name="library_delete_confirm">Radera</string>
     <string name="library_source_local">LOKAL</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_syncing_library">Synkroniserar bibliotek\u2026</string>
     <string name="library_type_all">Alla</string>
     <string name="library_type_items">objekt</string>
     <string name="library_empty_local_title">Inga %1$s ännu</string>
-    <string name="library_empty_trakt_title">Inga %1$s i denna lista</string>
+    <string name="library_empty_remote_title">Inga %1$s i denna lista</string>
     <string name="library_empty_local_subtitle">Börja spara dina favoriter för att se dem här</string>
-    <string name="library_empty_trakt_subtitle">Använd + i detaljer för att lägga till objekt i bevakningslistan eller listor</string>
+    <string name="library_empty_remote_subtitle">Använd + i detaljer för att lägga till objekt i bevakningslistan eller listor</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Laddar\u2026</string>
@@ -997,7 +953,6 @@
     <string name="update_unknown_sources">Tillåt installation från okända källor för att fortsätta.</string>
     <!-- AccountScreen -->
     <string name="account_title">Konto</string>
-    <string name="account_sign_in_description">Logga in för att synkronisera ditt bibliotek, tittarframsteg, tillägg och plugins mellan enheter. Bibliotekssynk använder Telumia Sync när Trakt inte är anslutet, och tittarframsteg kan använda antingen Trakt eller Telumia Sync.</string>
     <string name="account_sync_code_title">Synkkod</string>
     <string name="account_sync_code_description">Synkronisera mellan enheter utan att skapa ett konto.</string>
     <string name="account_linked_devices">Länkade enheter (%1$d)</string>
@@ -1071,20 +1026,7 @@
     <string name="addon_error_invalid_scheme">Tilläggs-URL måste börja med http eller https</string>
 
     <!-- Missing: Detail comments -->
-    <string name="detail_comments_title">Kommentarer</string>
-    <string name="detail_comments_subtitle">Recensioner från Trakt</string>
-    <string name="detail_comments_empty">Inga Trakt-recensioner tillgängliga ännu.</string>
-    <string name="detail_comments_error">Kunde inte ladda Trakt-recensioner just nu.</string>
-    <string name="detail_comments_spoiler_hidden">Spoilerrecension. Tryck OK för att visa.</string>
-    <string name="detail_comments_reveal_spoiler">Visa spoiler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Tryck OK för att visa spoiler.</string>
-    <string name="detail_comments_back_hint">Tryck tillbaka för att stänga</string>
-    <string name="detail_comments_badge_review">Recension</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d gillar</string>
     <string name="detail_more_like_this_powered_by_tmdb">Drivs av TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Drivs av Trakt</string>
 
     <!-- Missing: Layout settings -->
     <string name="layout_blur_cw_next_up">Sudda osedda i Fortsätt titta</string>
@@ -1094,15 +1036,6 @@
     <string name="layout_show_full_release_date">Visa fullständigt premiärdatum</string>
     <string name="layout_show_full_release_date_sub">Visa fullständigt premiärdatum istället för bara år för filmer.</string>
 
-    <!-- Missing: Trakt comments settings -->
-    <string name="trakt_comments_title">Kommentarer</string>
-    <string name="trakt_comments_subtitle">Visa Trakt-recensioner på metadatasidor</string>
-    <string name="trakt_comments_dialog_title">Kommentarer</string>
-    <string name="trakt_comments_dialog_subtitle">Välj om metadatasidor ska visa Trakt-recensioner när ditt konto är anslutet.</string>
-    <string name="trakt_comments_now_shown">Trakt-recensioner på metadatasidor visas nu</string>
-    <string name="trakt_comments_now_hidden">Trakt-recensioner på metadatasidor är nu dolda</string>
-    <string name="trakt_setting_on">På</string>
-    <string name="trakt_setting_off">Av</string>
 
     <!-- Missing: TMDB settings -->
     <string name="tmdb_modern_home_title">Aktivera på Modern hem</string>
@@ -1332,20 +1265,15 @@
     <string name="tmdb_trailers_title">Trailers</string>
     <string name="tmdb_trailers_subtitle">Trailerkandidater från TMDB-videor för trailer-sektionen på detaljsidan</string>
 
-    <!-- TraktScreen -->
     <string name="qr_login_scan_prompt">Skanna QR och logga in på din telefon</string>
     <string name="qr_login_start_failed">Kunde inte starta QR-inloggning</string>
     <string name="qr_login_signing_in">Loggar in dig…</string>
     <string name="qr_login_success">Inloggning lyckades</string>
     <string name="qr_login_exchange_failed">Kunde inte slutföra QR-inloggning</string>
-    <string name="trakt_library_source_title">Bibliotekskälla</string>
-    <string name="trakt_library_source_subtitle">Välj vilket bibliotek som används för att spara och visa din samling</string>
-    <string name="trakt_library_source_dialog_title">Bibliotekskälla</string>
-    <string name="trakt_library_source_dialog_subtitle">Välj var du vill spara och hantera dina biblioteksobjekt</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Telumia-bibliotek</string>
-    <string name="trakt_library_source_trakt_selected">Trakt-bibliotek valt</string>
-    <string name="trakt_library_source_nuvio_selected">Telumia-bibliotek valt</string>
+    <string name="tracking_library_source_title">Bibliotekskälla</string>
+    <string name="tracking_library_source_subtitle">Välj vilket bibliotek som används för att spara och visa din samling</string>
+    <string name="tracking_library_source_dialog_title">Bibliotekskälla</string>
+    <string name="tracking_library_source_nuvio">Telumia-bibliotek</string>
 
     <!-- ProfileSettingsContent -->
     <string name="profile_edit_header">Redigera profil</string>
@@ -1403,8 +1331,6 @@
     <string name="search_recent_clear">Rensa historik</string>
 
     <!-- LibraryScreen -->
-    <string name="library_empty_trakt_not_auth_title">Trakt inte anslutet</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Anslut ditt Trakt-konto i Inställningar för att se ditt Trakt-bibliotek</string>
 
     <!-- AccountScreen -->
     <string name="account_signin_create_title">Logga in / Skapa konto</string>
@@ -1449,10 +1375,6 @@
     <string name="plugin_risky_enable_confirm">Aktivera</string>
     <string name="plugin_version">Version %1$s</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">Enhetskoden har gått ut. Börja om.</string>
-    <string name="trakt_error_code_used">Enhetskoden har redan använts. Börja om.</string>
-    <string name="trakt_error_denied">Auktorisering nekad på Trakt.</string>
 
     <!-- Account errors -->
     <string name="account_error_signin_required">Logga in med ett konto först.</string>
@@ -1518,8 +1440,6 @@
     <string name="cd_test">Testa</string>
     <string name="cd_unlink">Avlänka</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Trakt-logotyp</string>
-    <string name="cd_trakt_qr">Trakt-aktiverings-QR</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Öppna utforska</string>
     <string name="cd_voice_search">Röstsökning</string>

@@ -38,10 +38,11 @@ internal fun PlayerOverlayScaffold(
     topEndContent: (@Composable () -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val motion = com.nuvio.tv.ui.theme.LocalUiMotion.current
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(animationSpec = tween(250)),
-        exit = fadeOut(animationSpec = tween(200)),
+        enter = fadeIn(animationSpec = tween(motion.durationMillis(250))),
+        exit = fadeOut(animationSpec = tween(motion.durationMillis(200))),
         modifier = modifier
     ) {
         val focusRequester = remember { FocusRequester() }

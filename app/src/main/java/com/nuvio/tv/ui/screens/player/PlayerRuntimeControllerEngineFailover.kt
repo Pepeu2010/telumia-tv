@@ -92,6 +92,7 @@ internal fun PlayerRuntimeController.switchToInternalPlayerEngine(
     _uiState.update {
         it.copy(
             error = null,
+            playbackFailureReport = null,
             showSwitchToMpvErrorAction = false,
             showPauseOverlay = false,
             showLoadingOverlay = it.loadingOverlayEnabled,

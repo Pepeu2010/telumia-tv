@@ -9,7 +9,7 @@ import com.nuvio.tv.core.tmdb.TmdbService
 import com.nuvio.tv.core.tracking.TrackingHistoryWriterRegistry
 import com.nuvio.tv.core.tracking.TrackingProgressProviderRegistry
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.local.WatchedItemsPreferences
@@ -110,12 +110,12 @@ class WatchProgressRepositoryProfileIsolationTest {
         val mutationStore = mockk<WatchStateMutationStore>(relaxed = true)
         val authManager = mockk<AuthManager>(relaxed = true)
         every { authManager.isAuthenticated } returns false
-        val traktSettings = mockk<TraktSettingsDataStore>(relaxed = true)
-        every { traktSettings.watchProgressSource } returns MutableStateFlow(WatchProgressSource.NUVIO_SYNC)
+        val trackingSettings = mockk<TrackingSettingsDataStore>(relaxed = true)
+        every { trackingSettings.watchProgressSource } returns MutableStateFlow(WatchProgressSource.NUVIO_SYNC)
 
         val repository = WatchProgressRepositoryImpl(
             watchProgressPreferences = progressPreferences,
-            traktSettingsDataStore = traktSettings,
+            trackingSettingsDataStore = trackingSettings,
             layoutPreferenceDataStore = mockk<LayoutPreferenceDataStore>(relaxed = true),
             watchProgressSyncService = mockk<WatchProgressSyncService>(relaxed = true),
             watchedItemsPreferences = watchedPreferences,

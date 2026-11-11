@@ -27,13 +27,8 @@ import com.nuvio.tv.core.server.TmdbSourceMetadataInfo
 import com.nuvio.tv.core.server.TmdbSourceMetadataRequest
 import com.nuvio.tv.core.server.TmdbSourceSearchRequest
 import com.nuvio.tv.core.server.TmdbSourceSearchResultInfo
-import com.nuvio.tv.core.server.TraktSourceMetadataInfo
-import com.nuvio.tv.core.server.TraktSourceMetadataRequest
-import com.nuvio.tv.core.server.TraktSourceSearchRequest
-import com.nuvio.tv.core.server.TraktSourceSearchResultInfo
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.core.tmdb.TmdbCollectionSourceResolver
-import com.nuvio.tv.core.trakt.TraktPublicListSourceResolver
 import com.nuvio.tv.data.local.CollectionsDataStore
 import com.nuvio.tv.data.local.ExperienceModeDataStore
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
@@ -44,7 +39,6 @@ import com.nuvio.tv.domain.model.AddonCatalogCollectionSource
 import com.nuvio.tv.domain.model.ExperienceMode
 import com.nuvio.tv.domain.model.TmdbCollectionSource
 import com.nuvio.tv.domain.model.TmdbCollectionSourceType
-import com.nuvio.tv.domain.model.TraktCollectionSource
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.repository.AddonRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -73,7 +67,6 @@ class AddonManagerViewModel @Inject constructor(
     private val startupSyncService: StartupSyncService,
     private val profileManager: ProfileManager,
     private val tmdbCollectionSourceResolver: TmdbCollectionSourceResolver,
-    private val traktPublicListSourceResolver: TraktPublicListSourceResolver,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -353,8 +346,6 @@ class AddonManagerViewModel @Inject constructor(
             onChangeProposed = { change -> handleChangeProposed(change) },
             tmdbMetadataProvider = { request -> fetchTmdbSourceMetadata(request) },
             tmdbSearchProvider = { request -> searchTmdbSources(request) },
-            traktMetadataProvider = { request -> fetchTraktSourceMetadata(request) },
-            traktSearchProvider = { request -> searchTraktSources(request) },
             logoProvider = { logoBytes }
         )
 
@@ -460,34 +451,6 @@ class AddonManagerViewModel @Inject constructor(
                             )
                         }
                     else -> emptyList()
-                }
-            }.getOrElse { emptyList() }
-        }
-    }
-
-    private fun fetchTraktSourceMetadata(request: TraktSourceMetadataRequest): TraktSourceMetadataInfo? {
-        return runBlocking {
-            runCatching {
-                val metadata = traktPublicListSourceResolver.listImportMetadata(request.input)
-                TraktSourceMetadataInfo(
-                    title = metadata.title,
-                    coverImageUrl = metadata.coverImageUrl,
-                    traktListId = metadata.traktListId
-                )
-            }.getOrNull()
-        }
-    }
-
-    private fun searchTraktSources(request: TraktSourceSearchRequest): List<TraktSourceSearchResultInfo> {
-        return runBlocking {
-            runCatching {
-                traktPublicListSourceResolver.searchPublicLists(request.query).map {
-                    TraktSourceSearchResultInfo(
-                        id = it.traktListId,
-                        title = it.title,
-                        subtitle = it.subtitle,
-                        coverImageUrl = it.coverImageUrl
-                    )
                 }
             }.getOrElse { emptyList() }
         }
@@ -770,14 +733,6 @@ class AddonManagerViewModel @Inject constructor(
                                         watchRegion = source.filters.watchRegion,
                                         withWatchProviders = source.filters.withWatchProviders
                                     )
-                                )
-                                is TraktCollectionSource -> CollectionSourceInfo(
-                                    provider = "trakt",
-                                    title = source.title,
-                                    traktListId = source.traktListId,
-                                    mediaType = source.mediaType.name,
-                                    sortBy = source.sortBy,
-                                    sortHow = source.sortHow
                                 )
                             }
                         }

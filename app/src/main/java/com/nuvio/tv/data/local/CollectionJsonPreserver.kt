@@ -13,7 +13,6 @@ internal object CollectionJsonPreserver {
             val fields = when (provider.lowercase()) {
                 "addon" -> listOf("addonId", "type", "catalogId")
                 "tmdb" -> listOf("tmdbSourceType", "tmdbId", "mediaType")
-                "trakt" -> listOf("traktListId", "mediaType")
                 else -> return null
             }
             JsonArray(listOf(JsonPrimitive(provider.lowercase())) + fields.map { record[it] ?: JsonNull }).toString()

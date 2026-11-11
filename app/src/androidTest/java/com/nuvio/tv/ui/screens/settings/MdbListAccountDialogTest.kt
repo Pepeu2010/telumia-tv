@@ -69,7 +69,7 @@ class MdbListAccountDialogTest {
         composeRule.onNodeWithText(context.getString(R.string.mdblist_connected_as, "mdblist-viewer")).assertIsDisplayed()
         composeRule.onNodeWithText("Last synced just now").assertIsDisplayed()
         pressButton(R.string.simkl_sync_now)
-        pressButton(R.string.trakt_disconnect)
+        pressButton(R.string.tracking_disconnect)
         composeRule.runOnIdle {
             assertEquals(1, syncs)
             assertEquals(1, disconnects)
@@ -80,7 +80,7 @@ class MdbListAccountDialogTest {
     fun syncingAccountPreventsDuplicateSyncAndDisconnect() {
         setDialog(MdbListTrackerUiState(isConnected = true, isSyncing = true))
         composeRule.onNodeWithText(context.getString(R.string.simkl_sync_now)).assertIsNotEnabled()
-        composeRule.onNodeWithText(context.getString(R.string.trakt_disconnect)).assertIsNotEnabled()
+        composeRule.onNodeWithText(context.getString(R.string.tracking_disconnect)).assertIsNotEnabled()
     }
 
     private fun pressButton(text: Int) {

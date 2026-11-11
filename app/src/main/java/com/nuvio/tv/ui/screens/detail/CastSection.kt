@@ -46,6 +46,10 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.disabled
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Dp
@@ -449,6 +453,8 @@ private fun CastMemberItem(
         }
     }
 
+    val canNavigate = member.tmdbId?.let { it > 0 } == true
+    val unavailableLabel = stringResource(R.string.episodes_unavailable)
     var isFocused by remember { mutableStateOf(false) }
     val cardDepthStyle = LocalCardDepthStyle.current
     val labelAreaHeight = remember(density, nameStyle, characterStyle) {
@@ -464,8 +470,15 @@ private fun CastMemberItem(
         horizontalAlignment = Alignment.Start
     ) {
         Card(
-            onClick = onClick,
+            onClick = { if (canNavigate) onClick() },
             modifier = modifier
+                .semantics {
+                    contentDescription = member.name
+                    if (!canNavigate) {
+                        disabled()
+                        stateDescription = unavailableLabel
+                    }
+                }
                 .size(cardSize)
                 .align(Alignment.Start)
                 .onFocusChanged { state ->

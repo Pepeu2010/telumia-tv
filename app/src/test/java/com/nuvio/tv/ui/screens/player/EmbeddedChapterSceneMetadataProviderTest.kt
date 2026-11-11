@@ -57,6 +57,80 @@ class EmbeddedChapterSceneMetadataProviderTest {
     }
 
     @Test
+    fun sceneInfoChapterContextKeepsMedia3TimestampsAndAdjacentChapterOrder() = runBlocking {
+        val finalChapter = TimedMetadataEvent(
+            id = "chapter:final",
+            startMs = 8_000,
+            body = TimedMetadataBody.Chapter("A última cena"),
+            provenance = TimedMetadataProvenance(MEDIA3_ID3_PROVIDER, "final"),
+        )
+        val withFinalChapter = TimedMetadataTimeline.create(
+            scope,
+            sourceTimeline.events + finalChapter,
+            durationMs = 10_000,
+        )
+        val provider = EmbeddedChapterSceneMetadataProvider(withFinalChapter, durationMs = 10_000)
+        val timeline = loadTimedMetadata(
+            scope = scope,
+            providers = listOf(provider),
+            durationMs = 10_000,
+            trustedSceneProviderIds = setOf(provider.id),
+        ).timeline
+
+        val opening = sceneInfoChapterContextAt(timeline, scope, 4_999)!!
+        assertNull(opening.previous)
+        assertEquals("A chegada", opening.current?.title)
+        assertEquals(0L, opening.current?.startMs)
+        assertEquals("O retorno", opening.next?.title)
+        assertEquals(5_000L, opening.next?.startMs)
+
+        val middle = sceneInfoChapterContextAt(timeline, scope, 5_000)!!
+        assertEquals("A chegada", middle.previous?.title)
+        assertEquals(0L, middle.previous?.startMs)
+        assertEquals("O retorno", middle.current?.title)
+        assertEquals(5_000L, middle.current?.startMs)
+        assertEquals("A última cena", middle.next?.title)
+        assertEquals(8_000L, middle.next?.startMs)
+
+        val final = sceneInfoChapterContextAt(timeline, scope, 8_000)!!
+        assertEquals("O retorno", final.previous?.title)
+        assertEquals("A última cena", final.current?.title)
+        assertEquals(8_000L, final.current?.startMs)
+        assertNull(final.next)
+    }
+
+    @Test
+    fun sceneInfoChapterContextDoesNotCrossScopesAndDescribesGaps() = runBlocking {
+        val gappedSource = TimedMetadataTimeline.create(
+            scope,
+            listOf(
+                TimedMetadataEvent(
+                    "chapter:first", 1_000, 2_000, TimedMetadataBody.Chapter("Primeiro"),
+                    TimedMetadataProvenance(MEDIA3_ID3_PROVIDER, "first"),
+                ),
+                TimedMetadataEvent(
+                    "chapter:second", 4_000, 6_000, TimedMetadataBody.Chapter("Segundo"),
+                    TimedMetadataProvenance(MEDIA3_ID3_PROVIDER, "second"),
+                ),
+            ),
+            durationMs = 10_000,
+        )
+        val provider = EmbeddedChapterSceneMetadataProvider(gappedSource, durationMs = 10_000)
+        val timeline = loadTimedMetadata(
+            scope = scope,
+            providers = listOf(provider),
+            durationMs = 10_000,
+            trustedSceneProviderIds = setOf(provider.id),
+        ).timeline
+
+        val gap = sceneInfoChapterContextAt(timeline, scope, 3_000)!!
+        assertEquals("Primeiro", gap.previous?.title)
+        assertNull(gap.current)
+        assertEquals("Segundo", gap.next?.title)
+        assertNull(sceneInfoChapterContextAt(timeline, scope.copy(videoId = "other"), 3_000))
+    }
+
+    @Test
     fun providerRejectsUnboundOrMismatchedSourceTimelines() = runBlocking {
         val provider = EmbeddedChapterSceneMetadataProvider(sourceTimeline, durationMs = 10_000)
         assertTrue(provider.load(baseScope).isEmpty())

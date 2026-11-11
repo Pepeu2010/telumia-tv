@@ -1171,15 +1171,8 @@ var i18n = {
   catalogs: '${context.getString(R.string.collections_editor_catalogs).replace("'", "\\'")}',
   addCatalog: '${context.getString(R.string.collections_editor_add_catalog).replace("'", "\\'")}',
   addTmdb: '${context.getString(R.string.collections_editor_add_source).replace("'", "\\'")}',
-  addTrakt: '${context.getString(R.string.collections_editor_add_trakt_source).replace("'", "\\'")}',
   tmdbSearch: '${context.getString(R.string.collections_editor_tmdb_search).replace("'", "\\'")}',
   tmdbSources: '${context.getString(R.string.collections_editor_tmdb_sources).replace("'", "\\'")}',
-  traktSources: '${context.getString(R.string.collections_editor_trakt_sources).replace("'", "\\'")}',
-  traktList: '${context.getString(R.string.collections_editor_trakt_list).replace("'", "\\'")}',
-  traktSearchResults: '${context.getString(R.string.collections_editor_trakt_search_results).replace("'", "\\'")}',
-  traktDirection: '${context.getString(R.string.collections_editor_trakt_direction).replace("'", "\\'")}',
-  traktAscending: '${context.getString(R.string.collections_editor_trakt_ascending).replace("'", "\\'")}',
-  traktDescending: '${context.getString(R.string.collections_editor_trakt_descending).replace("'", "\\'")}',
   tmdbIdOrUrl: '${context.getString(R.string.collections_editor_tmdb_id_or_url).replace("'", "\\'")}',
   tmdbPublicList: '${context.getString(R.string.collections_editor_tmdb_public_list).replace("'", "\\'")}',
   tmdbNetworkId: '${context.getString(R.string.collections_editor_tmdb_network_id).replace("'", "\\'")}',
@@ -1276,8 +1269,6 @@ var i18n = {
   tmdbPlaceholderCompany: '${jsString(R.string.collections_editor_tmdb_placeholder_company)}',
   tmdbPlaceholderNetwork: '${jsString(R.string.collections_editor_tmdb_placeholder_network)}',
   tmdbPlaceholderPerson: '${jsString(R.string.collections_editor_tmdb_person_placeholder)}',
-  traktIdPlaceholder: '${jsString(R.string.collections_editor_trakt_id_placeholder)}',
-  traktNamePlaceholder: '${jsString(R.string.collection_editor_trakt_name_placeholder)}',
   sortOriginal: '${jsString(R.string.collections_editor_sort_original)}',
   sortListOrder: '${jsString(R.string.collections_editor_sort_list_order)}',
   sortRecentlyAdded: '${jsString(R.string.collections_editor_sort_recently_added)}',
@@ -1316,10 +1307,8 @@ var i18n = {
   importSourceInvalidFormat: '${jsString(R.string.web_import_error_source_invalid_format)}',
   importSourceMissingAddonFields: '${jsString(R.string.web_import_error_source_missing_addon_fields)}',
   importSourceMissingTmdbType: '${jsString(R.string.web_import_error_source_missing_tmdb_type)}',
-  importSourceMissingTraktId: '${jsString(R.string.web_import_error_source_missing_trakt_id)}',
   errorValidTmdbId: '${jsString(R.string.collections_editor_error_valid_tmdb_id_or_url)}',
-  errorLoadTmdbSource: '${jsString(R.string.collections_editor_error_load_tmdb_source)}',
-  errorLoadTraktList: '${jsString(R.string.collections_editor_error_load_trakt_list)}'
+  errorLoadTmdbSource: '${jsString(R.string.collections_editor_error_load_tmdb_source)}'
   };
 var connectionLost = false;
 var consecutiveErrors = 0;
@@ -2452,122 +2441,6 @@ function parseTmdbIdFromInput(value) {
   return parseInt(matches[matches.length - 1], 10);
 }
 
-async function addTraktSource(ci, fi) {
-  var folder = collections[ci].folders[fi];
-  var inputEl = document.getElementById('trakt-id-' + ci + '-' + fi);
-  var titleEl = document.getElementById('trakt-title-' + ci + '-' + fi);
-  var mediaEl = document.getElementById('trakt-media-' + ci + '-' + fi);
-  var bothEl = document.getElementById('trakt-both-' + ci + '-' + fi);
-  var sortEl = document.getElementById('trakt-sort-' + ci + '-' + fi);
-  var sortHowEl = document.getElementById('trakt-sort-how-' + ci + '-' + fi);
-  var errorEl = document.getElementById('trakt-error-' + ci + '-' + fi);
-  var input = inputEl ? inputEl.value.trim() : '';
-  var metadata = await loadTraktMetadata(input);
-  if (!metadata || !metadata.traktListId) {
-    errorEl.textContent = i18n.errorLoadTraktList;
-    errorEl.style.display = 'block';
-    return;
-  }
-  errorEl.style.display = 'none';
-  var title = (titleEl && titleEl.value.trim()) || metadata.title || (i18n.traktList + ' ' + metadata.traktListId);
-  applyTraktMetadataToFolder(ci, fi, metadata, false);
-  var mediaType = mediaEl ? mediaEl.value : 'MOVIE';
-  var mediaTypes = bothEl && bothEl.checked ? ['MOVIE', 'TV'] : [mediaType];
-  mediaTypes.forEach(function(selectedMediaType) {
-    getFolderSources(folder).push({
-      provider: 'trakt',
-      title: mediaTypes.length > 1 ? title + ' ' + (selectedMediaType === 'TV' ? i18n.seriesPlural : i18n.movies) : title,
-      traktListId: metadata.traktListId,
-      mediaType: selectedMediaType,
-      sortBy: sortEl ? sortEl.value : 'rank',
-      sortHow: sortHowEl ? sortHowEl.value : 'asc'
-    });
-  });
-  getFolderSources(folder);
-  renderCollections();
-}
-
-async function loadTraktMetadata(input) {
-  if (!input) return null;
-  try {
-    var res = await fetchWithTimeout('/api/trakt/metadata?input=' + encodeURIComponent(input), {}, 8000);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-async function autoFillTraktSource(ci, fi) {
-  var inputEl = document.getElementById('trakt-id-' + ci + '-' + fi);
-  var titleEl = document.getElementById('trakt-title-' + ci + '-' + fi);
-  var input = inputEl ? inputEl.value.trim() : '';
-  var metadata = await loadTraktMetadata(input);
-  if (!metadata) return;
-  if (inputEl && metadata.traktListId) inputEl.value = String(metadata.traktListId);
-  if (titleEl && !titleEl.value.trim() && metadata.title) titleEl.value = metadata.title;
-  applyTraktMetadataToFolder(ci, fi, metadata, false);
-}
-
-async function searchTraktSources(ci, fi) {
-  var inputEl = document.getElementById('trakt-id-' + ci + '-' + fi);
-  var query = inputEl ? inputEl.value.trim() : '';
-  var resultsEl = document.getElementById('trakt-results-' + ci + '-' + fi);
-  if (!query || !resultsEl) return;
-  try {
-    var res = await fetchWithTimeout('/api/trakt/search?query=' + encodeURIComponent(query), {}, 8000);
-    if (!res.ok) return;
-    var data = await res.json();
-    var results = Array.isArray(data) ? data : [];
-    resultsEl.innerHTML = results.map(function(item) {
-      return '<button class="tmdb-preset-card" onclick="addTraktSearchResult(' + ci + ',' + fi + ',' + item.id + ',\'' + escapeJsSingle(item.title || (i18n.traktList + ' ' + item.id)) + '\',\'' + escapeJsSingle(item.coverImageUrl || '') + '\')">' +
-        '<span>' + escapeHtml(item.title || (i18n.traktList + ' ' + item.id)) + '<br><small style="color:rgba(255,255,255,0.35);font-weight:400">' + escapeHtml(item.subtitle || i18n.traktList) + '</small></span>' +
-        '<span style="color:rgba(130,200,130,0.9);font-size:0.72rem;flex-shrink:0">' + escapeHtml(i18n.add) + '</span>' +
-      '</button>';
-    }).join('');
-  } catch (e) {
-  }
-}
-
-function addTraktSearchResult(ci, fi, id, title, coverImageUrl) {
-  var folder = collections[ci].folders[fi];
-  var titleEl = document.getElementById('trakt-title-' + ci + '-' + fi);
-  var mediaEl = document.getElementById('trakt-media-' + ci + '-' + fi);
-  var bothEl = document.getElementById('trakt-both-' + ci + '-' + fi);
-  var sortEl = document.getElementById('trakt-sort-' + ci + '-' + fi);
-  var sortHowEl = document.getElementById('trakt-sort-how-' + ci + '-' + fi);
-  var resolvedTitle = (titleEl && titleEl.value.trim()) || title || (i18n.traktList + ' ' + id);
-  var mediaType = mediaEl ? mediaEl.value : 'MOVIE';
-  var mediaTypes = bothEl && bothEl.checked ? ['MOVIE', 'TV'] : [mediaType];
-  mediaTypes.forEach(function(selectedMediaType) {
-    getFolderSources(folder).push({
-      provider: 'trakt',
-      title: mediaTypes.length > 1 ? resolvedTitle + ' ' + (selectedMediaType === 'TV' ? i18n.seriesPlural : i18n.movies) : resolvedTitle,
-      traktListId: id,
-      mediaType: selectedMediaType,
-      sortBy: sortEl ? sortEl.value : 'rank',
-      sortHow: sortHowEl ? sortHowEl.value : 'asc'
-    });
-  });
-  if (coverImageUrl && !folder.coverImageUrl) {
-    folder.coverImageUrl = coverImageUrl;
-    folder.coverEmoji = null;
-    folder._coverMode = 'image';
-  }
-  getFolderSources(folder);
-  renderCollections();
-}
-
-function applyTraktMetadataToFolder(ci, fi, metadata, render) {
-  if (!metadata || !metadata.coverImageUrl) return;
-  var folder = collections[ci].folders[fi];
-  if (folder.coverImageUrl) return;
-  folder.coverImageUrl = metadata.coverImageUrl;
-  folder.coverEmoji = null;
-  folder._coverMode = 'image';
-  if (render) renderCollections();
-}
-
 function removeCatalogSource(ci, fi, si) {
   var folder = collections[ci].folders[fi];
   getFolderSources(folder).splice(si, 1);
@@ -2588,7 +2461,6 @@ function moveCatalogSource(ci, fi, si, dir) {
 
 function catalogSourceLabel(src) {
   if (String(src.provider || 'addon').toLowerCase() === 'tmdb') return tmdbSourceLabel(src);
-  if (String(src.provider || 'addon').toLowerCase() === 'trakt') return traktSourceLabel(src);
   var match = availableCatalogs.find(function(c) {
     return c.key === src.addonId + '_' + src.type + '_' + src.catalogId;
   });
@@ -2601,21 +2473,6 @@ function tmdbSourceLabel(src) {
   var type = src.tmdbSourceType || 'DISCOVER';
   var title = src.title || tmdbDefaultTitle(type);
   return title + ' - ' + typeLabel(type) + ' (' + media + ')';
-}
-
-function traktSourceLabel(src) {
-  var media = src.mediaType === 'TV' ? i18n.seriesPlural : i18n.movies;
-  var title = src.title || i18n.traktList + ' ' + (src.traktListId || '');
-  return title + ' - ' + i18n.traktList + ' (' + media + ', ' + traktSortLabel(src.sortBy || 'rank') + ')';
-}
-
-function traktSortLabel(value) {
-  if (value === 'added') return i18n.sortRecentlyAdded;
-  if (value === 'title') return i18n.sortTitle;
-  if (value === 'released') return i18n.sortReleased;
-  if (value === 'popularity') return i18n.popular;
-  if (value === 'votes') return i18n.sortVotes;
-  return i18n.sortListOrder;
 }
 
 function typeLabel(value) {
@@ -2746,41 +2603,6 @@ function tmdbBuilderHtml(ci, fi, folder) {
   html += '<button class="btn tmdb-source-wide" onclick="addTmdbSource(' + ci + ',' + fi + ')" style="padding:0.6rem;font-size:0.8rem">' + i18n.addTmdb + '</button>' +
     '</div>' +
     '<div id="tmdb-error-' + ci + '-' + fi + '" style="display:none;color:rgba(207,102,121,0.9);font-size:0.75rem;margin-top:0.5rem"></div>';
-  return html;
-}
-
-function traktBuilderHtml(ci, fi) {
-  var html = '<div class="tmdb-source-grid" style="margin-top:0.65rem">';
-  html += '<label class="tmdb-helper">' + escapeHtml(i18n.traktList) + '</label>' +
-    '<input id="trakt-id-' + ci + '-' + fi + '" class="tmdb-source-wide" type="text" placeholder="' + escapeAttr(i18n.traktIdPlaceholder) + '" onblur="autoFillTraktSource(' + ci + ',' + fi + ')">';
-  html += '<label class="tmdb-helper">' + escapeHtml(i18n.tmdbDisplayTitle) + '</label>' +
-    '<input id="trakt-title-' + ci + '-' + fi + '" class="tmdb-source-wide" placeholder="' + escapeAttr(i18n.traktNamePlaceholder) + '">';
-  html += '<label class="tmdb-helper">' + escapeHtml(i18n.filterType) + '</label>' +
-    '<select id="trakt-media-' + ci + '-' + fi + '">' +
-      '<option value="MOVIE">' + escapeHtml(i18n.movie) + '</option>' +
-      '<option value="TV">' + escapeHtml(i18n.series) + '</option>' +
-    '</select>' +
-    '<label class="tmdb-checkbox"><input id="trakt-both-' + ci + '-' + fi + '" type="checkbox"> ' + escapeHtml(i18n.choiceBoth) + '</label>';
-  html += '<label class="tmdb-helper">' + escapeHtml(i18n.filterSort) + '</label>' +
-    '<select id="trakt-sort-' + ci + '-' + fi + '">' +
-      '<option value="rank">' + escapeHtml(i18n.sortListOrder) + '</option>' +
-      '<option value="added">' + escapeHtml(i18n.sortRecentlyAdded) + '</option>' +
-      '<option value="title">' + escapeHtml(i18n.sortTitle) + '</option>' +
-      '<option value="released">' + escapeHtml(i18n.sortReleased) + '</option>' +
-      '<option value="popularity">' + escapeHtml(i18n.popular) + '</option>' +
-      '<option value="votes">' + escapeHtml(i18n.sortVotes) + '</option>' +
-    '</select>';
-  html += '<label class="tmdb-helper">' + escapeHtml(i18n.traktDirection) + '</label>' +
-    '<select id="trakt-sort-how-' + ci + '-' + fi + '">' +
-      '<option value="asc">' + escapeHtml(i18n.traktAscending) + '</option>' +
-      '<option value="desc">' + escapeHtml(i18n.traktDescending) + '</option>' +
-    '</select>';
-  html += '<button class="btn tmdb-source-wide" onclick="searchTraktSources(' + ci + ',' + fi + ')" style="padding:0.6rem;font-size:0.8rem">' + i18n.tmdbSearch + '</button>';
-  html += '<button class="btn tmdb-source-wide" onclick="addTraktSource(' + ci + ',' + fi + ')" style="padding:0.6rem;font-size:0.8rem">' + i18n.addTrakt + '</button>' +
-    '</div>' +
-    '<div id="trakt-error-' + ci + '-' + fi + '" style="display:none;color:rgba(207,102,121,0.9);font-size:0.75rem;margin-top:0.5rem"></div>' +
-    '<div class="tmdb-helper" style="margin-top:0.75rem">' + escapeHtml(i18n.traktSearchResults) + '</div>' +
-    '<div id="trakt-results-' + ci + '-' + fi + '" class="tmdb-preset-grid" style="margin-top:0.5rem"></div>';
   return html;
 }
 
@@ -3008,7 +2830,7 @@ function renderCollections() {
         var isFirstSrc = (si === 0);
         var isLastSrc = (si === activeSources.length - 1);
         var provider = String(src.provider || 'addon').toLowerCase();
-        var providerLabel = provider === 'tmdb' ? '<span class="source-provider">TMDB</span>' : (provider === 'trakt' ? '<span class="source-provider">TRAKT</span>' : '');
+        var providerLabel = provider === 'tmdb' ? '<span class="source-provider">TMDB</span>' : '';
         sourcesHtml +=
           '<div class="source-item">' +
             '<button class="btn-icon" onclick="moveCatalogSource(' + ci + ',' + fi + ',' + si + ',-1)"' + (isFirstSrc ? ' disabled' : '') + '>' +
@@ -3173,12 +2995,6 @@ function renderCollections() {
                 tmdbBuilderHtml(ci, fi, folder) +
               '</div>' +
             '</div>' +
-            '<div class="folder-settings-group" style="margin-top:0.5rem">' +
-              '<div class="folder-settings-group-label">' + i18n.traktSources + '</div>' +
-              '<div style="padding:0.5rem 0.75rem">' +
-                traktBuilderHtml(ci, fi) +
-              '</div>' +
-            '</div>' +
           '</div>'
           : '') +
         '</div>';
@@ -3304,7 +3120,6 @@ async function doImport() {
 	          var provider = (s.provider || 'addon').toLowerCase();
 	          if (provider === 'addon' && (typeof s.addonId !== 'string' || typeof s.type !== 'string' || typeof s.catalogId !== 'string')) { errEl.textContent = formatTemplate(i18n.importSourceMissingAddonFields, { collection: c.title, folder: f.title, index: k + 1 }); errEl.style.display = 'block'; return; }
 	          if (provider === 'tmdb' && typeof s.tmdbSourceType !== 'string') { errEl.textContent = formatTemplate(i18n.importSourceMissingTmdbType, { collection: c.title, folder: f.title, index: k + 1 }); errEl.style.display = 'block'; return; }
-	          if (provider === 'trakt' && typeof s.traktListId !== 'number') { errEl.textContent = formatTemplate(i18n.importSourceMissingTraktId, { collection: c.title, folder: f.title, index: k + 1 }); errEl.style.display = 'block'; return; }
         }
       }
     }

@@ -86,7 +86,6 @@ private fun RatingBadge(
             else -> {
                 val isImdb = provider == "imdb"
                 val rawRes = when (provider) {
-                    "trakt" -> R.raw.mdblist_trakt
                     "imdb" -> R.raw.imdb_logo_2016
                     "tmdb" -> R.raw.mdblist_tmdb
                     "letterboxd" -> R.raw.mdblist_letterboxd
@@ -120,7 +119,6 @@ private fun RatingBadge(
 }
 
 private fun getRatingValue(ratings: MDBListRatings, provider: String): Double? = when (provider) {
-    "trakt" -> ratings.trakt
     "imdb" -> ratings.imdb
     "tmdb" -> ratings.tmdb
     "letterboxd" -> ratings.letterboxd

@@ -30,7 +30,7 @@ data class MDBListMediaResponseDto(
             val source = when (rating.source) {
                 "popcorn", "audience", "tomatoesaudience" -> "audience"
                 "myanimelist", "mal" -> "mal"
-                "imdb", "trakt", "tmdb", "letterboxd", "tomatoes", "metacritic" -> rating.source
+                "imdb", "tmdb", "letterboxd", "tomatoes", "metacritic" -> rating.source
                 else -> return@mapNotNull null
             }
             val maximum = when (source) {
@@ -44,7 +44,6 @@ data class MDBListMediaResponseDto(
             source to value
         }.distinctBy { it.first }.toMap()
         return MDBListRatings(
-            trakt = values["trakt"],
             imdb = values["imdb"],
             tmdb = values["tmdb"],
             letterboxd = values["letterboxd"],

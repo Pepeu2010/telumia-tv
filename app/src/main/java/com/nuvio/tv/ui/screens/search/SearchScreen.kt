@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -68,7 +69,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.FocusRequester
@@ -132,11 +137,14 @@ private val NAVIGATION_KEYS = setOf(
     KeyEvent.KEYCODE_NUMPAD_ENTER
 )
 
+private const val COMPANY_SEARCH_ROW_KEY = "tmdb_company_search"
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     onNavigateToDetail: (String, String, String) -> Unit,
+    onNavigateToTmdbEntityBrowse: (entityKind: String, entityId: Int, entityName: String, sourceType: String) -> Unit = { _, _, _, _ -> },
     onNavigateToSeeAll: (catalogId: String, addonId: String, type: String) -> Unit = { _, _, _ -> },
     onOpenDiscover: () -> Unit = {}
 ) {
@@ -192,9 +200,9 @@ fun SearchScreen(
         }
     }
     val isVoiceSearchAvailable = remember(context) { SpeechRecognizer.isRecognitionAvailable(context) }
-    val topInputFocusRequester = remember(isVoiceSearchAvailable) {
-        if (isVoiceSearchAvailable) voiceFocusRequester else searchFocusRequester
-    }
+    // Land on the query itself so the screen immediately communicates its primary action.
+    // Voice search remains one D-pad step away instead of stealing initial focus.
+    val topInputFocusRequester = searchFocusRequester
     val speechRecognizer = remember(context, isVoiceSearchAvailable) {
         if (isVoiceSearchAvailable) {
             runCatching { SpeechRecognizer.createSpeechRecognizer(context) }.getOrNull()
@@ -325,6 +333,8 @@ fun SearchScreen(
     val searchRowFocusRequesters = remember { mutableMapOf<String, FocusRequester>() }
     val searchRowEntryFocusRequesters = remember { mutableMapOf<String, FocusRequester>() }
     val searchRowFocusedItemIndex = remember { mutableMapOf<String, Int>() }
+    val companyFocusRequesters = remember { mutableMapOf<Int, FocusRequester>() }
+    val focusedCompanyItemIndex = rememberSaveable { mutableIntStateOf(viewModel.savedFocusItemIndex.coerceAtLeast(0)) }
     // Clears the row-local focus index so the row's entry requester moves to the first card.
     // Scoped to one row so a Back in one does not reset what the others remember.
     var focusResetCounter by remember { mutableIntStateOf(0) }
@@ -337,7 +347,11 @@ fun SearchScreen(
 
     val saveSearchFocusForDetail: (String) -> Unit = { rowKey ->
         viewModel.savedFocusRowKey = rowKey
-        viewModel.savedFocusItemIndex = searchRowFocusedItemIndex[rowKey] ?: 0
+        viewModel.savedFocusItemIndex = if (rowKey == COMPANY_SEARCH_ROW_KEY) {
+            focusedCompanyItemIndex.intValue
+        } else {
+            searchRowFocusedItemIndex[rowKey] ?: 0
+        }
         viewModel.savedRowScrollPositions = searchRowStates.mapValues {
             it.value.firstVisibleItemIndex to it.value.firstVisibleItemScrollOffset
         }
@@ -388,13 +402,14 @@ fun SearchScreen(
         isDiscoverMode,
         uiState.discoverResults,
         trimmedSubmittedQuery,
-        uiState.catalogRows
+        uiState.catalogRows,
+        uiState.companySearchResults
     ) {
         if (isDiscoverMode) {
             false
         } else {
             trimmedSubmittedQuery.length >= MIN_SEARCH_QUERY_LENGTH &&
-                uiState.catalogRows.any { it.items.isNotEmpty() }
+                (uiState.catalogRows.any { it.items.isNotEmpty() } || uiState.companySearchResults.isNotEmpty())
         }
     }
     val submitCurrentQuery: (String) -> Unit = { submittedQuery ->
@@ -454,6 +469,34 @@ fun SearchScreen(
         }
     }
 
+    LaunchedEffect(focusResults, uiState.companySearchResults) {
+        if (!focusResults || uiState.companySearchResults.isEmpty()) return@LaunchedEffect
+        val firstCompanyId = uiState.companySearchResults.first().tmdbId
+        delay(80)
+        runCatching { companyFocusRequesters.getOrPut(firstCompanyId) { FocusRequester() }.requestFocus() }
+        focusResults = false
+        pendingFocusMoveToResultsQuery = null
+        pendingFocusMoveSawSearching = false
+        pendingFocusMoveHadExistingSearchRows = false
+    }
+
+    LaunchedEffect(restoringSearchFocus.value, uiState.companySearchResults) {
+        if (
+            !restoringSearchFocus.value ||
+            viewModel.savedFocusRowKey != COMPANY_SEARCH_ROW_KEY ||
+            uiState.companySearchResults.isEmpty()
+        ) return@LaunchedEffect
+        repeat(2) { withFrameNanos { } }
+        val companyId = uiState.companySearchResults
+            .getOrNull(viewModel.savedFocusItemIndex.coerceAtLeast(0))
+            ?.tmdbId
+            ?: uiState.companySearchResults.firstOrNull()?.tmdbId
+        companyId?.let { id -> companyFocusRequesters[id]?.let { runCatching { it.requestFocus() } } }
+        restoringSearchFocus.value = false
+        didRestoreSearchFocus.value = true
+        viewModel.hasSavedSearchFocus = false
+    }
+
     LaunchedEffect(
         pendingFocusMoveToResultsQuery,
         pendingFocusMoveSawSearching,
@@ -490,6 +533,7 @@ fun SearchScreen(
     }
 
     val initialFocusRequester = topInputFocusRequester
+    val latestCompanyResults by rememberUpdatedState(uiState.companySearchResults)
 
     LaunchedEffect(Unit) {
         if (viewModel.hasSavedSearchFocus) return@LaunchedEffect
@@ -531,6 +575,23 @@ fun SearchScreen(
                 if (latestPendingDiscoverRestore) {
                     restoreDiscoverFocus = true
                     pendingDiscoverRestoreOnResume = false
+                } else if (
+                    viewModel.hasSavedSearchFocus &&
+                    viewModel.savedFocusRowKey == COMPANY_SEARCH_ROW_KEY
+                ) {
+                    coroutineScope.launch {
+                        repeat(2) { withFrameNanos { } }
+                        val companyId = latestCompanyResults
+                            .getOrNull(viewModel.savedFocusItemIndex.coerceAtLeast(0))
+                            ?.tmdbId
+                            ?: latestCompanyResults.firstOrNull()?.tmdbId
+                        companyId?.let { id ->
+                            runCatching { companyFocusRequesters[id]?.requestFocus() }
+                        }
+                        didRestoreSearchFocus.value = true
+                        restoringSearchFocus.value = false
+                        viewModel.hasSavedSearchFocus = false
+                    }
                 } else if (viewModel.hasSavedSearchFocus || didRestoreSearchFocus.value) {
                     // Returning from details — don't steal focus, CatalogRowSection
                     // already restored it or will restore it via focusedItemIndex.
@@ -567,6 +628,28 @@ fun SearchScreen(
             .background(NuvioTheme.colors.Background),
         contentAlignment = Alignment.TopCenter
     ) {
+        // Carry the last displayed artwork into search so the transition retains the
+        // visual context of Home; the dark scrim keeps results and focus rings legible.
+        val searchBackdrop = remember { HeroBackdropState.lastDisplayedUrl }
+        val searchBackground = NuvioTheme.colors.Background
+        if (!searchBackdrop.isNullOrBlank()) {
+            val backdropRequest = remember(context, searchBackdrop) {
+                ImageRequest.Builder(context).data(searchBackdrop).size(960, 540).build()
+            }
+            AsyncImage(
+                model = backdropRequest,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = 0.20f }
+            )
+        }
+        Box(
+            modifier = Modifier.fillMaxSize().background(
+                Brush.verticalGradient(
+                    listOf(searchBackground.copy(alpha = 0.22f), searchBackground.copy(alpha = 0.72f), searchBackground)
+                )
+            )
+        )
         val listState = rememberLazyListState()
 
         // Step back within Search before falling through to the root handler.
@@ -577,16 +660,26 @@ fun SearchScreen(
                 (isRecentSearchSectionFocused || (!isDiscoverMode && focusedRowKey != null))
         ) {
             if (!isRecentSearchSectionFocused && focusedItemIndex > 0 && focusedRowKey != null) {
-                searchRowFocusedItemIndex[focusedRowKey] = 0
                 focusedResultItemIndex.intValue = 0
-                focusResetRowKey = focusedRowKey
-                focusResetCounter++
+                if (focusedRowKey == COMPANY_SEARCH_ROW_KEY) {
+                    focusedCompanyItemIndex.intValue = 0
+                } else {
+                    searchRowFocusedItemIndex[focusedRowKey] = 0
+                    focusResetRowKey = focusedRowKey
+                    focusResetCounter++
+                }
                 coroutineScope.launch {
                     // Let the reset take effect so the entry requester moves to the first card.
                     repeat(2) { withFrameNanos { } }
-                    searchRowStates[focusedRowKey]?.scrollToItem(0)
-                    searchRowEntryFocusRequesters[focusedRowKey]
-                        ?.let { runCatching { it.requestFocus() } }
+                    if (focusedRowKey == COMPANY_SEARCH_ROW_KEY) {
+                        uiState.companySearchResults.firstOrNull()?.tmdbId
+                            ?.let(companyFocusRequesters::get)
+                            ?.let { runCatching { it.requestFocus() } }
+                    } else {
+                        searchRowStates[focusedRowKey]?.scrollToItem(0)
+                        searchRowEntryFocusRequesters[focusedRowKey]
+                            ?.let { runCatching { it.requestFocus() } }
+                    }
                 }
             } else {
                 backToFieldLatched = true
@@ -606,6 +699,12 @@ fun SearchScreen(
             lastScrollResetQuery = uiState.query
             // Clear stale focus so the restorer cannot return to an item from the previous query.
             searchRowFocusedItemIndex.clear()
+            focusedCompanyItemIndex.intValue = 0
+            if (lastFocusedRowKey == COMPANY_SEARCH_ROW_KEY) lastFocusedRowKey = null
+            if (viewModel.savedFocusRowKey == COMPANY_SEARCH_ROW_KEY) {
+                viewModel.savedFocusRowKey = null
+                viewModel.hasSavedSearchFocus = false
+            }
             focusedResultItemIndex.intValue = 0
             // Clear saved offsets too; rebuilt rows can otherwise inherit the old query's position.
             viewModel.savedRowScrollPositions = emptyMap()
@@ -694,6 +793,42 @@ fun SearchScreen(
                 // instruction is wrong, and it was re-appearing on every keystroke. Neither the
                 // mobile nor the desktop client shows an equivalent message.
 
+                if (
+                    uiState.companySearchResults.isNotEmpty() ||
+                    uiState.isCompanySearchLoading ||
+                    uiState.companySearchError != null
+                ) {
+                    item(key = COMPANY_SEARCH_ROW_KEY) {
+                        CompanySearchResultsSection(
+                            results = uiState.companySearchResults,
+                            isLoading = uiState.isCompanySearchLoading,
+                            error = uiState.companySearchError,
+                            searchFocusRequester = searchFocusRequester,
+                            focusRequesters = companyFocusRequesters,
+                            onItemFocused = { index ->
+                                focusResults = false
+                                focusedCompanyItemIndex.intValue = index
+                                focusedResultItemIndex.intValue = index
+                                lastFocusedRowKey = COMPANY_SEARCH_ROW_KEY
+                                if (restoringSearchFocus.value) {
+                                    restoringSearchFocus.value = false
+                                    didRestoreSearchFocus.value = true
+                                    viewModel.hasSavedSearchFocus = false
+                                }
+                            },
+                            onItemClick = { index, result ->
+                                focusedCompanyItemIndex.intValue = index
+                                focusedResultItemIndex.intValue = index
+                                lastFocusedRowKey = COMPANY_SEARCH_ROW_KEY
+                                saveSearchFocusForDetail(COMPANY_SEARCH_ROW_KEY)
+                                onNavigateToTmdbEntityBrowse("company", result.tmdbId, result.name, "movie")
+                            },
+                            onRetry = { viewModel.onEvent(SearchEvent.Retry) },
+                            modifier = Modifier.padding(horizontal = 52.dp)
+                        )
+                    }
+                }
+
                 when {
                     trimmedSubmittedQuery.length < MIN_SEARCH_QUERY_LENGTH && !hasPendingUnsubmittedQuery -> {
                         item {
@@ -733,7 +868,7 @@ fun SearchScreen(
                     // mobile it only applies with an empty screen: mobile swaps results out for
                     // skeletons on every keystroke, which on a remote reads as flicker because each
                     // letter outlasts the debounce, so existing results are kept instead.
-                    (hasPendingUnsubmittedQuery || uiState.isSearching) && visibleCatalogRows.isEmpty() -> {
+                    (hasPendingUnsubmittedQuery || uiState.isSearching || uiState.isCompanySearchLoading) && visibleCatalogRows.isEmpty() -> {
                         items(SEARCH_SKELETON_ROW_COUNT, key = { "search_skeleton_$it" }) { index ->
                             val skeletonRow = remember(index) {
                                 com.nuvio.tv.domain.model.CatalogRow(
@@ -771,7 +906,8 @@ fun SearchScreen(
                         }
                     }
 
-                    uiState.error != null && uiState.catalogRows.isEmpty() -> {
+                    uiState.error != null && uiState.catalogRows.isEmpty() &&
+                        uiState.companySearchResults.isEmpty() && uiState.companySearchError == null -> {
                         item {
                             ErrorState(
                                 message = uiState.error ?: stringResource(R.string.search_error_failed),
@@ -780,7 +916,8 @@ fun SearchScreen(
                         }
                     }
 
-                    !uiState.isSearching && !hasPendingUnsubmittedQuery && visibleCatalogRows.isEmpty() -> {
+                    !uiState.isSearching && !uiState.isCompanySearchLoading && !hasPendingUnsubmittedQuery &&
+                        visibleCatalogRows.isEmpty() && uiState.companySearchResults.isEmpty() -> {
                         item {
                             EmptyScreenState(
                                 title = stringResource(R.string.search_no_results_title),
@@ -845,7 +982,7 @@ fun SearchScreen(
                                         viewModel.savedFocusItemIndex
                                     // The remembered card, not item 0. A query change clears
                                     // the map, so a new search still lands on the first item.
-                                    focusResults && index == 0 ->
+                                    focusResults && index == 0 && uiState.companySearchResults.isEmpty() ->
                                         searchRowFocusedItemIndex[catalogKey] ?: 0
                                     else -> -1
                                 },
@@ -952,6 +1089,102 @@ fun SearchScreen(
             onNavigateToDetail(id, type, addonBaseUrl)
         }
     )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+@Composable
+internal fun CompanySearchResultsSection(
+    results: List<SearchCompanyResult>,
+    isLoading: Boolean,
+    error: String?,
+    searchFocusRequester: FocusRequester,
+    focusRequesters: MutableMap<Int, FocusRequester>,
+    onItemFocused: (Int) -> Unit,
+    onItemClick: (Int, SearchCompanyResult) -> Unit,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LaunchedEffect(results) {
+        val visibleIds = results.mapTo(mutableSetOf(), SearchCompanyResult::tmdbId)
+        focusRequesters.keys.retainAll(visibleIds)
+    }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        if (results.isNotEmpty() || isLoading) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.tmdb_entity_kind_company),
+                    style = androidx.tv.material3.MaterialTheme.typography.titleMedium
+                )
+                if (isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                }
+            }
+        }
+
+        if (results.isNotEmpty()) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                itemsIndexed(results, key = { _, item -> item.tmdbId }) { index, result ->
+                    val requester = focusRequesters.getOrPut(result.tmdbId) { FocusRequester() }
+                    Button(
+                        onClick = { onItemClick(index, result) },
+                        modifier = Modifier
+                            .width(220.dp)
+                            .height(82.dp)
+                            .focusRequester(requester)
+                            .focusProperties {
+                                if (index == 0) up = searchFocusRequester
+                            }
+                            .onFocusChanged { if (it.isFocused) onItemFocused(index) }
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Text(
+                                text = result.name,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            result.originCountry?.let { country ->
+                                Text(text = country, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (error != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = error,
+                    modifier = Modifier.weight(1f),
+                    style = androidx.tv.material3.MaterialTheme.typography.bodySmall,
+                    color = NuvioTheme.colors.TextSecondary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (error != stringResource(R.string.search_error_tmdb_api_key_missing)) {
+                    Button(onClick = onRetry) {
+                        Text(text = stringResource(R.string.action_retry))
+                    }
+                }
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

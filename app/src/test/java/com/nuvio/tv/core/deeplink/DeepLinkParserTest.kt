@@ -56,7 +56,7 @@ class DeepLinkParserTest {
 
     @Test
     fun doesNotTreatAuthLinkAsAddonInstall() {
-        assertNull(DeepLinkParser.parse("nuvio://auth/trakt?code=abc"))
+        assertNull(DeepLinkParser.parse("nuvio://auth/provider?code=abc"))
     }
 
     @Test

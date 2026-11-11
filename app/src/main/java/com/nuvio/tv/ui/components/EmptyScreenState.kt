@@ -26,7 +26,8 @@ fun EmptyScreenState(
     subtitle: String? = null,
     icon: ImageVector? = null,
     modifier: Modifier = Modifier,
-    height: Dp = 400.dp
+    height: Dp = 400.dp,
+    iconSize: Dp = 80.dp
 ) {
     Column(
         modifier = modifier
@@ -39,7 +40,7 @@ fun EmptyScreenState(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(iconSize),
                 tint = NuvioTheme.colors.TextTertiary
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xl))

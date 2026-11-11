@@ -14,13 +14,10 @@ import com.nuvio.tv.core.tmdb.TmdbService
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
 import com.nuvio.tv.data.local.MDBListSettingsDataStore
 import com.nuvio.tv.data.local.PlayerSettingsDataStore
-import com.nuvio.tv.data.local.TraktAuthDataStore
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
 import com.nuvio.tv.data.repository.ImdbEpisodeRatingsRepository
 import com.nuvio.tv.data.repository.MDBListRepository
-import com.nuvio.tv.data.repository.TraktCommentsService
-import com.nuvio.tv.data.repository.TraktRelatedService
 import com.nuvio.tv.data.repository.parseContentIds
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.LibraryEntryInput
@@ -32,7 +29,6 @@ import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.MetaTrailer
 import com.nuvio.tv.domain.model.NextToWatch
 import com.nuvio.tv.domain.model.TmdbSettings
-import com.nuvio.tv.domain.model.TraktCommentReview
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.domain.repository.LibraryRepository
@@ -91,10 +87,7 @@ class MetaDetailsViewModel @Inject constructor(
     private val watchedItemsPreferences: WatchedItemsPreferences,
     private val trailerService: TrailerService,
     private val trailerSettingsDataStore: TrailerSettingsDataStore,
-    private val traktAuthDataStore: TraktAuthDataStore,
-    private val traktCommentsService: TraktCommentsService,
-    private val traktRelatedService: TraktRelatedService,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val simklRelatedService: com.nuvio.tv.data.simkl.SimklRelatedService,
     private val simklAuthRepository: com.nuvio.tv.data.simkl.SimklAuthRepository,
     private val layoutPreferenceDataStore: LayoutPreferenceDataStore,
@@ -136,8 +129,6 @@ class MetaDetailsViewModel @Inject constructor(
     val lastFocusedEpisodeIdBySeason = androidx.compose.runtime.mutableStateMapOf<Int, String>()
     private var episodeRatingsJob: Job? = null
     private var nextToWatchJob: Job? = null
-    private var commentsJob: Job? = null
-    private var commentsLoadMoreJob: Job? = null
     private var pendingDefaultLibraryToggle: LibraryEntryInput? = null
 
     private var trailerDelayMs = 7000L
@@ -148,9 +139,7 @@ class MetaDetailsViewModel @Inject constructor(
 
     private var isPlayButtonFocused = false
     private var hideUnreleasedContent = false
-    private var traktCommentsEnabled = false
-    private var traktAuthenticated = false
-    private var moreLikeThisSourcePreference = com.nuvio.tv.data.local.MoreLikeThisSourcePreference.TRAKT
+    private var moreLikeThisSourcePreference = com.nuvio.tv.data.local.MoreLikeThisSourcePreference.TMDB
 
     /** Content ID used for watch-progress and watched-items lookups.
      *  Starts as the navigation [itemId] (which may be "tmdb:123") and is
@@ -164,7 +153,7 @@ class MetaDetailsViewModel @Inject constructor(
         posterOptions.bind(viewModelScope)
         observeMetaViewSettings()
         observeTrailerAutoplaySettings()
-        observeTraktCommentsAvailability()
+        observeMoreLikeThisPreference()
         observeLibraryState()
         observeWatchProgress()
         observeWatchedEpisodes()
@@ -209,59 +198,12 @@ class MetaDetailsViewModel @Inject constructor(
         }
     }
 
-    private fun observeTraktCommentsAvailability() {
+    private fun observeMoreLikeThisPreference() {
         viewModelScope.launch {
-            traktSettingsDataStore.moreLikeThisSource.collectLatest { source ->
+            trackingSettingsDataStore.moreLikeThisSource.collectLatest { source ->
                 moreLikeThisSourcePreference = source
+                _uiState.value.meta?.let { loadMoreLikeThisAsync(it) }
             }
-        }
-        viewModelScope.launch {
-            combine(
-                traktSettingsDataStore.showMetaComments,
-                traktAuthDataStore.isAuthenticated
-            ) { enabled, authenticated ->
-                enabled to authenticated
-            }
-                .distinctUntilChanged()
-                .collectLatest { (enabled, authenticated) ->
-                    traktCommentsEnabled = enabled
-                    traktAuthenticated = authenticated
-
-                    val meta = _uiState.value.meta
-                    val shouldShow = enabled && authenticated && supportsComments(meta)
-                    if (!shouldShow) {
-                        cancelCommentsRequests()
-                    }
-
-                    _uiState.update { state ->
-                        if (shouldShow) {
-                            if (state.shouldShowCommentsSection) state else state.copy(
-                                shouldShowCommentsSection = true
-                            )
-                        } else {
-                            state.copy(
-                                comments = emptyList(),
-                                commentsCurrentPage = 0,
-                                commentsPageCount = 0,
-                                isCommentsLoading = false,
-                                isCommentsLoadingMore = false,
-                                commentsError = null,
-                                shouldShowCommentsSection = false,
-                                commentsMode = CommentsMode.TITLE,
-                                commentsEpisodeTarget = null,
-                                selectedComment = null
-                            )
-                        }
-                    }
-
-                    if (meta != null) {
-                        loadMoreLikeThisAsync(meta)
-                    }
-
-                    if (shouldShow && meta != null) {
-                        loadComments(meta)
-                    }
-                }
         }
     }
 
@@ -293,7 +235,7 @@ class MetaDetailsViewModel @Inject constructor(
         _uiState.value.meta?.let { meta ->
             metaDetailsSessionState.putNextToWatch(
                 profileId = profileManager.activeProfileId.value,
-                progressSource = traktSettingsDataStore.watchProgressSource.value.name,
+                progressSource = trackingSettingsDataStore.watchProgressSource.value.name,
                 contentId = _effectiveContentId.value,
                 contentType = meta.apiType,
                 nextToWatch = nextToWatch
@@ -344,16 +286,9 @@ class MetaDetailsViewModel @Inject constructor(
         when (event) {
             is MetaDetailsEvent.OnSeasonSelected -> selectSeason(event.season)
             is MetaDetailsEvent.OnEpisodeClick -> { /* Navigate to stream */ }
-            is MetaDetailsEvent.OnCommentsModeSelected -> selectCommentsMode(event.mode)
-            is MetaDetailsEvent.OnCommentsEpisodeSelected -> selectCommentsEpisode(event.video)
             MetaDetailsEvent.OnPlayClick -> { /* Start playback */ }
             MetaDetailsEvent.OnToggleLibrary -> toggleLibrary()
             MetaDetailsEvent.OnRetry -> loadMeta()
-            MetaDetailsEvent.OnRetryComments -> _uiState.value.meta?.let { loadComments(it, forceRefresh = true) }
-            MetaDetailsEvent.OnLoadMoreComments -> loadMoreComments()
-            is MetaDetailsEvent.OnCommentSelected -> openCommentOverlay(event.review)
-            is MetaDetailsEvent.OnAdvanceCommentOverlay -> advanceCommentOverlay(event.direction)
-            MetaDetailsEvent.OnDismissCommentOverlay -> dismissCommentOverlay()
             MetaDetailsEvent.OnBackPress -> { /* Handle in screen */ }
             MetaDetailsEvent.OnUserInteraction -> handleUserInteraction()
             MetaDetailsEvent.OnPlayButtonFocused -> handlePlayButtonFocused()
@@ -726,7 +661,6 @@ class MetaDetailsViewModel @Inject constructor(
 
     private fun loadMeta() {
         viewModelScope.launch {
-            cancelCommentsRequests()
             val mdbListSettings = mdbListSettingsDataStore.settings.first()
             val isMdbListActive = mdbListRepository.isAvailable(mdbListSettings)
             _uiState.update {
@@ -743,16 +677,6 @@ class MetaDetailsViewModel @Inject constructor(
                     moreLikeThisSource = null,
                     collection = emptyList(),
                     collectionName = null,
-                    comments = emptyList(),
-                    commentsCurrentPage = 0,
-                    commentsPageCount = 0,
-                    isCommentsLoading = false,
-                    isCommentsLoadingMore = false,
-                    commentsError = null,
-                    shouldShowCommentsSection = false,
-                    commentsMode = CommentsMode.TITLE,
-                    commentsEpisodeTarget = null,
-                    selectedComment = null,
                     isSharedTrailerOverlayVisible = false,
                     isSharedTrailerLoading = false,
                     sharedTrailerUrl = null,
@@ -930,7 +854,7 @@ class MetaDetailsViewModel @Inject constructor(
         // Update the effective content ID so watch-progress observers pick up
         // the canonical ID (e.g. IMDB "tt0396375") instead of the navigation ID
         // (which may be "tmdb:13836").  Don't downgrade from an IMDB ID to a
-        // less canonical one (e.g. tmdb:) — Trakt stores progress under IMDB.
+        // less canonical one (e.g. tmdb:) — providers store progress under IMDB.
         syncEffectiveContentId(meta)
 
         val seasons = if (meta.apiType.equals("tv", ignoreCase = true)) {
@@ -979,9 +903,7 @@ class MetaDetailsViewModel @Inject constructor(
                 selectedSeason = effectiveSeason,
                 episodesForSeason = effectiveEpisodes,
                 nextToWatch = effectiveNextToWatch,
-                error = null,
-                commentsEpisodeTarget = null,
-                shouldShowCommentsSection = traktCommentsEnabled && traktAuthenticated && supportsComments(meta)
+                error = null
             )
         }
 
@@ -991,9 +913,6 @@ class MetaDetailsViewModel @Inject constructor(
         // Start fetching trailer after meta is loaded
         fetchTrailerUrl()
 
-        if (traktCommentsEnabled && traktAuthenticated && supportsComments(meta)) {
-            loadComments(meta)
-        }
     }
 
     private suspend fun applyMetaWithEnrichment(meta: Meta) {
@@ -1004,7 +923,7 @@ class MetaDetailsViewModel @Inject constructor(
         syncEffectiveContentId(enriched)
         val cachedNextToWatch = metaDetailsSessionState.getNextToWatch(
             profileId = profileManager.activeProfileId.value,
-            progressSource = traktSettingsDataStore.watchProgressSource.value.name,
+            progressSource = trackingSettingsDataStore.watchProgressSource.value.name,
             contentId = _effectiveContentId.value,
             contentType = enriched.apiType
         )?.resolveForMeta(enriched)
@@ -1016,7 +935,7 @@ class MetaDetailsViewModel @Inject constructor(
 
         val contentId = _effectiveContentId.value
 
-        // Wait for remote progress provider (Simkl/Trakt) to finish initial load.
+        // Wait for remote progress provider (Simkl) to finish initial load.
         watchProgressRepository.observeRemoteProgressLoaded().first { it }
 
         // After remote is loaded, getAllEpisodeProgress may start with an onStart{emptyMap()}
@@ -1057,214 +976,11 @@ class MetaDetailsViewModel @Inject constructor(
         return copy(nextVideoId = matchingEpisode.id)
     }
 
-    private fun loadComments(meta: Meta, forceRefresh: Boolean = false) {
-        if (!traktCommentsEnabled || !traktAuthenticated || !supportsComments(meta)) {
-            cancelCommentsRequests()
-            _uiState.update { state ->
-                state.copy(
-                    comments = emptyList(),
-                    commentsCurrentPage = 0,
-                    commentsPageCount = 0,
-                    isCommentsLoading = false,
-                    isCommentsLoadingMore = false,
-                    commentsError = null,
-                    shouldShowCommentsSection = false,
-                    commentsMode = CommentsMode.TITLE,
-                    commentsEpisodeTarget = null,
-                    selectedComment = null
-                )
-            }
-            return
-        }
-
-        commentsJob?.cancel()
-        commentsLoadMoreJob?.cancel()
-        commentsJob = viewModelScope.launch {
-            _uiState.update { state ->
-                if (state.meta == null || state.meta.id != meta.id) {
-                    state
-                } else {
-                    state.copy(
-                        comments = emptyList(),
-                        commentsCurrentPage = 0,
-                        commentsPageCount = 0,
-                        isCommentsLoading = true,
-                        isCommentsLoadingMore = false,
-                        commentsError = null,
-                        shouldShowCommentsSection = true,
-                        selectedComment = if (forceRefresh) null else state.selectedComment
-                    )
-                }
-            }
-
-            try {
-                val page = traktCommentsService.getCommentsPage(
-                    meta = meta,
-                    fallbackItemId = itemId,
-                    fallbackItemType = itemType,
-                    targetEpisode = currentCommentsEpisodeTarget(meta),
-                    page = 1,
-                    forceRefresh = forceRefresh
-                )
-
-                _uiState.update { state ->
-                    if (state.meta == null || state.meta.id != meta.id) {
-                        state
-                    } else {
-                        state.copy(
-                            comments = page.items,
-                            commentsCurrentPage = page.currentPage,
-                            commentsPageCount = page.pageCount,
-                            isCommentsLoading = false,
-                            isCommentsLoadingMore = false,
-                            commentsError = null,
-                            shouldShowCommentsSection = true,
-                            selectedComment = state.selectedComment?.let { selected ->
-                                page.items.firstOrNull { it.id == selected.id }
-                            }
-                        )
-                    }
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                Log.w(TAG, "Failed to load Trakt comments for ${meta.id}: ${error.message}")
-                _uiState.update { state ->
-                    if (state.meta == null || state.meta.id != meta.id) {
-                        state
-                    } else {
-                        state.copy(
-                            comments = emptyList(),
-                            commentsCurrentPage = 0,
-                            commentsPageCount = 0,
-                            isCommentsLoading = false,
-                            isCommentsLoadingMore = false,
-                            commentsError = localizedContext.getString(R.string.detail_comments_error),
-                            shouldShowCommentsSection = true
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun supportsComments(meta: Meta?): Boolean {
-        if (meta == null) return false
-        return when (meta.type) {
-            ContentType.MOVIE -> true
-            ContentType.SERIES, ContentType.TV -> true
-            else -> meta.apiType in listOf("movie", "series", "tv", "show")
-        }
-    }
-
-    private fun loadMoreComments(selectNextAfterLoad: Boolean = false) {
-        val state = _uiState.value
-        val meta = state.meta ?: return
-        if (!traktCommentsEnabled || !traktAuthenticated || !supportsComments(meta)) return
-        if (state.isCommentsLoading || state.isCommentsLoadingMore || state.commentsCurrentPage == 0) return
-        if (state.commentsPageCount > 0 && state.commentsCurrentPage >= state.commentsPageCount) return
-
-        val nextPage = state.commentsCurrentPage + 1
-        val currentLastCommentId = state.comments.lastOrNull()?.id
-        val selectedCommentId = state.selectedComment?.id
-
-        commentsLoadMoreJob?.cancel()
-        commentsLoadMoreJob = viewModelScope.launch {
-            _uiState.update { current ->
-                if (current.meta?.id != meta.id) current else current.copy(isCommentsLoadingMore = true)
-            }
-
-            try {
-                val page = traktCommentsService.getCommentsPage(
-                    meta = meta,
-                    fallbackItemId = itemId,
-                    fallbackItemType = itemType,
-                    targetEpisode = currentCommentsEpisodeTarget(meta),
-                    page = nextPage
-                )
-
-                _uiState.update { current ->
-                    if (current.meta?.id != meta.id) {
-                        current
-                    } else {
-                        val appended = page.items.filterNot { fetched ->
-                            current.comments.any { existing -> existing.id == fetched.id }
-                        }
-                        val updatedComments = current.comments + appended
-                        val shouldAdvanceSelection =
-                            selectNextAfterLoad &&
-                                current.selectedComment?.id == selectedCommentId &&
-                                current.selectedComment?.id == currentLastCommentId &&
-                                appended.isNotEmpty()
-
-                        current.copy(
-                            comments = updatedComments,
-                            commentsCurrentPage = maxOf(current.commentsCurrentPage, page.currentPage),
-                            commentsPageCount = maxOf(current.commentsPageCount, page.pageCount),
-                            isCommentsLoadingMore = false,
-                            commentsError = null,
-                            selectedComment = if (shouldAdvanceSelection) appended.first() else current.selectedComment
-                        )
-                    }
-                }
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (error: Exception) {
-                Log.w(TAG, "Failed to load more Trakt comments for ${meta.id}: ${error.message}")
-                _uiState.update { current ->
-                    if (current.meta?.id != meta.id) current else current.copy(isCommentsLoadingMore = false)
-                }
-            }
-        }
-    }
-
-    private fun openCommentOverlay(review: TraktCommentReview) {
-        _uiState.update { state ->
-            state.copy(selectedComment = review)
-        }
-    }
-
-    private fun advanceCommentOverlay(direction: Int) {
-        if (direction == 0) return
-        val state = _uiState.value
-        val selected = state.selectedComment ?: return
-        val selectedIndex = state.comments.indexOfFirst { it.id == selected.id }
-        if (selectedIndex < 0) return
-
-        val targetIndex = selectedIndex + direction
-        if (targetIndex in state.comments.indices) {
-            _uiState.update { current ->
-                if (current.selectedComment?.id != selected.id) {
-                    current
-                } else {
-                    current.copy(selectedComment = current.comments.getOrNull(targetIndex) ?: current.selectedComment)
-                }
-            }
-            return
-        }
-
-        if (direction > 0) {
-            loadMoreComments(selectNextAfterLoad = true)
-        }
-    }
-
-    private fun dismissCommentOverlay() {
-        _uiState.update { state ->
-            state.copy(selectedComment = null)
-        }
-    }
-
-    private fun cancelCommentsRequests() {
-        commentsJob?.cancel()
-        commentsLoadMoreJob?.cancel()
-    }
-
     private fun loadMoreLikeThisAsync(meta: Meta) {
         moreLikeThisJob?.cancel()
         moreLikeThisJob = viewModelScope.launch {
             val source = when {
                 shouldLoadSimklMoreLikeThis() -> MoreLikeThisSource.SIMKL
-                shouldLoadTraktMoreLikeThis(meta) -> MoreLikeThisSource.TRAKT
                 else -> {
                     val settings = tmdbSettingsDataStore.settings.first()
                     if (!shouldLoadMoreLikeThis(settings)) {
@@ -1276,19 +992,6 @@ class MetaDetailsViewModel @Inject constructor(
             }
 
             val rawRecommendations = when (source) {
-                MoreLikeThisSource.TRAKT -> {
-                    runCatching {
-                        traktRelatedService.getRelated(
-                            meta = meta,
-                            fallbackItemId = itemId,
-                            fallbackItemType = itemType
-                        )
-                    }.getOrElse {
-                        Log.w(TAG, "Failed to load Trakt related titles for ${meta.id}: ${it.message}")
-                        emptyList()
-                    }
-                }
-
                 MoreLikeThisSource.SIMKL -> {
                     runCatching {
                         simklRelatedService.getRelated(
@@ -1352,16 +1055,6 @@ class MetaDetailsViewModel @Inject constructor(
 
     private fun shouldLoadMoreLikeThis(settings: TmdbSettings): Boolean {
         return settings.enabled && settings.useMoreLikeThis
-    }
-
-    private fun shouldLoadTraktMoreLikeThis(meta: Meta): Boolean {
-        if (!traktAuthenticated) return false
-        if (moreLikeThisSourcePreference != com.nuvio.tv.data.local.MoreLikeThisSourcePreference.TRAKT) return false
-        return when (meta.type) {
-            ContentType.MOVIE -> true
-            ContentType.SERIES, ContentType.TV -> true
-            else -> meta.apiType in listOf("movie", "series", "tv", "show")
-        }
     }
 
     private fun shouldLoadSimklMoreLikeThis(): Boolean {
@@ -1737,90 +1430,6 @@ class MetaDetailsViewModel @Inject constructor(
         return emptyList()
     }
 
-    private fun selectCommentsMode(mode: CommentsMode) {
-        val meta = _uiState.value.meta ?: return
-        if (_uiState.value.commentsMode == mode) return
-        val nextTarget = resolveCommentsEpisodeTarget(
-            meta = meta,
-            preferredSeason = _uiState.value.selectedSeason,
-            existingTarget = _uiState.value.commentsEpisodeTarget
-        )
-        _uiState.update {
-            it.copy(
-                commentsMode = mode,
-                commentsEpisodeTarget = nextTarget,
-                selectedComment = null
-            )
-        }
-        if (traktCommentsEnabled && traktAuthenticated && supportsComments(meta)) {
-            loadComments(meta, forceRefresh = true)
-        }
-    }
-
-    private fun selectCommentsEpisode(video: Video) {
-        val meta = _uiState.value.meta ?: return
-        if (_uiState.value.commentsEpisodeTarget?.id == video.id && _uiState.value.commentsMode == CommentsMode.EPISODE) {
-            return
-        }
-        _uiState.update {
-            it.copy(
-                commentsMode = CommentsMode.EPISODE,
-                commentsEpisodeTarget = video,
-                selectedComment = null
-            )
-        }
-        if (traktCommentsEnabled && traktAuthenticated && supportsComments(meta)) {
-            loadComments(meta, forceRefresh = true)
-        }
-    }
-
-    private fun currentCommentsEpisodeTarget(meta: Meta): Video? {
-        val state = _uiState.value
-        if (state.commentsMode != CommentsMode.EPISODE) return null
-        return resolveCommentsEpisodeTarget(
-            meta = meta,
-            preferredSeason = state.selectedSeason,
-            existingTarget = state.commentsEpisodeTarget
-        )
-    }
-
-    private fun resolveCommentsEpisodeTarget(
-        meta: Meta,
-        preferredSeason: Int,
-        existingTarget: Video?
-    ): Video? {
-        val allEpisodes = meta.videos.filter { it.season != null && it.episode != null }
-        if (allEpisodes.isEmpty()) return null
-
-        existingTarget
-            ?.takeIf { target ->
-                allEpisodes.any { episode ->
-                    episode.season == target.season && episode.episode == target.episode
-                }
-            }
-            ?.let { return it }
-
-        val nextToWatch = _uiState.value.nextToWatch
-        nextToWatch?.nextVideoId
-            ?.let { nextVideoId ->
-                allEpisodes.firstOrNull { episode -> episode.id == nextVideoId }
-            }
-            ?.let { return it }
-
-        nextToWatch
-            ?.takeIf { it.nextSeason != null && it.nextEpisode != null }
-            ?.let { target ->
-                allEpisodes.firstOrNull { episode ->
-                    episode.season == target.nextSeason && episode.episode == target.nextEpisode
-                }
-            }
-            ?.let { return it }
-
-        return allEpisodes.firstOrNull { it.season == preferredSeason }
-            ?: allEpisodes.firstOrNull { (it.season ?: 0) > 0 }
-            ?: allEpisodes.first()
-    }
-
     private fun reevaluateSeriesWatchedBadge() {
         val contentId = _effectiveContentId.value
         val meta = _uiState.value.meta ?: return
@@ -2179,9 +1788,7 @@ class MetaDetailsViewModel @Inject constructor(
 
         val hasStartedPlayback = progress.position > 0L ||
             progress.progressPercent?.let { it > 0f } == true
-        return hasStartedPlayback &&
-            progress.source != WatchProgress.SOURCE_TRAKT_HISTORY &&
-            progress.source != WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS
+        return hasStartedPlayback
     }
 
     private fun toggleLibrary() {
@@ -2800,7 +2407,6 @@ class MetaDetailsViewModel @Inject constructor(
             itemType = apiType,
             title = name,
             year = year,
-            traktId = parsedIds.trakt,
             imdbId = parsedIds.imdb,
             tmdbId = parsedIds.tmdb,
             poster = poster,

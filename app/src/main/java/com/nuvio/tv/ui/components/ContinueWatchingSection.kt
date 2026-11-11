@@ -370,7 +370,7 @@ internal fun continueWatchingImageModel(
         fun firstUsable(vararg candidates: String?): String? =
             candidates.firstOrNull { !it.isNullOrBlank() && it !in brokenImageUrls }?.trim()
         // Movies carry no episode thumbnail, so they keep their poster without needing a content type check.
-        // A thumbnail that is switched off leaves the chain entirely, because Trakt rows hydrate their artwork late and a demoted thumbnail would show until it lands.
+        // A thumbnail that is switched off leaves the chain entirely, because remote-provider rows hydrate their artwork late and a demoted thumbnail would show until it lands.
         return if (useEpisodeThumbnails) {
             firstUsable(thumbnail, poster, backdrop)
         } else {
@@ -446,7 +446,8 @@ fun ContinueWatchingCard(
     cardStyle: ContinueWatchingCardStyle = ContinueWatchingCardStyle.CARD,
     isFocused: Boolean = false,
     cornerRadius: Dp = NuvioTheme.radii.md,
-    posterTitleOverride: TextStyle? = null
+    posterTitleOverride: TextStyle? = null,
+    cinematicPresentation: Boolean = false,
 ) {
     val isPosterStyle = cardStyle == ContinueWatchingCardStyle.POSTER
     val isWideStyle = cardStyle == ContinueWatchingCardStyle.WIDE
@@ -455,7 +456,7 @@ fun ContinueWatchingCard(
     // The wide card shows its art in a poster shaped strip, so it resolves artwork the same way a poster card does.
     val usePosterArtwork = isPosterStyle || isWideStyle
     // Poster cards put their title under the artwork like the mobile app, the landscape card keeps it on top.
-    val textBelowArtwork = isPosterStyle
+    val textBelowArtwork = isPosterStyle && !cinematicPresentation
 
     // Follow the user's poster corner radius so these cards match the catalog rows.
     val cwCardShape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
@@ -667,7 +668,14 @@ fun ContinueWatchingCard(
             focusedContainerColor = Color.Transparent
         ),
         // With text under the artwork the card border would ring the text too, so the artwork draws its own.
-        border = if (textBelowArtwork) {
+        border = if (cinematicPresentation) {
+            CardDefaults.border(
+                focusedBorder = Border(
+                    border = BorderStroke(NuvioTheme.spacing.xxs, Color.White),
+                    shape = cwCardShape
+                )
+            )
+        } else if (textBelowArtwork) {
             CardDefaults.border(focusedBorder = Border.None)
         } else {
             CardDefaults.border(
@@ -740,11 +748,15 @@ fun ContinueWatchingCard(
                     )
                     .clip(cwClipShape)
                     .then(
-                        if (textBelowArtwork && isFocused) {
-                            Modifier.border(
-                                border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                                shape = cwClipShape
-                            )
+                        if ((textBelowArtwork || cinematicPresentation) && isFocused) {
+                            if (cinematicPresentation) {
+                                Modifier.border(2.dp, Color.White, cwClipShape)
+                            } else {
+                                Modifier.border(
+                                    border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
+                                    shape = cwClipShape
+                                )
+                            }
                         } else {
                             Modifier
                         }
@@ -768,7 +780,7 @@ fun ContinueWatchingCard(
                             // Gradient overlay for text legibility, only needed when text sits on the artwork.
                             .drawWithContent {
                                 drawContent()
-                                if (textBelowArtwork) return@drawWithContent
+                                if (isPosterStyle) return@drawWithContent
 
                                 val startYPos = size.height * 0.45f
                                 val gradient = Brush.verticalGradient(
@@ -803,10 +815,10 @@ fun ContinueWatchingCard(
                     )
                 }
 
-                if (item.shufflePlayback) EpisodeShuffleBadge(Modifier.align(Alignment.TopStart))
+                if (item.shufflePlayback && !cinematicPresentation) EpisodeShuffleBadge(Modifier.align(Alignment.TopStart))
 
                 // Content info at bottom
-                if (!textBelowArtwork) {
+                if (!isPosterStyle) {
                     Column(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -824,7 +836,7 @@ fun ContinueWatchingCard(
 
                 // Remaining time badge - hide progress labels in poster style (only show next-up/new episode badges)
                 val showBadgeInPoster = progress == null
-                if (!isPosterStyle || showBadgeInPoster) {
+                if (!cinematicPresentation && (!isPosterStyle || showBadgeInPoster)) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -854,7 +866,10 @@ fun ContinueWatchingCard(
                                 if (isPosterStyle) {
                                     Modifier
                                         .clip(RoundedCornerShape(999.dp))
-                                        .background(NuvioTheme.colors.Background.copy(alpha = 0.7f))
+                                        .background(
+                                            if (cinematicPresentation) Color.Black.copy(alpha = 0.58f)
+                                            else NuvioTheme.colors.Background.copy(alpha = 0.7f)
+                                        )
                                         .padding(NuvioTheme.spacing.xxs)
                                 } else {
                                     Modifier
@@ -873,7 +888,7 @@ fun ContinueWatchingCard(
                                     .fillMaxWidth(progressFraction)
                                     .clip(RoundedCornerShape(1.5.dp))
                                     .height(3.dp)
-                                    .background(NuvioTheme.colors.Secondary)
+                                    .background(if (cinematicPresentation) Color(0xFFF2E6C8) else NuvioTheme.colors.Secondary)
                             )
                         }
                     }

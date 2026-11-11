@@ -93,14 +93,12 @@
     <string name="web_import_error_source_invalid_format">Kolekcija \"{collection}\", mapa \"{folder}\", izvor {index}: neispravan format</string>
     <string name="web_import_error_source_missing_addon_fields">Kolekcija \"{collection}\", mapa \"{folder}\", izvor {index}: nedostaju obavezna polja (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">Kolekcija \"{collection}\", mapa \"{folder}\", izvor {index}: nedostaje vrsta TMDB izvora</string>
-    <string name="web_import_error_source_missing_trakt_id">Kolekcija \"{collection}\", mapa \"{folder}\", izvor {index}: nedostaje ID Trakt popisa</string>
     <string name="web_import_success">Uvezeno kolekcija: {count}. Pregledaj ih i pritisni Spremi promjene za primjenu.</string>
     <string name="web_import_invalid_json">Neispravan JSON</string>
 
     <string name="home_no_addons">Nema instaliranih dodataka. Dodaj jedan za početak.</string>
     <string name="home_no_catalog_addons">Nema instaliranih dodataka s katalozima. Instaliraj dodatak s katalogom za prikaz sadržaja.</string>
     <string name="auth_notice_nuvio_logged_out">Sesija u Nuviju je završila. Prijavi se ponovno.</string>
-    <string name="auth_notice_trakt_logged_out">Veza s Traktom je prekinuta. Ponovno se poveži.</string>
     <string name="error_generic">Došlo je do pogreške</string>
 
     <string name="action_retry">Pokušaj ponovno</string>
@@ -203,7 +201,6 @@
     <string name="episodes_mark_previous_watched">Označi prethodne u ovoj sezoni kao pogledane</string>
     <string name="episodes_mark_previous_seasons_watched">Označi prethodne sezone kao pogledane</string>
     <string name="episodes_play">Reproduciraj</string>
-    <string name="episodes_open_comments">Otvori komentare epizode</string>
     <string name="play_manually">Reproduciraj ručno</string>
     <string name="episodes_season_actions">Radnje za sezonu</string>
 
@@ -237,30 +234,11 @@
     <string name="detail_tab_more_like_this">Slično ovome</string>
     <string name="detail_tab_trailer">Trailer</string>
     <string name="detail_more_like_this_powered_by_tmdb">Pokreće TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Pokreće Trakt</string>
     <string name="detail_more_like_this_powered_by_simkl">Pokreće Simkl</string>
-    <string name="detail_comments_title">Komentari</string>
-    <string name="detail_comments_subtitle">Recenzije s Trakta</string>
-    <string name="detail_comments_subtitle_episode">Recenzije s Trakta za S%1$dE%2$d</string>
-    <string name="detail_comments_mode_show">Serija</string>
-    <string name="detail_comments_mode_episode">Epizoda</string>
-    <string name="detail_comments_mode_episode_change">Promijeni epizodu (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Odaberi epizodu</string>
-    <string name="detail_comments_episode_picker_subtitle">Odaberi epizodu za prikaz njezinih Trakt recenzija</string>
     <string name="detail_section_network">Mreža</string>
     <string name="detail_section_production">Produkcija</string>
-    <string name="detail_comments_empty">Još nema dostupnih Trakt recenzija.</string>
-    <string name="detail_comments_error">Trenutno nije moguće učitati Trakt recenzije.</string>
     <string name="detail_trailer_loading">Učitavanje trailera...</string>
     <string name="detail_trailer_error">Trenutno nije moguće učitati trailer.</string>
-    <string name="detail_comments_spoiler_hidden">Recenzija sa spojlerom. Pritisni OK za prikaz.</string>
-    <string name="detail_comments_reveal_spoiler">Prikaži spojler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Pritisni OK za prikaz spojlera.</string>
-    <string name="detail_comments_back_hint">Pritisni natrag za zatvaranje</string>
-    <string name="detail_comments_badge_review">Recenzija</string>
-    <string name="detail_comments_badge_spoiler">Spojler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">Sviđanja: %1$d</string>
     <string name="tmdb_entity_kind_company">Produkcijska kuća</string>
     <string name="tmdb_entity_kind_network">Mreža</string>
     <string name="tmdb_entity_rail_popular">Popularno</string>
@@ -430,8 +408,6 @@
     <string name="licenses_attributions_nuvio_body">Izvorni kôd i uvjeti licence dostupni su u repozitoriju projekta. Licencirano pod GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia koristi TMDB API za metapodatke o filmovima i serijama, grafike, trailere, glumce, produkcijske detalje, kolekcije i preporuke. Ovaj proizvod koristi TMDB API, ali ga TMDB ne podržava niti certificira.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia se povezuje s Traktom radi autentifikacije računa, povijesti gledanja, sinkronizacije napretka, podataka biblioteke, ocjena, popisa i komentara. Telumia nije povezan s Traktom niti ga Trakt podržava.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia se povezuje sa Simklom radi autentifikacije računa, popisa za gledanje, povijesti gledanja, napretka reprodukcije i scrobblanja. Podatke o praćenju filmova, serija i animea pruža Simkl. Telumia nije povezan sa Simklom niti ga Simkl podržava.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -462,15 +438,12 @@
     <string name="settings_plugins_subtitle">Repozitoriji i pružatelji</string>
     <string name="settings_integration">Integracije</string>
     <string name="settings_playback">Reprodukcija</string>
-    <string name="settings_trakt_subtitle">Otvori zaslon za povezivanje s Traktom</string>
     <string name="settings_tracking_title">Praćenje</string>
     <string name="settings_tracking_description">Poveži usluge praćenja i odaberi koja pokreće tvoju biblioteku i Nastavi gledati.</string>
     <string name="tracking_accounts_title">Računi</string>
     <string name="tracking_accounts_subtitle">Poveži i upravljaj uslugama praćenja</string>
     <string name="tracking_sources_title">Izvori</string>
     <string name="tracking_sources_subtitle">Odaberi odakle Telumia čita tvoju biblioteku i napredak gledanja. Reprodukcija se scrobbla na sve povezane usluge.</string>
-    <string name="tracking_trakt_features_title">Trakt značajke</string>
-    <string name="tracking_trakt_features_subtitle">Povijest, recenzije i preporuke specifične za Trakt</string>
     <string name="tracking_simkl_features_title">Simkl značajke</string>
     <string name="tracking_simkl_features_subtitle">Postavke specifične za Simkl</string>
     <string name="tracking_simkl_anime_id_title">Preferirani ID za anime</string>
@@ -487,8 +460,6 @@
     <string name="tracking_connecting_provider">Pokretanje povezivanja s uslugom %1$s…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Odaberi uslugu koju Telumia čita za nastavak reprodukcije i Nastavi gledati. Scrobblanje ostaje aktivno za sve povezane usluge.</string>
     <string name="tracking_library_source_dialog_subtitle">Odaberi uslugu koju Telumia čita za tvoju biblioteku. Reprodukcija se scrobbla na sve povezane usluge.</string>
-    <string name="tracking_trakt_progress_required">Dostupno kada je Trakt izvor napretka gledanja</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Brzina mreže</string>
     <string name="settings_network_subtitle">Dijagnostika latencije i preuzimanja</string>
@@ -498,7 +469,7 @@
     <string name="experience_mode_advanced">Napredno</string>
     <string name="experience_mode_choose_title">Odaberi svoje Telumia iskustvo</string>
     <string name="experience_mode_choose_subtitle">Kreni jednostavno ili otključaj sve prilagodbe. Možeš promijeniti bilo kada.</string>
-    <string name="experience_mode_essential_card_subtitle">Usmjereno postavljanje, dodaci, osnove reprodukcije, Trakt i postavke računa.</string>
+    <string name="experience_mode_essential_card_subtitle">Usmjereno postavljanje, dodaci, osnove reprodukcije i postavke računa.</string>
     <string name="experience_mode_advanced_card_subtitle">Sve postavke, kontrole izgleda, redoslijed kataloga, kolekcije, pluginovi i dijagnostika.</string>
     <string name="experience_mode_group_title">Način iskustva</string>
     <string name="essential_addon_continue_for_now">Nastavi za sada</string>
@@ -1193,8 +1164,6 @@
     <string name="mdblist_ratings_credentials_subtitle">Koristi MDBList račun povezan u Praćenju ili unesi zaseban API ključ za ocjene.</string>
     <string name="mdblist_ratings_connected_account">Koristi se povezani račun</string>
     <string name="mdblist_ratings_key_override_subtitle">API ključ ima prednost pred povezanim računom za ocjene. Očisti ga kako bi se ponovno koristio povezani račun.</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Prikaži Trakt ocjenu</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Prikaži IMDb ocjenu (i sakrij zadani IMDb redak kada je dostupna)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1427,11 +1396,6 @@
 
     <string name="tmdb_language_dialog_title">TMDB jezik</string>
 
-    <string name="trakt_description">Sinkroniziraj popis za gledanje, napredak gledanja, Nastavi gledati, scrobblove i osobne popise s Traktom.</string>
-    <string name="trakt_connected_as">Povezano kao %1$s</string>
-    <string name="trakt_account_login">Prijava računom</string>
-    <string name="trakt_awaiting_instruction">Idi na trakt.tv/activate i unesi ovaj kôd:</string>
-    <string name="trakt_waiting_approval">Čeka se odobrenje…</string>
     <string name="qr_login_approved">Prijava odobrena. Dovršavanje prijave…</string>
     <string name="qr_login_pending">Čeka se odobrenje na mobitelu…</string>
     <string name="qr_login_expired">QR prijava je istekla. Generiraj novi kôd.</string>
@@ -1442,68 +1406,26 @@
     <string name="qr_login_signing_in">Prijava u tijeku…</string>
     <string name="qr_login_success">Prijava uspješna</string>
     <string name="qr_login_exchange_failed">Nije moguće dovršiti QR prijavu</string>
-    <string name="trakt_code_expires">Kôd istječe za %1$s</string>
-    <string name="trakt_token_refreshes">Trakt pristupni token osvježava se za %1$s</string>
-    <string name="trakt_login_instruction">Pritisni Prijava za pokretanje Trakt autentifikacije uređaja. Ovdje će se pojaviti QR kôd.</string>
-    <string name="trakt_missing_credentials">Nedostaju TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET u local.properties.</string>
-    <string name="trakt_watch_progress_title">Napredak gledanja</string>
-    <string name="trakt_watch_progress_subtitle">Odaberi koji izvor napretka pokreće nastavak reprodukcije i Nastavi gledati</string>
-    <string name="trakt_watch_progress_dialog_title">Napredak gledanja</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Odaberi trebaju li nastavak reprodukcije i Nastavi gledati koristiti Trakt ili Telumia Sync, dok Trakt scrobblanje ostaje aktivno.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">Izvor biblioteke</string>
-    <string name="trakt_library_source_subtitle">Odaberi koji izvor Telumia čita za tvoju biblioteku</string>
-    <string name="trakt_library_source_dialog_title">Izvor biblioteke</string>
-    <string name="trakt_library_source_dialog_subtitle">Odaberi gdje spremati i upravljati stavkama biblioteke</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Telumia biblioteka</string>
-    <string name="trakt_library_source_trakt_selected">Odabrana Trakt biblioteka</string>
-    <string name="trakt_library_source_nuvio_selected">Odabrana Telumia biblioteka</string>
-    <string name="trakt_setting_on">Uključeno</string>
-    <string name="trakt_setting_off">Isključeno</string>
-    <string name="trakt_watch_progress_trakt_selected">Izvor napretka gledanja postavljen na Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Izvor napretka gledanja postavljen na Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Razdoblje za Nastavi gledati</string>
-    <string name="trakt_continue_watching_subtitle">Trakt povijest koja se uzima u obzir za Nastavi gledati</string>
-    <string name="trakt_unaired_next_up">Neemitirane sljedeće epizode</string>
-    <string name="trakt_unaired_next_up_subtitle">Prikaži nadolazeće epizode prije emitiranja</string>
-    <string name="trakt_unaired_shown">Prikazano</string>
-    <string name="trakt_unaired_hidden">Skriveno</string>
-    <string name="trakt_unaired_now_shown">Neemitirane sljedeće epizode sada se prikazuju</string>
-    <string name="trakt_unaired_now_hidden">Neemitirane sljedeće epizode sada su skrivene</string>
-    <string name="trakt_comments_title">Komentari</string>
-    <string name="trakt_comments_subtitle">Prikaži Trakt recenzije na stranicama metapodataka</string>
-    <string name="trakt_comments_dialog_title">Komentari</string>
-    <string name="trakt_comments_dialog_subtitle">Odaberi trebaju li stranice metapodataka prikazivati Trakt recenzije kada je tvoj račun povezan.</string>
-    <string name="trakt_comments_now_shown">Trakt recenzije na stranicama metapodataka sada se prikazuju</string>
-    <string name="trakt_comments_now_hidden">Trakt recenzije na stranicama metapodataka sada su skrivene</string>
-    <string name="trakt_more_like_this_source_title">Izvor za Slično ovome</string>
-    <string name="trakt_more_like_this_source_subtitle">Odaberi odakle dolaze preporuke na zaslonima detalja i nakon gledanja</string>
-    <string name="trakt_more_like_this_source_dialog_title">Izvor za Slično ovome</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Odaberi izvor preporuka prikazanih na zaslonima detalja i nakon gledanja.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
-    <string name="trakt_cached_label">Predmemorirano</string>
-    <string name="trakt_stat_movies">Filmovi</string>
-    <string name="trakt_stat_shows">Serije</string>
-    <string name="trakt_stat_episodes">Epizode</string>
-    <string name="trakt_stat_watched_hours">Odgledani sati</string>
-    <string name="trakt_disconnect">Prekini vezu</string>
-    <string name="trakt_disconnect_title">Prekinuti vezu s Traktom?</string>
-    <string name="trakt_disconnect_subtitle">Ovo će prekinuti vezu tvog Trakt računa s Telumiam.</string>
-    <string name="trakt_login">Prijava</string>
-    <string name="trakt_retry">Pokušaj ponovno</string>
-    <string name="trakt_back">Natrag</string>
-    <string name="trakt_cw_window_title">Razdoblje za Nastavi gledati</string>
-    <string name="trakt_cw_window_subtitle">Odaberi koliko Trakt aktivnosti treba prikazivati u Nastavi gledati.</string>
-    <string name="trakt_unaired_dialog_title">Neemitirane sljedeće epizode</string>
-    <string name="trakt_unaired_dialog_subtitle">Odaberi treba li Nastavi gledati uključivati nadolazeće epizode prije izlaska.</string>
-    <string name="trakt_show_unaired">Prikaži neemitirane epizode</string>
-    <string name="trakt_hide_unaired">Sakrij neemitirane epizode</string>
-    <string name="trakt_all_history">Sva povijest</string>
-    <string name="trakt_days_format">Dana: %1$d</string>
+    <string name="tracking_code_expires">Kôd istječe za %1$s</string>
+    <string name="tracking_watch_progress_title">Napredak gledanja</string>
+    <string name="tracking_watch_progress_subtitle">Odaberi koji izvor napretka pokreće nastavak reprodukcije i Nastavi gledati</string>
+    <string name="tracking_watch_progress_dialog_title">Napredak gledanja</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">Izvor biblioteke</string>
+    <string name="tracking_library_source_subtitle">Odaberi koji izvor Telumia čita za tvoju biblioteku</string>
+    <string name="tracking_library_source_dialog_title">Izvor biblioteke</string>
+    <string name="tracking_library_source_nuvio">Telumia biblioteka</string>
+    <string name="tracking_continue_watching_window">Razdoblje za Nastavi gledati</string>
+    <string name="tracking_more_like_this_source_title">Izvor za Slično ovome</string>
+    <string name="tracking_more_like_this_source_subtitle">Odaberi odakle dolaze preporuke na zaslonima detalja i nakon gledanja</string>
+    <string name="tracking_more_like_this_source_dialog_title">Izvor za Slično ovome</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Odaberi izvor preporuka prikazanih na zaslonima detalja i nakon gledanja.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_disconnect">Prekini vezu</string>
+    <string name="tracking_cw_window_title">Razdoblje za Nastavi gledati</string>
+    <string name="tracking_all_history">Sva povijest</string>
+    <string name="tracking_days_format">Dana: %1$d</string>
 
     <string name="debug_title">Otklanjanje grešaka</string>
     <string name="debug_subtitle">Alati za razvojne programere i zastavice značajki (samo debug buildovi)</string>
@@ -1650,7 +1572,6 @@
     <string name="essential_addon_setup_subtitle">Instaliraj jedan dodatak za početak streamanja. Više ih možeš dodati kasnije u Dodacima.</string>
     <string name="essential_addon_show_qr">Prikaži QR</string>
     <!-- Zamjenske vrijednosti uređivača kolekcija -->
-    <string name="collection_editor_no_trakt_lists_found">Nisu pronađeni Trakt popisi</string>
     <string name="collection_editor_untitled_folder">Bez naslova</string>
     <string name="collection_editor_untitled_collection">Kolekcija bez naslova</string>
     <!-- AddonManagerScreen -->
@@ -1990,7 +1911,6 @@
     <string name="search_no_results_subtitle">Pokušaj pretraživati drugim ključnim riječima</string>
     <string name="search_error_no_catalogs">U instaliranim dodacima nisu pronađeni katalozi koji se mogu pretraživati</string>
 
-    <string name="library_syncing">Sinkronizacija Trakt biblioteke\u2026</string>
     <string name="library_title">Biblioteka</string>
     <string name="library_filter_list">Popis</string>
     <string name="library_filter_type">Vrsta</string>
@@ -2043,7 +1963,6 @@
     <string name="genre_sporting_event">Sportski događaj</string>
     <string name="genre_superhero">Superjunaci</string>
     <string name="genre_suspense">Napetost</string>
-    <string name="library_sort_trakt_order">Trakt redoslijed</string>
     <string name="library_sort_provider_order">Redoslijed pružatelja</string>
     <string name="library_sort_added_desc">Dodano ↓</string>
     <string name="library_sort_added_asc">Dodano ↑</string>
@@ -2051,7 +1970,6 @@
     <string name="library_sort_title_desc">Naslov Ž-A</string>
     <string name="library_error_sort_failed">Nije moguće učitati redoslijed sortiranja. Prikazuje se redoslijed pružatelja.</string>
     <string name="library_manage_lists">Upravljaj popisima</string>
-    <string name="library_manage_trakt_lists">Upravljaj Trakt popisima</string>
     <string name="library_no_lists">Još nema osobnih popisa.</string>
     <string name="library_list_create">Stvori</string>
     <string name="library_list_edit">Uredi</string>
@@ -2064,11 +1982,9 @@
     <string name="library_list_description_label">Opis</string>
     <string name="library_list_privacy">Privatnost</string>
     <string name="library_delete_title">Izbrisati ovaj popis?</string>
-    <string name="library_delete_subtitle">Ovo uklanja popis i sve njegove stavke s Trakta.</string>
     <string name="library_delete_confirm">Izbriši</string>
     <string name="library_source_local">LOKALNO</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Spremljeno</string>
     <string name="library_source_cloud">Oblak</string>
     <string name="library_watchlist">Popis za gledanje</string>
@@ -2081,11 +1997,9 @@
     <string name="library_type_all">Sve</string>
     <string name="library_type_items">stavke</string>
     <string name="library_empty_local_title">Još nema: %1$s</string>
-    <string name="library_empty_trakt_title">Na ovom popisu nema: %1$s</string>
+    <string name="library_empty_remote_title">Na ovom popisu nema: %1$s</string>
     <string name="library_empty_local_subtitle">Počni spremati omiljene naslove kako bi se prikazali ovdje</string>
-    <string name="library_empty_trakt_subtitle">Koristi + u detaljima za dodavanje stavki na popis za gledanje ili popise</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt nije povezan</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Poveži svoj Trakt račun u Postavkama za prikaz Trakt biblioteke</string>
+    <string name="library_empty_remote_subtitle">Koristi + u detaljima za dodavanje stavki na popis za gledanje ili popise</string>
     <string name="library_empty_simkl_title">U ovom statusu nema: %1$s</string>
     <string name="library_empty_simkl_subtitle">Koristi + u detaljima za dodavanje stavki u Simkl status</string>
     <string name="library_empty_simkl_not_auth_title">Simkl nije povezan</string>
@@ -2327,7 +2241,6 @@
     <string name="update_unknown_sources">Dopusti instalacije iz nepoznatih izvora za nastavak.</string>
     <!-- AccountScreen -->
     <string name="account_title">Račun</string>
-    <string name="account_sign_in_description">Prijavi se za sinkronizaciju biblioteke, napretka gledanja, dodataka i pluginova na svim uređajima. Sinkronizacija biblioteke koristi Telumia Sync kada Trakt nije povezan, a napredak gledanja može koristiti Trakt ili Telumia Sync.</string>
     <string name="account_sync_code_title">Kôd za sinkronizaciju</string>
     <string name="account_sync_code_description">Sinkroniziraj uređaje bez stvaranja računa.</string>
     <string name="account_linked_devices">Povezani uređaji (%1$d)</string>
@@ -2410,29 +2323,6 @@
     <string name="plugin_repo_removed">Repozitorij uklonjen</string>
     <string name="plugin_repo_refreshed">Repozitorij osvježen</string>
 
-    <!-- Trakt pogreške -->
-    <string name="trakt_error_code_expired">Kôd uređaja je istekao. Počni ispočetka.</string>
-    <string name="trakt_error_code_used">Kôd uređaja je već iskorišten. Počni ispočetka.</string>
-    <string name="trakt_error_denied">Autorizacija je odbijena na Traktu.</string>
-    <string name="trakt_error_missing_credentials">Nedostaju TRAKT vjerodajnice</string>
-    <string name="trakt_error_network_retry">Mrežna pogreška, pokušaj ponovno</string>
-    <string name="trakt_error_network_will_retry">Mrežna pogreška, pokušat će se ponovno</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt ograničava zahtjeve. Pokušaj ponovno za ~%1$d min</string>
-    <string name="trakt_error_failed_start_code">Pokretanje Trakt autentifikacije nije uspjelo (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Nema aktivnog Trakt koda uređaja</string>
-    <string name="trakt_error_invalid_device_code">Neispravan kôd uređaja</string>
-    <string name="trakt_error_token_polling_failed_code">Provjera tokena nije uspjela (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Trakt zahtjev nije uspio</string>
-    <string name="trakt_error_list_not_found_or_private">Trakt popis nije pronađen ili nije javan</string>
-    <string name="trakt_error_rate_limit_reached">Dosegnuto je Trakt ograničenje zahtjeva</string>
-    <string name="trakt_status_enter_activation_code">Unesi kôd na trakt.tv/activate</string>
-    <string name="trakt_status_syncing">Sinkronizacija...</string>
-    <string name="trakt_status_sync_completed">Sinkronizacija dovršena</string>
-    <string name="trakt_status_disconnected">Veza s Traktom prekinuta</string>
-    <string name="trakt_status_cw_window_updated">Razdoblje za Nastavi gledati ažurirano</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Ograničenje zahtjeva, usporavanje provjera...</string>
-    <string name="trakt_user_fallback">Trakt korisnik</string>
-    <string name="trakt_error_failed_start">Pokretanje Trakt autentifikacije nije uspjelo</string>
 
     <!-- Opće pogreške -->
     <string name="error_unknown">Nepoznata pogreška</string>
@@ -2481,8 +2371,6 @@
     <string name="cd_test">Testiraj</string>
     <string name="cd_unlink">Odspoji</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Trakt logo</string>
-    <string name="cd_trakt_qr">QR za aktivaciju Trakta</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Otvori Otkrij</string>
     <string name="cd_clear_search">Očisti pretraživanje</string>
@@ -2583,18 +2471,8 @@
     <string name="collections_editor_addon_missing">Dodatak nije instaliran: %1$s</string>
     <string name="collections_editor_catalog_missing">Katalog nije dostupan</string>
     <string name="collections_editor_add_tmdb_source">Dodaj TMDB izvor</string>
-    <string name="collections_editor_add_trakt_source">Dodaj Trakt popis</string>
     <string name="collections_editor_edit_tmdb_source">Uredi TMDB izvor</string>
     <string name="collections_editor_tmdb_sources">TMDB izvori</string>
-    <string name="collections_editor_trakt_sources">Trakt popisi</string>
-    <string name="collections_editor_edit_trakt_source">Uredi Trakt popis</string>
-    <string name="collections_editor_trakt_list">Trakt popis</string>
-    <string name="collections_editor_trakt_search_results">Rezultati pretraživanja</string>
-    <string name="collections_editor_trakt_trending">Popisi u trendu</string>
-    <string name="collections_editor_trakt_popular">Popularni popisi</string>
-    <string name="collections_editor_trakt_direction">Smjer</string>
-    <string name="collections_editor_trakt_ascending">Uzlazno</string>
-    <string name="collections_editor_trakt_descending">Silazno</string>
     <string name="collections_editor_tmdb_id_or_url">TMDB ID ili URL</string>
     <string name="collections_editor_tmdb_public_list">Javni TMDB popis</string>
     <string name="collections_editor_tmdb_network_id">ID mreže</string>
@@ -2678,27 +2556,13 @@
     <string name="collections_editor_sort_votes">Glasovi</string>
     <string name="collections_editor_direction_asc_short">Uzl.</string>
     <string name="collections_editor_direction_desc_short">Sil.</string>
-    <string name="collections_editor_trakt_movie_list">Trakt popis filmova</string>
-    <string name="collections_editor_trakt_series_list">Trakt popis serija</string>
-    <string name="collections_editor_trakt_list_with_id">Trakt popis %1$d</string>
-    <string name="collections_editor_trakt_public_list">Javni Trakt popis</string>
-    <string name="collections_editor_trakt_items_count">Stavki: %1$d</string>
-    <string name="collections_editor_trakt_likes_count">Sviđanja: %1$d</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Unesi ispravan TMDB ID ili URL</string>
     <string name="collections_editor_error_load_tmdb_source">Nije moguće učitati TMDB izvor</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Unesi ID ili URL Trakt popisa</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Unesi naziv, URL ili ID Trakt popisa</string>
-    <string name="collections_editor_error_load_trakt_list">Nije moguće učitati Trakt popis</string>
-    <string name="collections_editor_error_load_trakt_lists">Nije moguće učitati Trakt popise</string>
-    <string name="collections_editor_error_search_trakt_lists">Nije moguće pretražiti Trakt popise</string>
-    <string name="collections_editor_error_trakt_list_not_found">Trakt popis nije pronađen</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">Trakt popis nije sadržavao brojčani ID</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 ili 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 za Star Wars Collection</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420 ili URL tvrtke</string>
     <string name="collections_editor_tmdb_placeholder_network">213 za Netflix, 49 za HBO, 2739 za Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 za Toma Hanksa ili URL osobe</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 ili 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2751,9 +2615,6 @@
     <string name="collections_tab_combined">Kombinirano</string>
     <string name="collection_editor_remove_cd">Ukloni</string>
     <string name="collection_editor_choice_both">Oboje</string>
-    <string name="collection_editor_resolved_trakt_list">Razriješeni Trakt popis</string>
-    <string name="collection_editor_trakt_search_placeholder">Traži naslov, Trakt URL ili ID popisa</string>
-    <string name="collection_editor_trakt_name_placeholder">Vikend gledanje, Nagrađivani</string>
     <string name="collection_editor_folder_count_one">%1$d stavka</string>
     <string name="collection_editor_folder_count_other">Stavki: %1$d</string>
     <string name="collections_editor_delete_folder_title">Izbrisati mapu?</string>
@@ -2867,7 +2728,6 @@
     <string name="collections_import_error_source_invalid">Kolekcija \"%1$s\", mapa \"%2$s\", izvor %3$d: neispravan format</string>
     <string name="collections_import_error_source_required_fields">Kolekcija \"%1$s\", mapa \"%2$s\", izvor %3$d: nedostaju obavezna polja</string>
     <string name="collections_import_error_missing_tmdb_type">Kolekcija \"%1$s\", mapa \"%2$s\", izvor %3$d: nedostaje vrsta TMDB izvora</string>
-    <string name="collections_import_error_missing_trakt_list_id">Kolekcija \"%1$s\", mapa \"%2$s\", izvor %3$d: nedostaje ID Trakt popisa</string>
     <string name="collections_import_error_json_parse">Pogreška parsiranja JSON-a: %1$s</string>
 
     <!-- Poruke biblioteke -->
@@ -2888,26 +2748,6 @@
     <string name="library_privacy_friends">Prijatelji</string>
     <string name="library_privacy_public">Javno</string>
 
-    <!-- Trakt pogreške -->
-    <string name="trakt_error_auth_required">Potrebna je Trakt autentifikacija</string>
-    <string name="trakt_library_error_request_failed">Trakt zahtjev nije uspio</string>
-    <string name="trakt_library_error_create_list_failed">Stvaranje popisa nije uspjelo</string>
-    <string name="trakt_library_error_update_list_failed">Ažuriranje popisa nije uspjelo</string>
-    <string name="trakt_library_error_delete_list_failed">Brisanje popisa nije uspjelo</string>
-    <string name="trakt_library_error_reorder_lists_failed">Promjena redoslijeda popisa nije uspjela</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">Dohvaćanje filmova s popisa za gledanje nije uspjelo</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">Dohvaćanje serija s popisa za gledanje nije uspjelo</string>
-    <string name="trakt_library_error_fetch_personal_lists">Dohvaćanje osobnih popisa nije uspjelo</string>
-    <string name="trakt_library_error_add_watchlist_failed">Dodavanje na popis za gledanje nije uspjelo</string>
-    <string name="trakt_library_error_remove_watchlist_failed">Uklanjanje s popisa za gledanje nije uspjelo</string>
-    <string name="trakt_library_error_add_to_list_failed">Dodavanje na popis nije uspjelo</string>
-    <string name="trakt_library_error_remove_from_list_failed">Uklanjanje s popisa nije uspjelo</string>
-    <string name="trakt_library_error_missing_compatible_ids">Nedostaju kompatibilni ID-ovi za radnju s Trakt popisom</string>
-    <string name="trakt_library_error_auth_expired">Trakt autentifikacija je istekla</string>
-    <string name="trakt_library_error_list_not_found">Trakt popis nije pronađen</string>
-    <string name="trakt_library_error_list_limit_reached">Dosegnut je limit Trakt popisa. Potrebna je nadogradnja.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">Nedovoljno Trakt ID-ova za označavanje kao pogledano</string>
-    <string name="trakt_error_request_failed">Trakt zahtjev nije uspio</string>
     <string name="simkl_account_title">Simkl račun</string>
     <string name="simkl_description">Poveži Simkl za sinkronizaciju popisa, povijesti gledanja, napretka reprodukcije i scrobblova.</string>
     <string name="simkl_connect">Poveži Simkl</string>
@@ -2948,7 +2788,6 @@
     <string name="action_remove_anyway">Svejedno ukloni</string>
     <string name="cd_simkl_qr">QR za aktivaciju Simkla</string>
     <string name="cd_simkl_logo">Simkl logo</string>
-    <string name="trakt_error_mark_watched_failed">Označavanje kao pogledano na Traktu nije uspjelo (%1$d)</string>
 
     <!-- Pogreške detalja / opcija postera -->
     <string name="detail_error_update_library_failed">Ažuriranje biblioteke nije uspjelo</string>
@@ -3026,8 +2865,6 @@
     <string name="stream_error_detail_addon_request_failed">zahtjev prema dodatku nije uspio</string>
     <string name="stream_error_fetch_failed">Dohvaćanje streamova nije uspjelo</string>
 
-    <!-- Trakt: dohvaćanje po stranicama + komentari -->
-    <string name="trakt_library_error_paginated_fetch_failed">Trakt dohvaćanje po stranicama nije uspjelo (%1$d)</string>
 
     <!-- Početna: pogreške odabira popisa pri dugom pritisku postera -->
     <string name="home_poster_lists_error_load_failed">Učitavanje popisa nije uspjelo</string>
@@ -3037,10 +2874,6 @@
     <string name="profile_pin_saved_for_profile">PIN spremljen za %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">PIN zaključavanje uklonjeno za %1$s.</string>
 
-    <!-- Trakt: zamjenske poruke za povezano / komentare / stavke popisa -->
-    <string name="trakt_related_error_request_failed">Trakt zahtjev za povezani sadržaj nije uspio</string>
-    <string name="trakt_comments_error_request_failed">Trakt zahtjev za komentare nije uspio</string>
-    <string name="trakt_library_error_fetch_list_items">Dohvaćanje stavki popisa nije uspjelo</string>
 
     <string name="watchlist_removed">Uklonjeno s popisa za gledanje</string>
     <string name="watchlist_added">Dodano na popis za gledanje</string>

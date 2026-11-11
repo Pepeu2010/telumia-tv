@@ -65,7 +65,6 @@
     <string name="home_no_addons">Nema instaliranih addona. Dodajte jedan za početak.</string>
     <string name="home_no_catalog_addons">Nema instaliranih addona za katalog. Instalirajte katalog addon da vidite sadržaj.</string>
     <string name="auth_notice_nuvio_logged_out">Odjavljeni ste iz Nuvia. Molimo prijavite se ponovo.</string>
-    <string name="auth_notice_trakt_logged_out">Odjavljeni ste sa Trakta. Molimo ponovo se povežite.</string>
     <string name="error_generic">Došlo je do greške</string>
 
     <!-- ErrorState -->
@@ -190,21 +189,8 @@
     <string name="detail_tab_ratings">Ocjene</string>
     <string name="detail_tab_more_like_this">Slično ovome</string>
     <string name="detail_more_like_this_powered_by_tmdb">Omogućava TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Omogućava Trakt</string>
-    <string name="detail_comments_title">Komentari</string>
-    <string name="detail_comments_subtitle">Recenzije sa Trakta</string>
     <string name="detail_section_network">Mreža</string>
     <string name="detail_section_production">Produkcija</string>
-    <string name="detail_comments_empty">Još uvijek nema Trakt recenzija.</string>
-    <string name="detail_comments_error">Trenutno nije moguće učitati Trakt recenzije.</string>
-    <string name="detail_comments_spoiler_hidden">Recenzija sadrži spoiler. Pritisnite OK za prikaz.</string>
-    <string name="detail_comments_reveal_spoiler">Prikaži spoiler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Pritisnite OK za prikaz spoilera.</string>
-    <string name="detail_comments_back_hint">Kliknite nazad za zatvaranje</string>
-    <string name="detail_comments_badge_review">Recenzija</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d lajkova</string>
     <string name="tmdb_entity_kind_company">Produkcijska Kuća</string>
     <string name="tmdb_entity_kind_network">Mreža</string>
     <string name="tmdb_entity_rail_popular">Popularno</string>
@@ -273,7 +259,6 @@
     <string name="settings_plugins_subtitle">Repozitoriji i provajderi.</string>
     <string name="settings_integration">Integracije</string>
     <string name="settings_playback">Playback</string>
-    <string name="settings_trakt_subtitle">Otvori ekran za povezivanje sa Traktom.</string>
     <string name="settings_network">Brzina mreže</string>
     <string name="settings_network_subtitle">Latencija i dijagnostika preuzimanja</string>
     <string name="settings_advanced">Napredno</string>
@@ -592,8 +577,6 @@
     <string name="mdblist_enable_subtitle">Dohvati ocjene od vanjskih provajdera na ekranu detalja</string>
     <string name="mdblist_api_key_title">API Key</string>
     <string name="mdblist_api_key_subtitle">Potreban za dohvaćanje ocjena sa MDBList-a</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Prikaži Trakt ocjenu</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Prikaži IMDb ocjenu (i sakrij zadani IMDb red kad je dostupan)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -657,12 +640,6 @@
 
     <string name="tmdb_language_dialog_title">TMDB Jezik</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Sinhronizuj svoju watchlistu, napredak gledanja, nastavi gledati, scrobble i lične liste sa Traktom.</string>
-    <string name="trakt_connected_as">Prijavljen kao %1$s</string>
-    <string name="trakt_account_login">Prijava na Račun</string>
-    <string name="trakt_awaiting_instruction">Idi na trakt.tv/activate i unesi ovaj kod:</string>
-    <string name="trakt_waiting_approval">Čekanje na odobrenje…</string>
     <string name="qr_login_approved">Prijava odobrena. Završavanje prijave…</string>
     <string name="qr_login_pending">Čekanje na odobrenje na tvom telefonu…</string>
     <string name="qr_login_expired">QR prijava je istekla. Generiši novi kod.</string>
@@ -671,53 +648,16 @@
     <string name="qr_login_signing_in">Prijavljivanje…</string>
     <string name="qr_login_success">Uspješno prijavljeno</string>
     <string name="qr_login_exchange_failed">Nije bilo moguće završiti QR prijavu</string>
-    <string name="trakt_code_expires">Kod ističe za %1$s</string>
-    <string name="trakt_token_refreshes">Trakt access token se osvježava za %1$s</string>
-    <string name="trakt_login_instruction">Pritisni Prijava da započneš Trakt autentifikaciju uređaja. Ovdje će se pojaviti QR kod.</string>
-    <string name="trakt_missing_credentials">Nedostaju TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET u local.properties.</string>
-    <string name="trakt_watch_progress_title">Napredak Gledanja</string>
-    <string name="trakt_watch_progress_subtitle">Odaberi koji izvor napretka upravlja opcijama nastavi i nastavi gledati</string>
-    <string name="trakt_watch_progress_dialog_title">Napredak Gledanja</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Odaberi da li nastavi i nastavi gledati treba da koriste Trakt ili Telumia Sync, dok Trakt scrobble ostaje aktivan.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_setting_on">Uključeno</string>
-    <string name="trakt_setting_off">Isključeno</string>
-    <string name="trakt_watch_progress_trakt_selected">Izvor napretka gledanja postavljen na Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Izvor napretka gledanja postavljen na Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Prozor za Nastavi Gledati</string>
-    <string name="trakt_continue_watching_subtitle">Trakt historija koja se uzima u obzir za nastavi gledati</string>
-    <string name="trakt_unaired_next_up">Neemitovane Sljedeće Epizode</string>
-    <string name="trakt_unaired_next_up_subtitle">Prikaži nadolazeće epizode prije nego se emituju</string>
-    <string name="trakt_unaired_shown">Prikazano</string>
-    <string name="trakt_unaired_hidden">Skriveno</string>
-    <string name="trakt_unaired_now_shown">Neemitovane sljedeće epizode su sada prikazane</string>
-    <string name="trakt_unaired_now_hidden">Neemitovane sljedeće epizode su sada skrivene</string>
-    <string name="trakt_comments_title">Komentari</string>
-    <string name="trakt_comments_subtitle">Prikaži Trakt recenzije na stranicama metapodataka</string>
-    <string name="trakt_comments_dialog_title">Komentari</string>
-    <string name="trakt_comments_dialog_subtitle">Odaberi da li stranice metapodataka trebaju prikazivati Trakt recenzije kada je tvoj račun povezan.</string>
-    <string name="trakt_comments_now_shown">Trakt recenzije na stranicama metapodataka su sada prikazane</string>
-    <string name="trakt_comments_now_hidden">Trakt recenzije na stranicama metapodataka su sada skrivene</string>
-    <string name="trakt_cached_label">U Kešu</string>
-    <string name="trakt_stat_movies">Filmovi</string>
-    <string name="trakt_stat_shows">Serije</string>
-    <string name="trakt_stat_episodes">Epizode</string>
-    <string name="trakt_stat_watched_hours">Odgledano Sati</string>
-    <string name="trakt_disconnect">Odjavi se</string>
-    <string name="trakt_disconnect_title">Odjaviti se sa Trakta?</string>
-    <string name="trakt_disconnect_subtitle">Ovo će odspojiti tvoj Trakt račun sa Nuvia.</string>
-    <string name="trakt_login">Prijava</string>
-    <string name="trakt_retry">Pokušaj ponovo</string>
-    <string name="trakt_back">Nazad</string>
-    <string name="trakt_cw_window_title">Prozor za Nastavi Gledati</string>
-    <string name="trakt_cw_window_subtitle">Odaberi koliko Trakt aktivnosti se treba pojavljivati u nastavi gledati.</string>
-    <string name="trakt_unaired_dialog_title">Neemitovane Sljedeće Epizode</string>
-    <string name="trakt_unaired_dialog_subtitle">Odaberi da li Nastavi Gledati treba uključivati nadolazeće epizode prije izlaska.</string>
-    <string name="trakt_show_unaired">Prikaži neemitovane epizode</string>
-    <string name="trakt_hide_unaired">Sakrij neemitovane epizode</string>
-    <string name="trakt_all_history">Cijela historija</string>
-    <string name="trakt_days_format">%1$d dana</string>
+    <string name="tracking_code_expires">Kod ističe za %1$s</string>
+    <string name="tracking_watch_progress_title">Napredak Gledanja</string>
+    <string name="tracking_watch_progress_subtitle">Odaberi koji izvor napretka upravlja opcijama nastavi i nastavi gledati</string>
+    <string name="tracking_watch_progress_dialog_title">Napredak Gledanja</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_continue_watching_window">Prozor za Nastavi Gledati</string>
+    <string name="tracking_disconnect">Odjavi se</string>
+    <string name="tracking_cw_window_title">Prozor za Nastavi Gledati</string>
+    <string name="tracking_all_history">Cijela historija</string>
+    <string name="tracking_days_format">%1$d dana</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Debug</string>
@@ -1046,7 +986,6 @@
     <string name="search_voice_unavailable">Glasovna pretraga nije dostupna na ovom uređaju.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Sinhronizacija Trakt biblioteke…</string>
     <string name="library_title">Biblioteka</string>
     <string name="library_filter_list">Lista</string>
     <string name="library_filter_type">Tip</string>
@@ -1082,13 +1021,11 @@
     <string name="genre_soap">Sapunica</string>
     <string name="genre_talk">Talk Show</string>
     <string name="genre_war_politics">Rat i Politika</string>
-    <string name="library_sort_trakt_order">Trakt Redoslijed</string>
     <string name="library_sort_added_desc">Dodano ↓</string>
     <string name="library_sort_added_asc">Dodano ↑</string>
     <string name="library_sort_title_asc">Naslov A-Ž</string>
     <string name="library_sort_title_desc">Naslov Ž-A</string>
     <string name="library_manage_lists">Upravljaj Listama</string>
-    <string name="library_manage_trakt_lists">Upravljaj Trakt Listama</string>
     <string name="library_no_lists">Još nema ličnih listi.</string>
     <string name="library_list_create">Kreiraj</string>
     <string name="library_list_edit">Uredi</string>
@@ -1100,18 +1037,16 @@
     <string name="library_list_description_label">Opis</string>
     <string name="library_list_privacy">Privatnost</string>
     <string name="library_delete_title">Izbrisati ovu listu?</string>
-    <string name="library_delete_subtitle">Ovo uklanja listu i sve stavke sa Trakta.</string>
     <string name="library_delete_confirm">Izbriši</string>
     <string name="library_source_local">LOKALNO</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_syncing_library">Sinhronizacija biblioteke…</string>
     <string name="library_type_all">Sve</string>
     <string name="library_type_items">stavki</string>
     <string name="library_empty_local_title">Još nema %1$s</string>
-    <string name="library_empty_trakt_title">Nema %1$s u ovoj listi</string>
+    <string name="library_empty_remote_title">Nema %1$s u ovoj listi</string>
     <string name="library_empty_local_subtitle">Počni dodavati favorite da ih vidiš ovdje</string>
-    <string name="library_empty_trakt_subtitle">Koristi + u detaljima da dodaš stavke na watchlistu ili liste</string>
+    <string name="library_empty_remote_subtitle">Koristi + u detaljima da dodaš stavke na watchlistu ili liste</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Učitavanje…</string>
@@ -1232,7 +1167,6 @@
 
     <!-- AccountScreen -->
     <string name="account_title">Račun</string>
-    <string name="account_sign_in_description">Prijavi se za sinhronizaciju biblioteke, napretka gledanja, addona i plugina na svim uređajima. Sinhronizacija biblioteke koristi Telumia Sync kada Trakt nije povezan, a napredak gledanja može koristiti i Trakt i Telumia Sync.</string>
     <string name="account_sync_code_title">Sync Kod</string>
     <string name="account_sync_code_description">Sinhronizuj uređaje bez kreiranja računa.</string>
     <string name="account_linked_devices">Povezani Uređaji (%1$d)</string>
@@ -1343,10 +1277,6 @@
     <string name="plugin_test_no_results">Nema pronađenih rezultata</string>
     <string name="plugin_test_found_streams">Pronađeno %1$d streamova</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">Kod uređaja je istekao. Pokreni ponovo.</string>
-    <string name="trakt_error_code_used">Kod uređaja je već iskorišten. Pokreni ponovo.</string>
-    <string name="trakt_error_denied">Autorizacija odbijena na Traktu.</string>
 
     <!-- Account errors -->
     <string name="account_error_signin_required">Prvo se prijavi sa svojim računom.</string>
@@ -1406,8 +1336,6 @@
     <string name="cd_test">Testiraj</string>
     <string name="cd_unlink">Odspoji</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Trakt Logo</string>
-    <string name="cd_trakt_qr">Trakt QR za aktivaciju</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Otvori Otkrij</string>
     <string name="cd_voice_search">Glasovna pretraga</string>

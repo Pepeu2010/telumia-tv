@@ -571,7 +571,6 @@ private fun MetaPreview.toLibraryEntryInput(addonBaseUrl: String?): LibraryEntry
         itemType = apiType,
         title = name,
         year = year,
-        traktId = parsedIds.trakt,
         simklId = parsedIds.simkl,
         imdbId = parsedIds.imdb,
         tmdbId = parsedIds.tmdb,

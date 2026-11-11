@@ -7,33 +7,29 @@ data class MdbListIds(
     val imdb: String? = null,
     val tmdb: Long? = null,
     val tvdb: Long? = null,
-    val trakt: Long? = null,
     val mdblist: String? = null
 ) {
     val key: String
         get() = mdblist?.let { "mdblist:$it" } ?: imdb ?: tmdb?.let { "tmdb:$it" }
-            ?: tvdb?.let { "tvdb:$it" } ?: trakt?.let { "trakt:$it" }
+            ?: tvdb?.let { "tvdb:$it" }
             ?: throw MdbListDecodingException()
 
     val contentId: String
-        get() = imdb ?: tmdb?.let { "tmdb:$it" } ?: tvdb?.let { "tvdb:$it" }
-            ?: trakt?.let { "trakt:$it" } ?: key
+        get() = imdb ?: tmdb?.let { "tmdb:$it" } ?: tvdb?.let { "tvdb:$it" } ?: key
 
     fun matches(other: MdbListIds): Boolean =
         (mdblist != null && mdblist == other.mdblist) || (imdb != null && imdb == other.imdb) ||
-            (tmdb != null && tmdb == other.tmdb) || (tvdb != null && tvdb == other.tvdb) ||
-            (trakt != null && trakt == other.trakt)
+            (tmdb != null && tmdb == other.tmdb) || (tvdb != null && tvdb == other.tvdb)
 
     fun merged(other: MdbListIds) = MdbListIds(
         imdb ?: other.imdb, tmdb ?: other.tmdb, tvdb ?: other.tvdb,
-        trakt ?: other.trakt, mdblist ?: other.mdblist
+        mdblist ?: other.mdblist
     )
 
     fun aliases(): Set<String> = buildSet {
         imdb?.let { add(it); add("imdb:$it") }
         tmdb?.let { add("tmdb:$it") }
         tvdb?.let { add("tvdb:$it") }
-        trakt?.let { add("trakt:$it") }
         mdblist?.let { add("mdblist:$it") }
     }
 }

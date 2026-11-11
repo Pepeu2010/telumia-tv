@@ -196,7 +196,6 @@
     <string name="settings_plugins_subtitle">रिपॉजिटरी और प्रोवाइडर्स।</string>
     <string name="settings_integration">इंटीग्रेशन</string>
     <string name="settings_playback">प्लेबैक</string>
-    <string name="settings_trakt_subtitle">Trakt कनेक्शन स्क्रीन खोलें।</string>
     <string name="settings_debug">डीबग</string>
     <string name="settings_plugins_section_subtitle">रिपॉजिटरी, प्रोवाइडर्स और प्लगइन स्टेट मैनेज करें।</string>
     <string name="settings_account_section_subtitle">अकाउंट और सिंक स्थिति।</string>
@@ -472,8 +471,6 @@
     <string name="mdblist_enable_subtitle">मेटाडेटा डिटेल स्क्रीन में बाहरी प्रोवाइडर से रेटिंग प्राप्त करें</string>
     <string name="mdblist_api_key_title">API Key</string>
     <string name="mdblist_api_key_subtitle">MDBList से रेटिंग प्राप्त करने के लिए आवश्यक</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Trakt स्कोर दिखाएँ</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">IMDb स्कोर दिखाएँ (उपलब्ध होने पर डिफ़ॉल्ट IMDb लाइन छुपाएँ)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -533,46 +530,15 @@
 
     <string name="tmdb_language_dialog_title">TMDB भाषा</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">अपनी वॉचलिस्ट, वॉच प्रोग्रेस, कंटिन्यू वॉचिंग, स्क्रॉबल्स और व्यक्तिगत लिस्ट्स को Trakt के साथ सिंक करें।</string>
-    <string name="trakt_connected_as">%1$s के रूप में कनेक्टेड</string>
-    <string name="trakt_account_login">अकाउंट लॉगिन</string>
-    <string name="trakt_awaiting_instruction">trakt.tv/activate पर जाएँ और यह कोड दर्ज करें:</string>
-    <string name="trakt_waiting_approval">स्वीकृति की प्रतीक्षा हो रही है…</string>
     <string name="qr_login_approved">लॉगिन स्वीकृत। साइन इन पूरा किया जा रहा है…</string>
     <string name="qr_login_pending">आपके फोन पर स्वीकृति की प्रतीक्षा हो रही है…</string>
     <string name="qr_login_expired">QR लॉगिन समाप्त हो गया। नया कोड जनरेट करें।</string>
-    <string name="trakt_code_expires">कोड %1$s में समाप्त होगा</string>
-    <string name="trakt_token_refreshes">Trakt एक्सेस टोकन %1$s में रिफ्रेश होगा</string>
-    <string name="trakt_login_instruction">Trakt डिवाइस ऑथेंटिकेशन शुरू करने के लिए Login दबाएँ। यहाँ एक QR कोड दिखाई देगा।</string>
-    <string name="trakt_missing_credentials">local.properties में TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET नहीं मिला।</string>
-    <string name="trakt_continue_watching_window">कंटिन्यू वॉचिंग विंडो</string>
-    <string name="trakt_continue_watching_subtitle">कंटिन्यू वॉचिंग के लिए Trakt इतिहास का उपयोग</string>
-    <string name="trakt_unaired_next_up">अनएयर्ड नेक्स्ट अप एपिसोड</string>
-    <string name="trakt_unaired_next_up_subtitle">एयर होने से पहले आने वाले एपिसोड दिखाएँ</string>
-    <string name="trakt_unaired_shown">दिखाया गया</string>
-    <string name="trakt_unaired_hidden">छुपाया गया</string>
-    <string name="trakt_unaired_now_shown">अनएयर्ड नेक्स्ट अप एपिसोड अब दिखाए जाएँगे</string>
-    <string name="trakt_unaired_now_hidden">अनएयर्ड नेक्स्ट अप एपिसोड अब छुपाए जाएँगे</string>
-    <string name="trakt_cached_label">कैश्ड</string>
-    <string name="trakt_stat_movies">मूवीज़</string>
-    <string name="trakt_stat_shows">शो</string>
-    <string name="trakt_stat_episodes">एपिसोड</string>
-    <string name="trakt_stat_watched_hours">देखे गए घंटे</string>
-    <string name="trakt_disconnect">डिस्कनेक्ट</string>
-    <string name="trakt_disconnect_title">Trakt डिस्कनेक्ट करें?</string>
-    <string name="trakt_disconnect_subtitle">यह आपके Trakt अकाउंट को Telumia से डिस्कनेक्ट कर देगा।</string>
-    <string name="trakt_login">लॉगिन</string>
-    <string name="trakt_retry">फिर से कोशिश करें</string>
-    <string name="trakt_back">वापस</string>
-    <string name="trakt_cw_window_title">कंटिन्यू वॉचिंग विंडो</string>
-    <string name="trakt_cw_window_subtitle">चुनें कि कंटिन्यू वॉचिंग में कितना Trakt एक्टिविटी दिखे।</string>
-    <string name="trakt_unaired_dialog_title">अनएयर्ड नेक्स्ट अप एपिसोड</string>
-    <string name="trakt_unaired_dialog_subtitle">चुनें कि कंटिन्यू वॉचिंग में रिलीज़ से पहले आने वाले एपिसोड शामिल हों या नहीं।</string>
-    <string name="trakt_show_unaired">अनएयर्ड एपिसोड दिखाएँ</string>
-    <string name="trakt_hide_unaired">अनएयर्ड एपिसोड छुपाएँ</string>
-    <string name="trakt_all_history">सारा इतिहास</string>
-    <string name="trakt_days_format">%1$d दिन</string>
+    <string name="tracking_code_expires">कोड %1$s में समाप्त होगा</string>
+    <string name="tracking_continue_watching_window">कंटिन्यू वॉचिंग विंडो</string>
+    <string name="tracking_disconnect">डिस्कनेक्ट</string>
+    <string name="tracking_cw_window_title">कंटिन्यू वॉचिंग विंडो</string>
+    <string name="tracking_all_history">सारा इतिहास</string>
+    <string name="tracking_days_format">%1$d दिन</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">डीबग</string>
@@ -799,18 +765,15 @@
     <string name="search_voice_unavailable">इस डिवाइस पर वॉइस सर्च उपलब्ध नहीं है।</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Trakt लाइब्रेरी सिंक हो रही है\u2026</string>
     <string name="library_title">लाइब्रेरी</string>
     <string name="library_filter_list">लिस्ट</string>
     <string name="library_filter_type">प्रकार</string>
     <string name="library_filter_sort">सॉर्ट</string>
-    <string name="library_sort_trakt_order">Trakt क्रम</string>
     <string name="library_sort_added_desc">जोड़ा गया ↓</string>
     <string name="library_sort_added_asc">जोड़ा गया ↑</string>
     <string name="library_sort_title_asc">टाइटल A-Z</string>
     <string name="library_sort_title_desc">टाइटल Z-A</string>
     <string name="library_manage_lists">लिस्ट मैनेज करें</string>
-    <string name="library_manage_trakt_lists">Trakt लिस्ट मैनेज करें</string>
     <string name="library_no_lists">अभी कोई व्यक्तिगत लिस्ट नहीं है।</string>
     <string name="library_list_create">बनाएँ</string>
     <string name="library_list_edit">संपादित करें</string>
@@ -822,15 +785,14 @@
     <string name="library_list_description_label">विवरण</string>
     <string name="library_list_privacy">गोपनीयता</string>
     <string name="library_delete_title">क्या इस लिस्ट को हटाएँ?</string>
-    <string name="library_delete_subtitle">यह लिस्ट और उसके सभी आइटम Trakt से हटा देगा।</string>
     <string name="library_delete_confirm">हटाएँ</string>
     <string name="library_source_local">लोकल</string>
     <string name="library_type_all">सभी</string>
     <string name="library_type_items">आइटम</string>
     <string name="library_empty_local_title">अभी कोई %1$s नहीं</string>
-    <string name="library_empty_trakt_title">इस लिस्ट में कोई %1$s नहीं</string>
+    <string name="library_empty_remote_title">इस लिस्ट में कोई %1$s नहीं</string>
     <string name="library_empty_local_subtitle">यहाँ देखने के लिए अपने पसंदीदा सेव करना शुरू करें</string>
-    <string name="library_empty_trakt_subtitle">वॉचलिस्ट या लिस्ट में आइटम जोड़ने के लिए डिटेल्स में + उपयोग करें</string>
+    <string name="library_empty_remote_subtitle">वॉचलिस्ट या लिस्ट में आइटम जोड़ने के लिए डिटेल्स में + उपयोग करें</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">लोड हो रहा है\u2026</string>
@@ -943,7 +905,6 @@
     <string name="update_unknown_sources">जारी रखने के लिए अज्ञात स्रोत से इंस्टॉल की अनुमति दें।</string>
     <!-- AccountScreen -->
     <string name="account_title">अकाउंट</string>
-    <string name="account_sign_in_description">डिवाइसों के बीच अपनी लाइब्रेरी, वॉच प्रोग्रेस, ऐडऑन और प्लगइन सिंक करने के लिए साइन इन करें। लाइब्रेरी और वॉच प्रोग्रेस केवल तब सिंक होते हैं जब Trakt कनेक्ट नहीं होता।</string>
     <string name="account_sync_code_title">सिंक कोड</string>
     <string name="account_sync_code_description">अकाउंट बनाए बिना डिवाइसों के बीच सिंक करें।</string>
     <string name="account_linked_devices">लिंक किए गए डिवाइस (%1$d)</string>

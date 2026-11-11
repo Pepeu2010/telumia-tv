@@ -106,7 +106,7 @@ interface WatchProgressRepository {
 
     /**
      * Returns sibling ID mapping: each content ID maps to its alternate IDs
-     * from the same show (e.g. IMDB ↔ TMDB). Empty map for non-Trakt sources.
+     * from the same show (e.g. IMDB ↔ TMDB). Empty map for sources without remote ID mapping.
      */
     suspend fun getShowIdSiblings(): Map<String, Set<String>>
 

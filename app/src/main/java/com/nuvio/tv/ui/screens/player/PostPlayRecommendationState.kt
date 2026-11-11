@@ -61,7 +61,10 @@ data class PostPlayRecommendationUiState(
         get() = isVisible && !isTrailerPlaying && !hasAutoPlayedTrailer
 
     val blocksNaturalCompletion: Boolean
-        get() = isVisible || (isLoadingRecommendation && !hasReturnedToPlayer)
+        get() = isVisible ||
+            recommendation != null ||
+            isLoadingRecommendation ||
+            hasReturnedToPlayer
 }
 
 internal fun PostPlayRecommendationUiState.returnToPlayer(): PostPlayRecommendationUiState {

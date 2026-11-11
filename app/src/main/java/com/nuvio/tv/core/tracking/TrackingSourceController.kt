@@ -4,7 +4,7 @@ import com.nuvio.tv.core.sync.StartupSyncService
 import com.nuvio.tv.core.sync.WatchedItemsSyncService
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.data.local.ContinueWatchingEnrichmentCache
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.local.WatchProgressSource
 import com.nuvio.tv.data.local.WatchedItemsPreferences
@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withLock
 
 @Singleton
 class TrackingSourceController @Inject constructor(
-    private val settingsDataStore: TraktSettingsDataStore,
+    private val settingsDataStore: TrackingSettingsDataStore,
     private val progressProviders: TrackingProgressProviderRegistry,
     private val libraryProviders: TrackingLibraryProviderRegistry,
     private val startupSyncService: StartupSyncService,
@@ -78,7 +78,7 @@ class TrackingSourceController @Inject constructor(
         val provider = source.providerId?.let(progressProviders::provider)
         if (provider != null) {
             if (provider.clearsLocalProgressOnSelection) {
-                watchProgressPreferences.clearAllPreservingNonTraktIds(profileId) { contentId ->
+                watchProgressPreferences.clearAllPreservingIds(profileId) { contentId ->
                     provider.retainsLocalProgress(contentId)
                 }
             }

@@ -82,10 +82,8 @@ data class CollectionSourceInfo(
     val tmdbSourceType: String? = null,
     val title: String? = null,
     val tmdbId: Int? = null,
-    val traktListId: Long? = null,
     val mediaType: String? = null,
     val sortBy: String? = null,
-    val sortHow: String? = null,
     val filters: TmdbFiltersInfo? = null
 )
 
@@ -123,27 +121,6 @@ data class TmdbSourceSearchRequest(
 
 data class TmdbSourceSearchResultInfo(
     val id: Int,
-    val title: String,
-    val subtitle: String? = null,
-    val coverImageUrl: String? = null
-)
-
-data class TraktSourceMetadataRequest(
-    val input: String
-)
-
-data class TraktSourceMetadataInfo(
-    val title: String? = null,
-    val coverImageUrl: String? = null,
-    val traktListId: Long? = null
-)
-
-data class TraktSourceSearchRequest(
-    val query: String
-)
-
-data class TraktSourceSearchResultInfo(
-    val id: Long,
     val title: String,
     val subtitle: String? = null,
     val coverImageUrl: String? = null

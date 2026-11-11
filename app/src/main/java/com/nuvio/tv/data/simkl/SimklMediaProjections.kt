@@ -273,7 +273,7 @@ internal fun SimklPlaybackSession.toWatchProgress(
     // A series reports the runtime of the show, not of the episode, so scaling the percentage by it
     // invents a timecode: an episode stopped at 83 % of 47 minutes resumed at 42 minutes, because
     // 83 % of the show's 52 minutes is 43. Leaving the duration out, with the percentage in place,
-    // makes the player scale it by the duration it really has, which is what a Trakt row already does.
+    // makes the player scale it by the duration it really has, which is what a remote row already does.
     val durationMs = if (isMovie) {
         media.runtime?.takeIf { it > 0 }?.toLong()?.times(60_000L) ?: 0L
     } else {
@@ -375,7 +375,6 @@ fun TrackingMediaReference.resolveAnimeEpisodeForSimkl(): TrackingMediaReference
         imdb = null,
         tmdb = null,
         tvdb = null,
-        trakt = null,
         simkl = null,
         mal = videoIds.mal,
         anidb = videoIds.anidb,

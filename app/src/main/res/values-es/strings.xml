@@ -93,14 +93,12 @@
     <string name="web_import_error_source_invalid_format">Colección \"{collection}\", carpeta \"{folder}\", fuente {index}: formato no válido</string>
     <string name="web_import_error_source_missing_addon_fields">Colección \"{collection}\", carpeta \"{folder}\", fuente {index}: faltan campos obligatorios (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">Colección \"{collection}\", carpeta \"{folder}\", fuente {index}: falta el tipo de fuente TMDB</string>
-    <string name="web_import_error_source_missing_trakt_id">Colección \"{collection}\", carpeta \"{folder}\", fuente {index}: falta el ID de lista de Trakt</string>
     <string name="web_import_success">Se importaron {count} colección(es). Revísalas y pulsa Guardar cambios para aplicarlas.</string>
     <string name="web_import_invalid_json">JSON no válido</string>
 
     <string name="home_no_addons">No hay complementos instalados. Instala uno para empezar.</string>
     <string name="home_no_catalog_addons">No hay complementos de catálogo instalados. Instala un complemento de catálogo para ver contenido.</string>
     <string name="auth_notice_nuvio_logged_out">Has sido desconectado de Telumia. Por favor, inicia sesión de nuevo.</string>
-    <string name="auth_notice_trakt_logged_out">Has sido desconectado de Trakt. Por favor, reconéctate.</string>
     <string name="error_generic">Ha ocurrido un error</string>
 
     <string name="action_retry">Reintentar</string>
@@ -203,7 +201,6 @@
     <string name="episodes_mark_previous_watched">Marcar anteriores en esta temporada como visto</string>
     <string name="episodes_mark_previous_seasons_watched">Marcar temporadas anteriores como vistas</string>
     <string name="episodes_play">Reproducir</string>
-    <string name="episodes_open_comments">Abrir comentarios del episodio</string>
     <string name="play_manually">Reproducir manualmente</string>
     <string name="episodes_season_actions">Acciones de la temporada</string>
 
@@ -237,30 +234,11 @@
     <string name="detail_tab_more_like_this">Más como esto</string>
     <string name="detail_tab_trailer">Tráiler</string>
     <string name="detail_more_like_this_powered_by_tmdb">Con tecnología de TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">Con tecnología de Trakt</string>
     <string name="detail_more_like_this_powered_by_simkl">Con tecnología de Simkl</string>
-    <string name="detail_comments_title">Comentarios</string>
-    <string name="detail_comments_subtitle">Reseñas de Trakt</string>
-    <string name="detail_comments_subtitle_episode">Reseñas de Trakt para T%1$dE%2$d</string>
-    <string name="detail_comments_mode_show">Serie</string>
-    <string name="detail_comments_mode_episode">Episodio</string>
-    <string name="detail_comments_mode_episode_change">Cambiar episodio (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">Elige episodio</string>
-    <string name="detail_comments_episode_picker_subtitle">Elige un episodio para ver sus reseñas de Trakt</string>
     <string name="detail_section_network">Red</string>
     <string name="detail_section_production">Producción</string>
-    <string name="detail_comments_empty">Aún no hay reseñas de Trakt disponibles.</string>
-    <string name="detail_comments_error">No se pudieron cargar las reseñas de Trakt en este momento.</string>
     <string name="detail_trailer_loading">Cargando tráiler...</string>
     <string name="detail_trailer_error">No se pudo cargar el tráiler en este momento.</string>
-    <string name="detail_comments_spoiler_hidden">Reseña con spoiler. Presiona OK para revelarla.</string>
-    <string name="detail_comments_reveal_spoiler">Revelar spoiler</string>
-    <string name="detail_comments_reveal_spoiler_hint">Presiona OK para revelar el spoiler.</string>
-    <string name="detail_comments_back_hint">Presiona atrás para cerrar</string>
-    <string name="detail_comments_badge_review">Reseña</string>
-    <string name="detail_comments_badge_spoiler">Spoiler</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d me gusta</string>
     <string name="tmdb_entity_kind_company">Productora</string>
     <string name="tmdb_entity_kind_network">Red</string>
     <string name="tmdb_entity_rail_popular">Popular</string>
@@ -430,8 +408,6 @@
     <string name="licenses_attributions_nuvio_body">El código fuente y los términos de la licencia están disponibles en el repositorio del proyecto. Con licencia GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia usa la API de TMDB para metadatos de películas y series, ilustraciones, tráilers, elenco, detalles de producción, colecciones y recomendaciones. Este producto usa la API de TMDB pero no está respaldado ni certificado por TMDB.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia se conecta a Trakt para autenticación de cuenta, historial de visualización, sincronización de progreso, datos de biblioteca, calificaciones, listas y comentarios. Telumia no está afiliado ni respaldado por Trakt.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia se conecta a Simkl para autenticación de cuenta, listas de deseos, historial de visualización, progreso de reproducción y scrobbling. Los datos de seguimiento de películas, series y anime los proporciona Simkl. Telumia no está afiliado ni respaldado por Simkl.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -462,15 +438,12 @@
     <string name="settings_plugins_subtitle">Repositorios y proveedores</string>
     <string name="settings_integration">Integraciones</string>
     <string name="settings_playback">Reproducción</string>
-    <string name="settings_trakt_subtitle">Abre la pantalla de conexión de Trakt</string>
     <string name="settings_tracking_title">Seguimiento</string>
     <string name="settings_tracking_description">Conecta proveedores de seguimiento y elige cuál impulsa tu Biblioteca y Continuar viendo.</string>
     <string name="tracking_accounts_title">Cuentas</string>
     <string name="tracking_accounts_subtitle">Conecta y administra servicios de seguimiento</string>
     <string name="tracking_sources_title">Fuentes</string>
     <string name="tracking_sources_subtitle">Elige de dónde lee Telumia tu biblioteca y tu progreso de visualización. La reproducción hace scrobbling en todos los servicios conectados.</string>
-    <string name="tracking_trakt_features_title">Funciones de Trakt</string>
-    <string name="tracking_trakt_features_subtitle">Historial, reseñas y recomendaciones específicas de Trakt</string>
     <string name="tracking_simkl_features_title">Funciones de Simkl</string>
     <string name="tracking_simkl_features_subtitle">Ajustes específicos de Simkl</string>
     <string name="tracking_simkl_anime_id_title">Preferencia de ID de anime</string>
@@ -487,8 +460,6 @@
     <string name="tracking_connecting_provider">Iniciando conexión con %1$s…</string>
     <string name="tracking_watch_progress_dialog_subtitle">Elige el servicio que Telumia usa para reanudar y Continuar viendo. El scrobbling permanece activo en todos los servicios conectados.</string>
     <string name="tracking_library_source_dialog_subtitle">Elige el servicio que Telumia lee para tu Biblioteca. La reproducción hace scrobbling en todos los servicios conectados.</string>
-    <string name="tracking_trakt_progress_required">Disponible cuando Trakt es la fuente de progreso de visualización</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">Velocidad de red</string>
     <string name="settings_network_subtitle">Diagnóstico de latencia y descarga</string>
@@ -498,7 +469,7 @@
     <string name="experience_mode_advanced">Avanzado</string>
     <string name="experience_mode_choose_title">Elige tu experiencia de Telumia</string>
     <string name="experience_mode_choose_subtitle">Empieza de forma sencilla o desbloquea todas las personalizaciones. Puedes cambiar cuando quieras.</string>
-    <string name="experience_mode_essential_card_subtitle">Configuración enfocada, complementos, aspectos básicos de reproducción, Trakt y ajustes de cuenta.</string>
+    <string name="experience_mode_essential_card_subtitle">Configuración enfocada, complementos, aspectos básicos de reproducción y ajustes de cuenta.</string>
     <string name="experience_mode_advanced_card_subtitle">Ajustes completos, controles de diseño, orden de catálogo, colecciones, complementos y diagnóstico.</string>
     <string name="experience_mode_group_title">Modo de experiencia</string>
     <string name="essential_addon_continue_for_now">Continuar por ahora</string>
@@ -1162,8 +1133,6 @@
     <string name="mdblist_ratings_credentials_subtitle">Usa tu cuenta de MDBList conectada en Seguimiento, o introduce una clave API independiente para las calificaciones.</string>
     <string name="mdblist_ratings_connected_account">Usando cuenta conectada</string>
     <string name="mdblist_ratings_key_override_subtitle">Una clave API anula tu cuenta conectada para las calificaciones. Límpiala para volver a usar la cuenta conectada.</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Mostrar puntuación de Trakt</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Mostrar puntuación de IMDb (y ocultar línea de IMDb predeterminada cuando esté disponible)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1392,11 +1361,6 @@
 
     <string name="tmdb_language_dialog_title">Idioma de TMDB</string>
 
-    <string name="trakt_description">Sincroniza tu lista de deseos, progreso de visualización, continuar viendo, scrobbles y listas personales con Trakt.</string>
-    <string name="trakt_connected_as">Conectado como %1$s</string>
-    <string name="trakt_account_login">Inicio de sesión de cuenta</string>
-    <string name="trakt_awaiting_instruction">Ve a trakt.tv/activate e introduce este código:</string>
-    <string name="trakt_waiting_approval">Esperando aprobación…</string>
     <string name="qr_login_approved">Inicio de sesión aprobado. Finalizando acceso…</string>
     <string name="qr_login_pending">Esperando aprobación en tu teléfono…</string>
     <string name="qr_login_expired">Inicio de sesión con QR expirado. Genera un nuevo código.</string>
@@ -1407,68 +1371,26 @@
     <string name="qr_login_signing_in">Iniciando sesión…</string>
     <string name="qr_login_success">Sesión iniciada correctamente</string>
     <string name="qr_login_exchange_failed">No se pudo completar el inicio de sesión con QR</string>
-    <string name="trakt_code_expires">El código caduca en %1$s</string>
-    <string name="trakt_token_refreshes">El token de acceso de Trakt se actualiza en %1$s</string>
-    <string name="trakt_login_instruction">Presiona Iniciar sesión para comenzar la autenticación de dispositivo de Trakt. Un código QR aparecerá aquí.</string>
-    <string name="trakt_missing_credentials">Falta TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET en local.properties.</string>
-    <string name="trakt_watch_progress_title">Progreso de visualización</string>
-    <string name="trakt_watch_progress_subtitle">Elige qué fuente de progreso impulsa la reanudación y continuar viendo</string>
-    <string name="trakt_watch_progress_dialog_title">Progreso de visualización</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Elige si la reanudación y continuar viendo deben usar Trakt o Telumia Sync mientras el scrobbling de Trakt permanece activo.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">Fuente de biblioteca</string>
-    <string name="trakt_library_source_subtitle">Elige de qué fuente lee Telumia tu biblioteca</string>
-    <string name="trakt_library_source_dialog_title">Fuente de biblioteca</string>
-    <string name="trakt_library_source_dialog_subtitle">Elige dónde guardar y administrar los elementos de tu biblioteca</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">Biblioteca de Telumia</string>
-    <string name="trakt_library_source_trakt_selected">Biblioteca de Trakt seleccionada</string>
-    <string name="trakt_library_source_nuvio_selected">Biblioteca de Telumia seleccionada</string>
-    <string name="trakt_setting_on">Activado</string>
-    <string name="trakt_setting_off">Desactivado</string>
-    <string name="trakt_watch_progress_trakt_selected">Fuente de progreso de visualización establecida en Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">Fuente de progreso de visualización establecida en Telumia Sync</string>
-    <string name="trakt_continue_watching_window">Ventana de continuar viendo</string>
-    <string name="trakt_continue_watching_subtitle">Historial de Trakt considerado para continuar viendo</string>
-    <string name="trakt_unaired_next_up">Episodios siguientes sin transmitir</string>
-    <string name="trakt_unaired_next_up_subtitle">Muestra próximos episodios antes de que se transmitan</string>
-    <string name="trakt_unaired_shown">Mostrado</string>
-    <string name="trakt_unaired_hidden">Oculto</string>
-    <string name="trakt_unaired_now_shown">Los episodios siguientes sin transmitir ahora se muestran</string>
-    <string name="trakt_unaired_now_hidden">Los episodios siguientes sin transmitir ahora están ocultos</string>
-    <string name="trakt_comments_title">Comentarios</string>
-    <string name="trakt_comments_subtitle">Mostrar reseñas de Trakt en páginas de metadatos</string>
-    <string name="trakt_comments_dialog_title">Comentarios</string>
-    <string name="trakt_comments_dialog_subtitle">Elige si las páginas de metadatos deben mostrar reseñas de Trakt cuando tu cuenta está conectada.</string>
-    <string name="trakt_comments_now_shown">Las reseñas de Trakt en las páginas de metadatos ahora se muestran</string>
-    <string name="trakt_comments_now_hidden">Las reseñas de Trakt en las páginas de metadatos ahora están ocultas</string>
-    <string name="trakt_more_like_this_source_title">Fuente de Más como esto</string>
-    <string name="trakt_more_like_this_source_subtitle">Elige de dónde provienen las recomendaciones en las pantallas de detalles y posreproducción</string>
-    <string name="trakt_more_like_this_source_dialog_title">Fuente de Más como esto</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">Selecciona la fuente de las recomendaciones que se muestran en las pantallas de detalles y posreproducción.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
-    <string name="trakt_cached_label">En caché</string>
-    <string name="trakt_stat_movies">Películas</string>
-    <string name="trakt_stat_shows">Series</string>
-    <string name="trakt_stat_episodes">Episodios</string>
-    <string name="trakt_stat_watched_hours">Horas vistas</string>
-    <string name="trakt_disconnect">Desconectar</string>
-    <string name="trakt_disconnect_title">¿Desconectar Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Esto desconectará tu cuenta de Trakt de Telumia.</string>
-    <string name="trakt_login">Iniciar sesión</string>
-    <string name="trakt_retry">Reintentar</string>
-    <string name="trakt_back">Atrás</string>
-    <string name="trakt_cw_window_title">Ventana de continuar viendo</string>
-    <string name="trakt_cw_window_subtitle">Elige cuánta actividad de Trakt debe aparecer en continuar viendo.</string>
-    <string name="trakt_unaired_dialog_title">Episodios siguientes sin transmitir</string>
-    <string name="trakt_unaired_dialog_subtitle">Elige si Continuar viendo debe incluir próximos episodios antes del lanzamiento.</string>
-    <string name="trakt_show_unaired">Mostrar episodios sin transmitir</string>
-    <string name="trakt_hide_unaired">Ocultar episodios sin transmitir</string>
-    <string name="trakt_all_history">Todo el historial</string>
-    <string name="trakt_days_format">%1$d días</string>
+    <string name="tracking_code_expires">El código caduca en %1$s</string>
+    <string name="tracking_watch_progress_title">Progreso de visualización</string>
+    <string name="tracking_watch_progress_subtitle">Elige qué fuente de progreso impulsa la reanudación y continuar viendo</string>
+    <string name="tracking_watch_progress_dialog_title">Progreso de visualización</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">Fuente de biblioteca</string>
+    <string name="tracking_library_source_subtitle">Elige de qué fuente lee Telumia tu biblioteca</string>
+    <string name="tracking_library_source_dialog_title">Fuente de biblioteca</string>
+    <string name="tracking_library_source_nuvio">Biblioteca de Telumia</string>
+    <string name="tracking_continue_watching_window">Ventana de continuar viendo</string>
+    <string name="tracking_more_like_this_source_title">Fuente de Más como esto</string>
+    <string name="tracking_more_like_this_source_subtitle">Elige de dónde provienen las recomendaciones en las pantallas de detalles y posreproducción</string>
+    <string name="tracking_more_like_this_source_dialog_title">Fuente de Más como esto</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">Selecciona la fuente de las recomendaciones que se muestran en las pantallas de detalles y posreproducción.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_disconnect">Desconectar</string>
+    <string name="tracking_cw_window_title">Ventana de continuar viendo</string>
+    <string name="tracking_all_history">Todo el historial</string>
+    <string name="tracking_days_format">%1$d días</string>
 
     <string name="debug_title">Depuración</string>
     <string name="debug_subtitle">Herramientas de desarrollador y marcas de características (solo compilaciones de depuración)</string>
@@ -1615,7 +1537,6 @@
     <string name="essential_addon_setup_subtitle">Instala un complemento para empezar a reproducir contenido. Puedes añadir más complementos más tarde desde Complementos.</string>
     <string name="essential_addon_show_qr">Mostrar código QR</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">No se encontraron listas de Trakt</string>
     <string name="collection_editor_untitled_folder">Sin título</string>
     <string name="collection_editor_untitled_collection">Colección sin título</string>
     <!-- AddonManagerScreen -->
@@ -1932,7 +1853,6 @@
     <string name="search_no_results_subtitle">Prueba a buscar con otras palabras clave</string>
     <string name="search_error_no_catalogs">No se encontraron catálogos con búsqueda en los complementos instalados</string>
 
-    <string name="library_syncing">Sincronizando biblioteca de Trakt\u2026</string>
     <string name="library_title">Biblioteca</string>
     <string name="library_filter_list">Lista</string>
     <string name="library_filter_type">Tipo</string>
@@ -1985,7 +1905,6 @@
     <string name="genre_sporting_event">Evento deportivo</string>
     <string name="genre_superhero">Superhéroes</string>
     <string name="genre_suspense">Suspense</string>
-    <string name="library_sort_trakt_order">Orden de Trakt</string>
     <string name="library_sort_provider_order">Orden del proveedor</string>
     <string name="library_sort_added_desc">Añadido ↓</string>
     <string name="library_sort_added_asc">Añadido ↑</string>
@@ -1993,7 +1912,6 @@
     <string name="library_sort_title_desc">Título Z-A</string>
     <string name="library_error_sort_failed">No se pudo cargar el orden. Se muestra el orden del proveedor.</string>
     <string name="library_manage_lists">Administrar listas</string>
-    <string name="library_manage_trakt_lists">Administrar listas de Trakt</string>
     <string name="library_no_lists">Sin listas personales aún.</string>
     <string name="library_list_create">Crear</string>
     <string name="library_list_edit">Editar</string>
@@ -2006,11 +1924,9 @@
     <string name="library_list_description_label">Descripción</string>
     <string name="library_list_privacy">Privacidad</string>
     <string name="library_delete_title">¿Eliminar esta lista?</string>
-    <string name="library_delete_subtitle">Esto elimina la lista y todos los elementos de la lista de Trakt.</string>
     <string name="library_delete_confirm">Eliminar</string>
     <string name="library_source_local">LOCAL</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">Guardado</string>
     <string name="library_source_cloud">Nube</string>
     <string name="library_watchlist">Lista de deseos</string>
@@ -2023,11 +1939,9 @@
     <string name="library_type_all">Todos</string>
     <string name="library_type_items">elementos</string>
     <string name="library_empty_local_title">Sin %1$s aún</string>
-    <string name="library_empty_trakt_title">Sin %1$s en esta lista</string>
+    <string name="library_empty_remote_title">Sin %1$s en esta lista</string>
     <string name="library_empty_local_subtitle">Comienza a guardar tus favoritos para verlos aquí</string>
-    <string name="library_empty_trakt_subtitle">Usa + en detalles para añadir elementos a lista de deseos o listas</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt no conectado</string>
-    <string name="library_empty_trakt_not_auth_subtitle">Conecta tu cuenta de Trakt en Configuración para ver tu biblioteca de Trakt</string>
+    <string name="library_empty_remote_subtitle">Usa + en detalles para añadir elementos a lista de deseos o listas</string>
     <string name="library_empty_simkl_title">Sin %1$s en este estado</string>
     <string name="library_empty_simkl_subtitle">Usa + en detalles para añadir elementos a un estado de Simkl</string>
     <string name="library_empty_simkl_not_auth_title">Simkl no conectado</string>
@@ -2269,7 +2183,6 @@
     <string name="update_unknown_sources">Permite instalaciones de fuentes desconocidas para continuar.</string>
     <!-- AccountScreen -->
     <string name="account_title">Cuenta</string>
-    <string name="account_sign_in_description">Inicia sesión para sincronizar tu biblioteca, progreso de visualización, complementos y complementos en dispositivos. La sincronización de biblioteca y progreso de visualización solo ocurre cuando Trakt no está conectado.</string>
     <string name="account_sync_code_title">Código de sincronización</string>
     <string name="account_sync_code_description">Sincroniza entre dispositivos sin crear una cuenta.</string>
     <string name="account_linked_devices">Dispositivos vinculados (%1$d)</string>
@@ -2362,30 +2275,7 @@
     <string name="plugin_repo_removed">Repositorio eliminado</string>
     <string name="plugin_repo_refreshed">Repositorio actualizado</string>
 
-    <!-- Trakt errors -->
 
-    <string name="trakt_error_code_expired">El código de dispositivo caducó. Empieza de nuevo.</string>
-    <string name="trakt_error_code_used">El código de dispositivo ya fue usado. Empieza de nuevo.</string>
-    <string name="trakt_error_denied">Autorización denegada en Trakt.</string>
-    <string name="trakt_error_missing_credentials">Faltan las credenciales de TRAKT</string>
-    <string name="trakt_error_network_retry">Error de red, inténtalo de nuevo</string>
-    <string name="trakt_error_network_will_retry">Error de red, se reintentará</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt está limitando las solicitudes. Inténtalo de nuevo en ~%1$d min</string>
-    <string name="trakt_error_failed_start_code">Error al iniciar la autenticación de Trakt (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">Ningún código de dispositivo de Trakt activo</string>
-    <string name="trakt_error_invalid_device_code">Código de dispositivo no válido</string>
-    <string name="trakt_error_token_polling_failed_code">Error al consultar el token (%1$d)</string>
-    <string name="trakt_error_public_request_failed">Error en la solicitud a Trakt</string>
-    <string name="trakt_error_list_not_found_or_private">Lista de Trakt no encontrada o no pública</string>
-    <string name="trakt_error_rate_limit_reached">Límite de solicitudes de Trakt alcanzado</string>
-    <string name="trakt_status_enter_activation_code">Introduce el código en trakt.tv/activate</string>
-    <string name="trakt_status_syncing">Sincronizando...</string>
-    <string name="trakt_status_sync_completed">Sincronización completada</string>
-    <string name="trakt_status_disconnected">Desconectado de Trakt</string>
-    <string name="trakt_status_cw_window_updated">Ventana de continuar viendo actualizada</string>
-    <string name="trakt_status_rate_limited_slowing_polling">Límite de solicitudes alcanzado, ralentizando las consultas...</string>
-    <string name="trakt_user_fallback">Usuario de Trakt</string>
-    <string name="trakt_error_failed_start">Error al iniciar la autenticación de Trakt</string>
 
     <!-- General errors -->
     <string name="error_unknown">Error desconocido</string>
@@ -2438,8 +2328,6 @@
     <string name="cd_test">Prueba</string>
     <string name="cd_unlink">Desvincular</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Logotipo de Trakt</string>
-    <string name="cd_trakt_qr">Código QR de activación de Trakt</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">Abrir descubrir</string>
     <string name="cd_clear_search">Limpiar búsqueda</string>
@@ -2539,18 +2427,8 @@
     <string name="collections_editor_shape_square">Cuadrado</string>
     <string name="collections_editor_addon_missing">Complemento no instalado: %1$s</string>
     <string name="collections_editor_add_tmdb_source">Añadir fuente de TMDB</string>
-    <string name="collections_editor_add_trakt_source">Añadir lista de Trakt</string>
     <string name="collections_editor_edit_tmdb_source">Editar fuente de TMDB</string>
     <string name="collections_editor_tmdb_sources">Fuentes de TMDB</string>
-    <string name="collections_editor_trakt_sources">Listas de Trakt</string>
-    <string name="collections_editor_edit_trakt_source">Editar lista de Trakt</string>
-    <string name="collections_editor_trakt_list">Lista de Trakt</string>
-    <string name="collections_editor_trakt_search_results">Resultados de búsqueda</string>
-    <string name="collections_editor_trakt_trending">Listas en tendencia</string>
-    <string name="collections_editor_trakt_popular">Listas populares</string>
-    <string name="collections_editor_trakt_direction">Dirección</string>
-    <string name="collections_editor_trakt_ascending">Ascendente</string>
-    <string name="collections_editor_trakt_descending">Descendente</string>
     <string name="collections_editor_tmdb_id_or_url">ID o URL de TMDB</string>
     <string name="collections_editor_tmdb_public_list">Lista pública de TMDB</string>
     <string name="collections_editor_tmdb_network_id">ID de la red</string>
@@ -2634,27 +2512,13 @@
     <string name="collections_editor_sort_votes">Votos</string>
     <string name="collections_editor_direction_asc_short">Asc</string>
     <string name="collections_editor_direction_desc_short">Desc</string>
-    <string name="collections_editor_trakt_movie_list">Lista de películas de Trakt</string>
-    <string name="collections_editor_trakt_series_list">Lista de series de Trakt</string>
-    <string name="collections_editor_trakt_list_with_id">Lista de Trakt %1$d</string>
-    <string name="collections_editor_trakt_public_list">Lista pública de Trakt</string>
-    <string name="collections_editor_trakt_items_count">%1$d elementos</string>
-    <string name="collections_editor_trakt_likes_count">%1$d me gusta</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">Introduce un ID o URL de TMDB válido</string>
     <string name="collections_editor_error_load_tmdb_source">No se pudo cargar la fuente de TMDB</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">Introduce un ID o URL de lista de Trakt</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">Introduce un nombre, URL o ID de lista de Trakt</string>
-    <string name="collections_editor_error_load_trakt_list">No se pudo cargar la lista de Trakt</string>
-    <string name="collections_editor_error_load_trakt_lists">No se pudieron cargar las listas de Trakt</string>
-    <string name="collections_editor_error_search_trakt_lists">No se pudieron buscar listas de Trakt</string>
-    <string name="collections_editor_error_trakt_list_not_found">Lista de Trakt no encontrada</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">La lista de Trakt no incluía un ID numérico</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 o 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 para Star Wars Collection</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420, o URL de la productora</string>
     <string name="collections_editor_tmdb_placeholder_network">213 para Netflix, 49 para HBO, 2739 para Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 para Tom Hanks, o URL de persona</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 o 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2707,9 +2571,6 @@
     <string name="collections_tab_combined">Combinado</string>
     <string name="collection_editor_remove_cd">Eliminar</string>
     <string name="collection_editor_choice_both">Ambos</string>
-    <string name="collection_editor_resolved_trakt_list">Lista de Trakt resuelta</string>
-    <string name="collection_editor_trakt_search_placeholder">Buscar título, URL de Trakt o ID de lista</string>
-    <string name="collection_editor_trakt_name_placeholder">Weekend Watch, Award Winners</string>
     <string name="collection_editor_folder_count_one">%1$d elemento</string>
     <string name="collection_editor_folder_count_other">%1$d elementos</string>
     <string name="collections_editor_delete_folder_title">¿Eliminar carpeta?</string>
@@ -2819,7 +2680,6 @@
     <string name="collections_import_error_source_invalid">Colección \"%1$s\", carpeta \"%2$s\", fuente %3$d: formato inválido</string>
     <string name="collections_import_error_source_required_fields">Colección \"%1$s\", carpeta \"%2$s\", fuente %3$d: faltan campos obligatorios</string>
     <string name="collections_import_error_missing_tmdb_type">Colección \"%1$s\", carpeta \"%2$s\", fuente %3$d: falta el tipo de fuente TMDB</string>
-    <string name="collections_import_error_missing_trakt_list_id">Colección \"%1$s\", carpeta \"%2$s\", fuente %3$d: falta el ID de la lista de Trakt</string>
     <string name="collections_import_error_json_parse">Error al analizar JSON: %1$s</string>
 
     <!-- Library messages -->
@@ -2840,26 +2700,6 @@
     <string name="library_privacy_friends">Amigos</string>
     <string name="library_privacy_public">Pública</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">Se requiere autenticación de Trakt</string>
-    <string name="trakt_library_error_request_failed">Error en la solicitud de Trakt</string>
-    <string name="trakt_library_error_create_list_failed">No se pudo crear la lista</string>
-    <string name="trakt_library_error_update_list_failed">No se pudo actualizar la lista</string>
-    <string name="trakt_library_error_delete_list_failed">No se pudo eliminar la lista</string>
-    <string name="trakt_library_error_reorder_lists_failed">No se pudo reordenar las listas</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">No se pudieron obtener las películas de la lista de deseos</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">No se pudieron obtener las series de la lista de deseos</string>
-    <string name="trakt_library_error_fetch_personal_lists">No se pudieron obtener las listas personales</string>
-    <string name="trakt_library_error_add_watchlist_failed">No se pudo añadir a la lista de deseos</string>
-    <string name="trakt_library_error_remove_watchlist_failed">No se pudo eliminar de la lista de deseos</string>
-    <string name="trakt_library_error_add_to_list_failed">No se pudo añadir a la lista</string>
-    <string name="trakt_library_error_remove_from_list_failed">No se pudo eliminar de la lista</string>
-    <string name="trakt_library_error_missing_compatible_ids">Faltan IDs compatibles para la operación de lista de Trakt</string>
-    <string name="trakt_library_error_auth_expired">La autenticación de Trakt ha caducado</string>
-    <string name="trakt_library_error_list_not_found">Lista de Trakt no encontrada</string>
-    <string name="trakt_library_error_list_limit_reached">Se alcanzó el límite de listas de Trakt. Se requiere actualizar el plan.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">IDs de Trakt insuficientes para marcar como visto</string>
-    <string name="trakt_error_request_failed">Error en la solicitud de Trakt</string>
     <string name="simkl_account_title">Cuenta de Simkl</string>
     <string name="simkl_description">Conecta Simkl para sincronizar listas, historial de visualización, progreso de reproducción y scrobbles.</string>
     <string name="simkl_connect">Conectar Simkl</string>
@@ -2900,7 +2740,6 @@
     <string name="action_remove_anyway">Eliminar de todos modos</string>
     <string name="cd_simkl_qr">QR de activación de Simkl</string>
     <string name="cd_simkl_logo">Logo de Simkl</string>
-    <string name="trakt_error_mark_watched_failed">No se pudo marcar como visto en Trakt (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">No se pudo actualizar la biblioteca</string>
@@ -2977,8 +2816,6 @@
     <string name="stream_error_detail_addon_request_failed">la solicitud al complemento falló</string>
     <string name="stream_error_fetch_failed">No se pudieron obtener las transmisiones</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">Error al obtener datos paginados de Trakt (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">No se pudieron cargar las listas</string>
@@ -2988,10 +2825,6 @@
     <string name="profile_pin_saved_for_profile">PIN guardado para %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">Bloqueo de PIN eliminado para %1$s.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">Error en la solicitud de contenido relacionado de Trakt</string>
-    <string name="trakt_comments_error_request_failed">Error en la solicitud de comentarios de Trakt</string>
-    <string name="trakt_library_error_fetch_list_items">No se pudieron obtener los elementos de la lista</string>
 
     <string name="watchlist_removed">Eliminado de lista de deseos</string>
     <string name="watchlist_added">Añadido a lista de deseos</string>

@@ -93,7 +93,6 @@
     <string name="web_import_error_source_invalid_format">தொகுப்பு \"{collection}\", கோப்புறை \"{folder}\", மூலம் {index}: தவறான வடிவம்</string>
     <string name="web_import_error_source_missing_addon_fields">தொகுப்பு \"{collection}\", கோப்புறை \"{folder}\", மூலம் {index}: தேவையான புலங்கள் இல்லை (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">தொகுப்பு \"{collection}\", கோப்புறை \"{folder}\", மூலம் {index}: TMDB source type இல்லை</string>
-    <string name="web_import_error_source_missing_trakt_id">தொகுப்பு \"{collection}\", கோப்புறை \"{folder}\", மூலம் {index}: Trakt list ID இல்லை</string>
     <string name="web_import_success">{count} தொகுப்பு(கள்) இறக்குமதி செய்யப்பட்டன. சரிபார்த்து மாற்றங்களை சேமிக்கவும்.</string>
     <string name="web_import_invalid_json">தவறான JSON</string>
 
@@ -101,7 +100,6 @@
     <string name="home_no_addons">ஆடான்கள் எதுவும் நிறுவப்படவில்லை. தொடங்க ஒன்றை சேர்க்கவும்.</string>
     <string name="home_no_catalog_addons">பட்டியல் ஆடான்கள் எதுவும் நிறுவப்படவில்லை. உள்ளடக்கத்தை பார்க்க ஒரு பட்டியல் ஆடானை நிறுவவும்.</string>
     <string name="auth_notice_nuvio_logged_out">நீங்கள் நுவியோவில் இருந்து வெளியேற்றப்பட்டுள்ளீர்கள். மீண்டும் உள்நுழையவும்.</string>
-    <string name="auth_notice_trakt_logged_out">நீங்கள் ட்ராக்டில் இருந்து வெளியேற்றப்பட்டுள்ளீர்கள். மீண்டும் இணைக்கவும்.</string>
     <string name="error_generic">ஒரு பிழை ஏற்பட்டது</string>
 
     <!-- ErrorState -->
@@ -189,7 +187,6 @@
     <string name="episodes_mark_previous_watched">இந்த சீசனில் முந்தையவற்றை பார்த்ததாக குறி</string>
     <string name="episodes_mark_previous_seasons_watched">முந்தைய சீசன்களை பார்த்ததாக குறி</string>
     <string name="episodes_play">இயக்கு</string>
-    <string name="episodes_open_comments">அத்தியாய கருத்துகளை திற</string>
     <string name="play_manually">கைமுறையாக இயக்கு</string>
     <string name="episodes_season_actions">சீசன் செயல்கள்</string>
 
@@ -223,29 +220,10 @@
     <string name="detail_tab_more_like_this">இதை போன்றவை</string>
     <string name="detail_tab_trailer">ட்ரெய்லர்</string>
     <string name="detail_more_like_this_powered_by_tmdb">TMDB வழங்கியது</string>
-    <string name="detail_more_like_this_powered_by_trakt">Trakt வழங்கியது</string>
-    <string name="detail_comments_title">கருத்துகள்</string>
-    <string name="detail_comments_subtitle">Trakt விமர்சனங்கள்</string>
-    <string name="detail_comments_subtitle_episode">S%1$dE%2$d க்கான Trakt விமர்சனங்கள்</string>
-    <string name="detail_comments_mode_show">காட்டு</string>
-    <string name="detail_comments_mode_episode">அத்தியாயம்</string>
-    <string name="detail_comments_mode_episode_change">அத்தியாயம் மாற்று (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">அத்தியாயத்தை தேர்வு செய்</string>
-    <string name="detail_comments_episode_picker_subtitle">அத்தியாய விமர்சனங்களை காண ஒரு அத்தியாயத்தை தேர்வு செய்</string>
     <string name="detail_section_network">நெட்வொர்க்</string>
     <string name="detail_section_production">தயாரிப்பு</string>
-    <string name="detail_comments_empty">Trakt விமர்சனங்கள் இன்னும் இல்லை.</string>
-    <string name="detail_comments_error">Trakt விமர்சனங்களை இப்போது ஏற்ற முடியவில்லை.</string>
     <string name="detail_trailer_loading">ட்ரெய்லர் ஏற்றப்படுகிறது...</string>
     <string name="detail_trailer_error">ட்ரெய்லரை இப்போது ஏற்ற முடியவில்லை.</string>
-    <string name="detail_comments_spoiler_hidden">ஸ்பாய்லர் விமர்சனம். காண OK அழுத்தவும்.</string>
-    <string name="detail_comments_reveal_spoiler">ஸ்பாய்லரை காட்டு</string>
-    <string name="detail_comments_reveal_spoiler_hint">ஸ்பாய்லரை காண OK அழுத்தவும்.</string>
-    <string name="detail_comments_back_hint">மூட பின் அழுத்தவும்</string>
-    <string name="detail_comments_badge_review">விமர்சனம்</string>
-    <string name="detail_comments_badge_spoiler">ஸ்பாய்லர்</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d விருப்பங்கள்</string>
     <string name="tmdb_entity_kind_company">தயாரிப்பு நிறுவனம்</string>
     <string name="tmdb_entity_kind_network">நெட்வொர்க்</string>
     <string name="tmdb_entity_rail_popular">பிரபலமானவை</string>
@@ -352,8 +330,6 @@
     <string name="licenses_attributions_nuvio_body">மூலக் குறியீடு மற்றும் உரிம நிபந்தனைகள் திட்ட களஞ்சியத்தில் கிடைக்கின்றன. GNU பொது உரிமம் v3.0 கீழ் வழங்கப்படுகிறது.</string>
     <string name="licenses_attributions_tmdb_title">தி மூவி டேட்டாபேஸ் (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">நுவியோ திரைப்படம் மற்றும் டிவி தகவல்கள், கலைப்படங்கள், முன்னோட்டங்கள், நடிகர்கள், தயாரிப்பு விவரங்கள், தொகுப்புகள் மற்றும் பரிந்துரைகளுக்காக TMDB API-ஐ பயன்படுத்துகிறது. இந்த தயாரிப்பு TMDB API-ஐ பயன்படுத்தினாலும் TMDB ஆதரவு அல்லது சான்றளிப்பு பெறவில்லை.</string>
-    <string name="licenses_attributions_trakt_title">ட்ராக்ட்</string>
-    <string name="licenses_attributions_trakt_body">நுவியோ கணக்கு உள்நுழைவு, பார்த்த வரலாறு, முன்னேற்ற ஒத்திசைவு, நூலகத் தரவு, மதிப்பீடுகள், பட்டியல்கள் மற்றும் கருத்துகளுக்காக ட்ராக்டுடன் இணைகிறது. நுவியோ ட்ராக்டுடன் தொடர்புடையதல்ல.</string>
     <string name="licenses_attributions_mdblist_title">எம்டிபிலிஸ்ட்</string>
     <string name="licenses_attributions_mdblist_body">நுவியோ மதிப்பீடுகள் மற்றும் வெளிப்புற மதிப்பெண் தரவுகளுக்காக MDBList-ஐ பயன்படுத்துகிறது. நுவியோ MDBList உடன் தொடர்புடையதல்ல.</string>
     <string name="licenses_attributions_introdb_title">இன்ட்ரோடிபி</string>
@@ -374,7 +350,6 @@
     <string name="settings_plugins_subtitle">களஞ்சியங்கள் மற்றும் வழங்குநர்கள்</string>
     <string name="settings_integration">ஒருங்கிணைப்புகள்</string>
     <string name="settings_playback">இயக்கம்</string>
-    <string name="settings_trakt_subtitle">ட்ராக்ட் இணைப்பு திரையை திற</string>
     <string name="settings_network">இணைய வேகம்</string>
     <string name="settings_network_subtitle">தாமதம் மற்றும் பதிவிறக்க ஆய்வு</string>
     <string name="settings_advanced">மேம்பட்டது</string>
@@ -834,8 +809,6 @@
     <string name="mdblist_enable_subtitle">மேட்டாடேட்டா விவரத்திரையில் வெளிப்புற வழங்குநர்களிலிருந்து மதிப்பீடுகளை பெறு</string>
     <string name="mdblist_api_key_title">ஏபிஐ விசை</string>
     <string name="mdblist_api_key_subtitle">எம்டிபிலிஸ்டிலிருந்து மதிப்பீடுகளை பெற அவசியம்</string>
-    <string name="mdblist_trakt_title">டிராக்ட்</string>
-    <string name="mdblist_trakt_subtitle">டிராக்ட் மதிப்பெண்ணை காட்டு</string>
     <string name="mdblist_imdb_title">ஐஎம்டிபி</string>
     <string name="mdblist_imdb_subtitle">ஐஎம்டிபி மதிப்பெண்ணை காட்டு (கிடைத்தால் இயல்புநிலை ஐஎம்டிபி வரியை மறை)</string>
     <string name="mdblist_tmdb_title">டிஎம்டிபி</string>
@@ -901,12 +874,6 @@
 
     <string name="tmdb_language_dialog_title">டிஎம்டிபி மொழி</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">உங்கள் பார்க்கப்பட்டியல், பார்வை முன்னேற்றம், தொடர்ந்து பார்ப்பது, ஸ்க்ரோபிள்கள் மற்றும் தனிப்பட்ட பட்டியல்களை ட்ராக்ட் உடன் ஒத்திசைக்கவும்.</string>
-    <string name="trakt_connected_as">%1$s ஆக இணைக்கப்பட்டுள்ளது</string>
-    <string name="trakt_account_login">கணக்கு உள்நுழைவு</string>
-    <string name="trakt_awaiting_instruction">trakt.tv/activate க்கு சென்று இந்த குறியீட்டை உள்ளிடவும்:</string>
-    <string name="trakt_waiting_approval">அனுமதிக்காக காத்திருக்கிறது…</string>
     <string name="qr_login_approved">உள்நுழைவு அனுமதிக்கப்பட்டது. உள்நுழைவு முடிக்கப்படுகிறது…</string>
     <string name="qr_login_pending">உங்கள் தொலைபேசியில் அனுமதிக்க காத்திருக்கிறது…</string>
     <string name="qr_login_expired">க்யூஆர் உள்நுழைவு காலாவதியானது. புதிய குறியீட்டை உருவாக்கவும்.</string>
@@ -917,67 +884,27 @@
     <string name="qr_login_signing_in">உங்களை உள்நுழைக்கிறது…</string>
     <string name="qr_login_success">வெற்றிகரமாக உள்நுழைந்தது</string>
     <string name="qr_login_exchange_failed">க்யூஆர் உள்நுழைவை முடிக்க முடியவில்லை</string>
-    <string name="trakt_code_expires">குறியீடு %1$s இல் காலாவதியாகும்</string>
-    <string name="trakt_token_refreshes">ட்ராக்ட் அணுகல் டோக்கன் %1$s இல் புதுப்பிக்கப்படும்</string>
-    <string name="trakt_login_instruction">உள்நுழைவை தொடங்க உள்நுழைவு பொத்தானை அழுத்தவும். க்யூஆர் குறியீடு இங்கு தோன்றும்.</string>
-    <string name="trakt_missing_credentials">local.properties இல் TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET இல்லை.</string>
-    <string name="trakt_watch_progress_title">பார்வை முன்னேற்றம்</string>
-    <string name="trakt_watch_progress_subtitle">மீண்டும் தொடங்கு மற்றும் தொடர்ந்து பார்ப்பதற்கு எந்த முன்னேற்ற மூலத்தை பயன்படுத்துவது என்பதை தேர்வு செய்யவும்</string>
-    <string name="trakt_watch_progress_dialog_title">பார்வை முன்னேற்றம்</string>
-    <string name="trakt_watch_progress_dialog_subtitle">ட்ராக்ட் ஸ்க்ரோபிளிங் செயலிலேயே இருக்கும் போது, மீண்டும் தொடங்கு மற்றும் தொடர்ந்து பார்ப்பதற்கு ட்ராக்ட் அல்லது நுவியோ ஒத்திசைவை பயன்படுத்த வேண்டுமா என்பதை தேர்வு செய்யவும்.</string>
-    <string name="trakt_watch_progress_source_trakt">ட்ராக்ட்</string>
-    <string name="trakt_watch_progress_source_nuvio">நுவியோ ஒத்திசைவு</string>
-    <string name="trakt_library_source_title">நூலக மூலம்</string>
-    <string name="trakt_library_source_subtitle">உங்கள் தொகுப்பை சேமிக்கவும் பார்க்கவும் எந்த நூலகத்தை பயன்படுத்துவது என்பதை தேர்வு செய்யவும்</string>
-    <string name="trakt_library_source_dialog_title">நூலக மூலம்</string>
-    <string name="trakt_library_source_dialog_subtitle">உங்கள் நூலக உருப்படிகளை எங்கு சேமித்து நிர்வகிப்பது என்பதை தேர்வு செய்யவும்</string>
-    <string name="trakt_library_source_trakt">ட்ராக்ட்</string>
-    <string name="trakt_library_source_nuvio">நுவியோ நூலகம்</string>
-    <string name="trakt_library_source_trakt_selected">ட்ராக்ட் நூலகம் தேர்ந்தெடுக்கப்பட்டது</string>
-    <string name="trakt_library_source_nuvio_selected">நுவியோ நூலகம் தேர்ந்தெடுக்கப்பட்டது</string>
-    <string name="trakt_setting_on">இயக்கம்</string>
-    <string name="trakt_setting_off">நிறுத்தம்</string>
-    <string name="trakt_watch_progress_trakt_selected">பார்வை முன்னேற்ற மூலம் ட்ராக்ட் ஆக அமைக்கப்பட்டது</string>
-    <string name="trakt_watch_progress_nuvio_selected">பார்வை முன்னேற்ற மூலம் நுவியோ ஒத்திசைவு ஆக அமைக்கப்பட்டது</string>
-    <string name="trakt_continue_watching_window">தொடர்ந்து பார்ப்பது சாளரம்</string>
-    <string name="trakt_continue_watching_subtitle">தொடர்ந்து பார்ப்பதற்காக கருதப்படும் ட்ராக்ட் வரலாறு</string>
-    <string name="trakt_unaired_next_up">ஒளிபரப்பாகாத அடுத்த அத்தியாயங்கள்</string>
-    <string name="trakt_unaired_next_up_subtitle">வரவிருக்கும் அத்தியாயங்களை வெளியீட்டுக்கு முன் காட்டு</string>
-    <string name="trakt_unaired_shown">காட்டப்பட்டது</string>
-    <string name="trakt_unaired_hidden">மறைக்கப்பட்டது</string>
-    <string name="trakt_unaired_now_shown">ஒளிபரப்பாகாத அடுத்த அத்தியாயங்கள் இப்போது காட்டப்படுகின்றன</string>
-    <string name="trakt_unaired_now_hidden">ஒளிபரப்பாகாத அடுத்த அத்தியாயங்கள் இப்போது மறைக்கப்படுகின்றன</string>
-    <string name="trakt_comments_title">கருத்துகள்</string>
-    <string name="trakt_comments_subtitle">மெட்டாடேட்டா பக்கங்களில் ட்ராக்ட் விமர்சனங்களை காட்டு</string>
-    <string name="trakt_comments_dialog_title">கருத்துகள்</string>
-    <string name="trakt_comments_dialog_subtitle">உங்கள் கணக்கு இணைக்கப்பட்டிருக்கும் போது, மெட்டாடேட்டா பக்கங்களில் ட்ராக்ட் விமர்சனங்களை காட்ட வேண்டுமா என்பதை தேர்வு செய்யவும்.</string>
-    <string name="trakt_comments_now_shown">மெட்டாடேட்டா பக்கங்களில் ட்ராக்ட் விமர்சனங்கள் இப்போது காட்டப்படுகின்றன</string>
-    <string name="trakt_comments_now_hidden">மெட்டாடேட்டா பக்கங்களில் ட்ராக்ட் விமர்சனங்கள் இப்போது மறைக்கப்படுகின்றன</string>
-    <string name="trakt_more_like_this_source_title">இதுபோன்றவை மூலம்</string>
-    <string name="trakt_more_like_this_source_subtitle">விவரப் பக்கங்களில் பரிந்துரைகள் எங்கிருந்து வர வேண்டும் என்பதை தேர்வு செய்யவும்</string>
-    <string name="trakt_more_like_this_source_dialog_title">இதுபோன்றவை மூலம்</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">விவரப் பக்கங்களில் காட்டப்படும் பரிந்துரைகளுக்கான மூலத்தை தேர்வு செய்யவும்.</string>
-    <string name="trakt_more_like_this_source_trakt">ட்ராக்ட்</string>
-    <string name="trakt_more_like_this_source_tmdb">டிஎம்டிபி</string>
-    <string name="trakt_cached_label">தற்காலிக சேமிப்பு</string>
-    <string name="trakt_stat_movies">திரைப்படங்கள்</string>
-    <string name="trakt_stat_shows">நிகழ்ச்சிகள்</string>
-    <string name="trakt_stat_episodes">அத்தியாயங்கள்</string>
-    <string name="trakt_stat_watched_hours">பார்த்த மணிநேரங்கள்</string>
-    <string name="trakt_disconnect">இணைப்பை துண்டிக்கவும்</string>
-    <string name="trakt_disconnect_title">ட்ராக்ட் இணைப்பை துண்டிக்கவா?</string>
-    <string name="trakt_disconnect_subtitle">இது உங்கள் ட்ராக்ட் கணக்கை நுவியோவிலிருந்து துண்டிக்கும்.</string>
-    <string name="trakt_login">உள்நுழை</string>
-    <string name="trakt_retry">மீண்டும் முயற்சி</string>
-    <string name="trakt_back">பின்</string>
-    <string name="trakt_cw_window_title">தொடர்ந்து பார்ப்பது சாளரம்</string>
-    <string name="trakt_cw_window_subtitle">தொடர்ந்து பார்ப்பதில் எவ்வளவு ட்ராக்ட் செயல்பாடு தோன்ற வேண்டும் என்பதை தேர்வு செய்யவும்.</string>
-    <string name="trakt_unaired_dialog_title">ஒளிபரப்பாகாத அடுத்த அத்தியாயங்கள்</string>
-    <string name="trakt_unaired_dialog_subtitle">வெளியீட்டுக்கு முன் வரவிருக்கும் அத்தியாயங்களை தொடர்ந்து பார்ப்பதில் சேர்க்க வேண்டுமா என்பதை தேர்வு செய்யவும்.</string>
-    <string name="trakt_show_unaired">ஒளிபரப்பாகாத அத்தியாயங்களை காட்டு</string>
-    <string name="trakt_hide_unaired">ஒளிபரப்பாகாத அத்தியாயங்களை மறை</string>
-    <string name="trakt_all_history">முழு வரலாறு</string>
-    <string name="trakt_days_format">%1$d நாட்கள்</string>
+    <string name="tracking_code_expires">குறியீடு %1$s இல் காலாவதியாகும்</string>
+    <string name="tracking_watch_progress_title">பார்வை முன்னேற்றம்</string>
+    <string name="tracking_watch_progress_subtitle">மீண்டும் தொடங்கு மற்றும் தொடர்ந்து பார்ப்பதற்கு எந்த முன்னேற்ற மூலத்தை பயன்படுத்துவது என்பதை தேர்வு செய்யவும்</string>
+    <string name="tracking_watch_progress_dialog_title">பார்வை முன்னேற்றம்</string>
+    <string name="tracking_watch_progress_source_nuvio">நுவியோ ஒத்திசைவு</string>
+    <string name="tracking_library_source_title">நூலக மூலம்</string>
+    <string name="tracking_library_source_subtitle">உங்கள் தொகுப்பை சேமிக்கவும் பார்க்கவும் எந்த நூலகத்தை பயன்படுத்துவது என்பதை தேர்வு செய்யவும்</string>
+    <string name="tracking_library_source_dialog_title">நூலக மூலம்</string>
+    <string name="tracking_library_source_nuvio">நுவியோ நூலகம்</string>
+    <string name="tracking_continue_watching_window">தொடர்ந்து பார்ப்பது சாளரம்</string>
+    <string name="tracking_continue_watching_subtitle">தொடர்ந்து பார்ப்பதற்காக கருதப்படும் ட்ராக்ட் வரலாறு</string>
+    <string name="tracking_more_like_this_source_title">இதுபோன்றவை மூலம்</string>
+    <string name="tracking_more_like_this_source_subtitle">விவரப் பக்கங்களில் பரிந்துரைகள் எங்கிருந்து வர வேண்டும் என்பதை தேர்வு செய்யவும்</string>
+    <string name="tracking_more_like_this_source_dialog_title">இதுபோன்றவை மூலம்</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">விவரப் பக்கங்களில் காட்டப்படும் பரிந்துரைகளுக்கான மூலத்தை தேர்வு செய்யவும்.</string>
+    <string name="tracking_more_like_this_source_tmdb">டிஎம்டிபி</string>
+    <string name="tracking_disconnect">இணைப்பை துண்டிக்கவும்</string>
+    <string name="tracking_cw_window_title">தொடர்ந்து பார்ப்பது சாளரம்</string>
+    <string name="tracking_cw_window_subtitle">தொடர்ந்து பார்ப்பதில் எவ்வளவு ட்ராக்ட் செயல்பாடு தோன்ற வேண்டும் என்பதை தேர்வு செய்யவும்.</string>
+    <string name="tracking_all_history">முழு வரலாறு</string>
+    <string name="tracking_days_format">%1$d நாட்கள்</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">பிழைத்திருத்தம்</string>
@@ -1084,7 +1011,6 @@
     <string name="essential_addon_setup_subtitle">ஸ்ட்ரீமிங் தொடங்க ஒரு அட்ஆனை நிறுவவும். மேலும் பின்னர் அட்ஆன்களில் இருந்து சேர்க்கலாம்.</string>
     <string name="essential_addon_show_qr">க்யூஆர் காட்டு</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">ட்ராக்ட் பட்டியல்கள் எதுவும் கிடைக்கவில்லை</string>
     <string name="collection_editor_untitled_folder">தலைப்பில்லாதது</string>
     <string name="collection_editor_untitled_collection">தலைப்பில்லா தொகுப்பு</string>
     <!-- AddonManagerScreen -->
@@ -1395,13 +1321,11 @@
     <string name="genre_soap">சோப்</string>
     <string name="genre_talk">உரையாடல்</string>
     <string name="genre_war_politics">போர் &amp; அரசியல்</string>
-    <string name="library_sort_trakt_order">ட்ராக்ட் வரிசை</string>
     <string name="library_sort_added_desc">சேர்த்தது ↓</string>
     <string name="library_sort_added_asc">சேர்த்தது ↑</string>
     <string name="library_sort_title_asc">தலைப்பு A-Z</string>
     <string name="library_sort_title_desc">தலைப்பு Z-A</string>
     <string name="library_manage_lists">பட்டியல்களை நிர்வகி</string>
-    <string name="library_manage_trakt_lists">ட்ராக்ட் பட்டியல்களை நிர்வகி</string>
     <string name="library_no_lists">தனிப்பட்ட பட்டியல்கள் இன்னும் இல்லை.</string>
     <string name="library_list_create">உருவாக்கு</string>
     <string name="library_list_edit">திருத்து</string>
@@ -1418,17 +1342,14 @@
     <string name="library_delete_confirm">அழி</string>
     <string name="library_source_local">உள்ளகம்</string>
     <string name="library_source_nuvio">நூவியோ</string>
-    <string name="library_source_trakt">ட்ராக்ட்</string>
     <string name="library_watchlist">பார்க்க வேண்டிய பட்டியல்</string>
     <string name="library_syncing_library">நூலகம் ஒத்திசைக்கப்படுகிறது\u2026</string>
     <string name="library_type_all">அனைத்தும்</string>
     <string name="library_type_items">உருப்படிகள்</string>
     <string name="library_empty_local_title">இன்னும் %1$s இல்லை</string>
-    <string name="library_empty_trakt_title">இந்த பட்டியலில் %1$s இல்லை</string>
+    <string name="library_empty_remote_title">இந்த பட்டியலில் %1$s இல்லை</string>
     <string name="library_empty_local_subtitle">உங்கள் விருப்பங்களை சேமித்து இங்கே காணுங்கள்</string>
-    <string name="library_empty_trakt_subtitle">வாட்ச்லிஸ்ட் அல்லது பட்டியல்களில் சேர்க்க விவரங்களில் + ஐ பயன்படுத்தவும்</string>
-    <string name="library_empty_trakt_not_auth_title">ட்ராக்ட் இணைக்கப்படவில்லை</string>
-    <string name="library_empty_trakt_not_auth_subtitle">உங்கள் ட்ராக்ட் நூலகத்தை காண அமைப்புகளில் ட்ராக்ட் கணக்கை இணைக்கவும்</string>
+    <string name="library_empty_remote_subtitle">வாட்ச்லிஸ்ட் அல்லது பட்டியல்களில் சேர்க்க விவரங்களில் + ஐ பயன்படுத்தவும்</string>
 
         <!-- AccountSettingsContent -->
     <string name="account_loading">ஏற்றப்படுகிறது\u2026</string>
@@ -1673,29 +1594,6 @@
     <string name="plugin_repo_removed">களஞ்சியம் அகற்றப்பட்டது</string>
     <string name="plugin_repo_refreshed">களஞ்சியம் புதுப்பிக்கப்பட்டது</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_code_expired">சாதன குறியீடு காலாவதியானது. மீண்டும் தொடங்கவும்.</string>
-    <string name="trakt_error_code_used">சாதன குறியீடு ஏற்கனவே பயன்படுத்தப்பட்டது. மீண்டும் தொடங்கவும்.</string>
-    <string name="trakt_error_denied">டிராக்டில் அனுமதி மறுக்கப்பட்டது.</string>
-    <string name="trakt_error_missing_credentials">டிராக்ட் சான்றுகள் இல்லை</string>
-    <string name="trakt_error_network_retry">நெட்வொர்க் பிழை, மீண்டும் முயற்சிக்கவும்</string>
-    <string name="trakt_error_network_will_retry">நெட்வொர்க் பிழை, மீண்டும் முயற்சிக்கப்படும்</string>
-    <string name="trakt_error_rate_limited_minutes">டிராக்ட் கோரிக்கைகளை வரம்பிடுகிறது. சுமார் %1$d நிமிடத்தில் மீண்டும் முயற்சிக்கவும்</string>
-    <string name="trakt_error_failed_start_code">டிராக்ட் அங்கீகாரத்தை தொடங்க முடியவில்லை (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">செயலில் உள்ள டிராக்ட் சாதன குறியீடு இல்லை</string>
-    <string name="trakt_error_invalid_device_code">தவறான சாதன குறியீடு</string>
-    <string name="trakt_error_token_polling_failed_code">டோக்கன் சரிபார்ப்பு தோல்வியடைந்தது (%1$d)</string>
-    <string name="trakt_error_public_request_failed">டிராக்ட் கோரிக்கை தோல்வியடைந்தது</string>
-    <string name="trakt_error_list_not_found_or_private">டிராக்ட் பட்டியல் கிடைக்கவில்லை அல்லது பொதுவானது அல்ல</string>
-    <string name="trakt_error_rate_limit_reached">டிராக்ட் வரம்பு எட்டப்பட்டது</string>
-    <string name="trakt_status_enter_activation_code">trakt.tv/activate இல் குறியீட்டை உள்ளிடவும்</string>
-    <string name="trakt_status_syncing">ஒத்திசைக்கப்படுகிறது...</string>
-    <string name="trakt_status_sync_completed">ஒத்திசைவு முடிந்தது</string>
-    <string name="trakt_status_disconnected">டிராக்டிலிருந்து துண்டிக்கப்பட்டது</string>
-    <string name="trakt_status_cw_window_updated">தொடர்ந்து பார்ப்பது சாளரம் புதுப்பிக்கப்பட்டது</string>
-    <string name="trakt_status_rate_limited_slowing_polling">வரம்பு விதிக்கப்பட்டது, சரிபார்ப்பு மெதுவாக்கப்படுகிறது...</string>
-    <string name="trakt_user_fallback">டிராக்ட் பயனர்</string>
-    <string name="trakt_error_failed_start">டிராக்ட் அங்கீகாரத்தை தொடங்க முடியவில்லை</string>
 
         <!-- General errors -->
     <string name="error_unknown">அறியப்படாத பிழை</string>
@@ -1760,8 +1658,6 @@
     <string name="cd_test">சோதனை</string>
     <string name="cd_unlink">இணைப்பை நீக்கு</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">ட்ராக்ட் லோகோ</string>
-    <string name="cd_trakt_qr">ட்ராக்ட் செயல்படுத்தும் க்யூஆர்</string>
     <string name="cd_imdb">ஐஎம்டிபி</string>
     <string name="cd_open_discover">டிஸ்கவரை திற</string>
     <string name="cd_voice_search">குரல் தேடல்</string>
@@ -1861,18 +1757,8 @@
     <string name="collections_editor_shape_square">சதுரம்</string>
     <string name="collections_editor_addon_missing">அடான் நிறுவப்படவில்லை: %1$s</string>
     <string name="collections_editor_add_tmdb_source">டிஎம்டிபி மூலம் சேர்</string>
-    <string name="collections_editor_add_trakt_source">ட்ராக்ட் பட்டியல் சேர்</string>
     <string name="collections_editor_edit_tmdb_source">டிஎம்டிபி மூலத்தைத் திருத்து</string>
     <string name="collections_editor_tmdb_sources">டிஎம்டிபி மூலங்கள்</string>
-    <string name="collections_editor_trakt_sources">ட்ராக்ட் பட்டியல்கள்</string>
-    <string name="collections_editor_edit_trakt_source">ட்ராக்ட் பட்டியலைத் திருத்து</string>
-    <string name="collections_editor_trakt_list">ட்ராக்ட் பட்டியல்</string>
-    <string name="collections_editor_trakt_search_results">தேடல் முடிவுகள்</string>
-    <string name="collections_editor_trakt_trending">பிரபலமாகும் பட்டியல்கள்</string>
-    <string name="collections_editor_trakt_popular">பிரபல பட்டியல்கள்</string>
-    <string name="collections_editor_trakt_direction">திசை</string>
-    <string name="collections_editor_trakt_ascending">ஏறுவரிசை</string>
-    <string name="collections_editor_trakt_descending">இறங்குவரிசை</string>
     <string name="collections_editor_tmdb_id_or_url">டிஎம்டிபி ஐடி அல்லது யுஆர்எல்</string>
     <string name="collections_editor_tmdb_public_list">பொது டிஎம்டிபி பட்டியல்</string>
     <string name="collections_editor_tmdb_network_id">நெட்வொர்க் ஐடி</string>
@@ -1950,27 +1836,13 @@
     <string name="collections_editor_sort_votes">வாக்குகள்</string>
     <string name="collections_editor_direction_asc_short">ஏறு</string>
     <string name="collections_editor_direction_desc_short">இறு</string>
-    <string name="collections_editor_trakt_movie_list">ட்ராக்ட் திரைப்பட பட்டியல்</string>
-    <string name="collections_editor_trakt_series_list">ட்ராக்ட் தொடர் பட்டியல்</string>
-    <string name="collections_editor_trakt_list_with_id">ட்ராக்ட் பட்டியல் %1$d</string>
-    <string name="collections_editor_trakt_public_list">பொது ட்ராக்ட் பட்டியல்</string>
-    <string name="collections_editor_trakt_items_count">%1$d உருப்படிகள்</string>
-    <string name="collections_editor_trakt_likes_count">%1$d விருப்பங்கள்</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">செல்லுபடியான டிஎம்டிபி ஐடி அல்லது யுஆர்எல் உள்ளிடுங்கள்</string>
     <string name="collections_editor_error_load_tmdb_source">டிஎம்டிபி மூலத்தை ஏற்ற முடியவில்லை</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">ட்ராக்ட் பட்டியல் ஐடி அல்லது யுஆர்எல் உள்ளிடுங்கள்</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">ட்ராக்ட் பட்டியல் பெயர், யுஆர்எல், அல்லது ஐடி உள்ளிடுங்கள்</string>
-    <string name="collections_editor_error_load_trakt_list">ட்ராக்ட் பட்டியலை ஏற்ற முடியவில்லை</string>
-    <string name="collections_editor_error_load_trakt_lists">ட்ராக்ட் பட்டியல்களை ஏற்ற முடியவில்லை</string>
-    <string name="collections_editor_error_search_trakt_lists">ட்ராக்ட் பட்டியல்களைத் தேட முடியவில்லை</string>
-    <string name="collections_editor_error_trakt_list_not_found">ட்ராக்ட் பட்டியல் கிடைக்கவில்லை</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">ட்ராக்ட் பட்டியலில் எண் ஐடி சேர்க்கப்படவில்லை</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 அல்லது 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">ஸ்டார் வார்ஸ் தொகுப்புக்கு 10</string>
     <string name="collections_editor_tmdb_placeholder_company">மார்வெல் ஸ்டுடியோஸ், 420, அல்லது நிறுவனம் யுஆர்எல்</string>
     <string name="collections_editor_tmdb_placeholder_network">நெட்ப்ளிக்ஸுக்கு 213, எச்பிஓக்கு 49, டிஸ்னி+க்கு 2739</string>
     <string name="collections_editor_tmdb_person_placeholder">டாம் ஹாங்க்ஸுக்கு 31, அல்லது நபர் யுஆர்எல்</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 அல்லது 123456</string>
     <string name="collections_editor_url_short_placeholder">https://...</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2022,9 +1894,6 @@
     <string name="collections_tab_combined">இணைந்தது</string>
     <string name="collection_editor_remove_cd">அகற்று</string>
     <string name="collection_editor_choice_both">இரண்டும்</string>
-    <string name="collection_editor_resolved_trakt_list">தீர்மானிக்கப்பட்ட ட்ராக்ட் பட்டியல்</string>
-    <string name="collection_editor_trakt_search_placeholder">தலைப்பு, ட்ராக்ட் யுஆர்எல், அல்லது பட்டியல் ஐடி தேடு</string>
-    <string name="collection_editor_trakt_name_placeholder">வாரஇறுதி பார்வை, விருது வெற்றியாளர்கள்</string>
     <string name="collection_editor_folder_count_one">%1$d உருப்படி</string>
     <string name="collection_editor_folder_count_other">%1$d உருப்படிகள்</string>
     <string name="collections_editor_delete_folder_title">கோப்புறையை நீக்கவா?</string>
@@ -2132,7 +2001,6 @@
     <string name="collections_import_error_source_invalid">தொகுப்பு \"%1$s\", கோப்புறை \"%2$s\", மூலம் %3$d: தவறான வடிவம்</string>
     <string name="collections_import_error_source_required_fields">தொகுப்பு \"%1$s\", கோப்புறை \"%2$s\", மூலம் %3$d: தேவையான புலங்கள் இல்லை</string>
     <string name="collections_import_error_missing_tmdb_type">தொகுப்பு \"%1$s\", கோப்புறை \"%2$s\", மூலம் %3$d: TMDB மூல வகை இல்லை</string>
-    <string name="collections_import_error_missing_trakt_list_id">தொகுப்பு \"%1$s\", கோப்புறை \"%2$s\", மூலம் %3$d: Trakt பட்டியல் ஐடி இல்லை</string>
     <string name="collections_import_error_json_parse">JSON பகுப்பாய்வு பிழை: %1$s</string>
 
     <!-- Library messages -->
@@ -2153,27 +2021,6 @@
     <string name="library_privacy_friends">நண்பர்கள்</string>
     <string name="library_privacy_public">பொது</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">ட்ராக்ட் அங்கீகாரம் தேவை</string>
-    <string name="trakt_library_error_request_failed">ட்ராக்ட் கோரிக்கை தோல்வியடைந்தது</string>
-    <string name="trakt_library_error_create_list_failed">பட்டியலை உருவாக்க முடியவில்லை</string>
-    <string name="trakt_library_error_update_list_failed">பட்டியலைப் புதுப்பிக்க முடியவில்லை</string>
-    <string name="trakt_library_error_delete_list_failed">பட்டியலை நீக்க முடியவில்லை</string>
-    <string name="trakt_library_error_reorder_lists_failed">பட்டியல்களை மறுவரிசைப்படுத்த முடியவில்லை</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">வாட்ச்லிஸ்ட் திரைப்படங்களைப் பெற முடியவில்லை</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">வாட்ச்லிஸ்ட் தொடர்களைப் பெற முடியவில்லை</string>
-    <string name="trakt_library_error_fetch_personal_lists">தனிப்பட்ட பட்டியல்களைப் பெற முடியவில்லை</string>
-    <string name="trakt_library_error_add_watchlist_failed">வாட்ச்லிஸ்டில் சேர்க்க முடியவில்லை</string>
-    <string name="trakt_library_error_remove_watchlist_failed">வாட்ச்லிஸ்டிலிருந்து அகற்ற முடியவில்லை</string>
-    <string name="trakt_library_error_add_to_list_failed">பட்டியலில் சேர்க்க முடியவில்லை</string>
-    <string name="trakt_library_error_remove_from_list_failed">பட்டியலிலிருந்து அகற்ற முடியவில்லை</string>
-    <string name="trakt_library_error_missing_compatible_ids">ட்ராக்ட் பட்டியல் செயல்பாட்டிற்கு பொருந்தும் ஐடிகள் இல்லை</string>
-    <string name="trakt_library_error_auth_expired">ட்ராக்ட் அங்கீகாரம் காலாவதியானது</string>
-    <string name="trakt_library_error_list_not_found">ட்ராக்ட் பட்டியல் கிடைக்கவில்லை</string>
-    <string name="trakt_library_error_list_limit_reached">ட்ராக்ட் பட்டியல் வரம்பை அடைந்துவிட்டது. மேம்படுத்தல் தேவை.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">பார்த்ததாகக் குறிக்க போதுமான ட்ராக்ட் ஐடிகள் இல்லை</string>
-    <string name="trakt_error_request_failed">ட்ராக்ட் கோரிக்கை தோல்வியடைந்தது</string>
-    <string name="trakt_error_mark_watched_failed">ட்ராக்டில் பார்த்ததாகக் குறிக்க முடியவில்லை (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">நூலகத்தைப் புதுப்பிக்க முடியவில்லை</string>
@@ -2250,8 +2097,6 @@
     <string name="stream_error_detail_addon_request_failed">ஆடான் கோரிக்கை தோல்வியடைந்தது</string>
     <string name="stream_error_fetch_failed">ஸ்ட்ரீம்களைப் பெற முடியவில்லை</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">ட்ராக்ட் பக்கமிடப்பட்ட பெறுதல் தோல்வியடைந்தது (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">பட்டியல்களை ஏற்ற முடியவில்லை</string>
@@ -2261,9 +2106,5 @@
     <string name="profile_pin_saved_for_profile">%1$s க்காக பின் சேமிக்கப்பட்டது.</string>
     <string name="profile_pin_lock_removed_for_profile">%1$s க்கான பின் பூட்டு அகற்றப்பட்டது.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">ட்ராக்ட் தொடர்புடைய கோரிக்கை தோல்வியடைந்தது</string>
-    <string name="trakt_comments_error_request_failed">ட்ராக்ட் கருத்துகள் கோரிக்கை தோல்வியடைந்தது</string>
-    <string name="trakt_library_error_fetch_list_items">பட்டியல் உருப்படிகளைப் பெற முடியவில்லை</string>
 
 </resources>

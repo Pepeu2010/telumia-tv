@@ -2,6 +2,8 @@ package com.nuvio.tv.ui.screens.search
 
 import android.content.Context
 import com.nuvio.tv.core.network.NetworkResult
+import com.nuvio.tv.core.tmdb.TmdbCollectionSourceResolver
+import com.nuvio.tv.data.remote.api.TmdbCompanySearchResult
 import com.nuvio.tv.data.local.LayoutPreferenceDataStore
 import com.nuvio.tv.data.local.SearchHistoryDataStore
 import com.nuvio.tv.data.local.WatchedSeriesStateHolder
@@ -17,8 +19,10 @@ import com.nuvio.tv.domain.repository.CatalogRepository
 import com.nuvio.tv.domain.repository.WatchProgressRepository
 import com.nuvio.tv.ui.components.posteroptions.PosterOptionsController
 import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -34,9 +38,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val TITLE = "The Wolf of Wall Street"
 private const val SHORT_TITLE = "Wolf"
@@ -61,11 +67,7 @@ private val SLO_CATALOGS = linkedMapOf(
 /** One title from each catalog in turn, the duplicate dropped, the substring match last. */
 private val SLO_STRIP = listOf("Slow West", "Slow Horses", "Slotherhouse", "Slo Pitch", "Slo Light", "Miss Sloane")
 
-/**
- * Suggestions are pushed to the keyboard's own suggestion strip while the user types, so they
- * have to survive live search. Live search runs the same performSearch() that a submit runs,
- * and that used to retire the strip roughly 200ms after each fetch filled it.
- */
+/** Keyboard suggestions and result rows share the same primary catalog responses. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SearchViewModelSuggestionsTest {
 
@@ -82,6 +84,24 @@ class SearchViewModelSuggestionsTest {
     }
 
     @Test
+    fun `company result mapping trims labels rejects invalid ids and keeps the first duplicate`() {
+        val results = mapCompanySearchResults(
+            listOf(
+                TmdbCompanySearchResult(id = 8, name = "  Fox Studios ", originCountry = " US "),
+                TmdbCompanySearchResult(id = 8, name = "Fox Studios Duplicate", originCountry = "GB"),
+                TmdbCompanySearchResult(id = 9, name = "  "),
+                TmdbCompanySearchResult(id = 0, name = "Invalid ID"),
+                TmdbCompanySearchResult(id = 10, name = "Studio Ten"),
+            ),
+        )
+
+        assertEquals(
+            listOf(SearchCompanyResult(8, "Fox Studios", "US"), SearchCompanyResult(10, "Studio Ten")),
+            results,
+        )
+    }
+
+    @Test
     fun `live search leaves the suggestions it just fetched in place`() = runTest {
         val viewModel = newViewModel()
 
@@ -93,29 +113,60 @@ class SearchViewModelSuggestionsTest {
         assertEquals(listOf(TITLE), viewModel.uiState.value.suggestions)
     }
 
-    /**
-     * Walks the two debounces one at a time rather than asserting the settled state, so it fails
-     * on the original mechanism: the strip filling at 150ms and the live search emptying it at
-     * 350ms. An end-state assertion alone would pass even if the ordering were wrong.
-     */
     @Test
-    fun `the strip fills before live search runs and survives it`() = runTest {
-        val viewModel = newViewModel()
+    fun `live search fills suggestions from its catalog response`() = runTest {
+        val repository = OrderedCatalogRepository(
+            addons = listOf(searchableAddon()),
+            catalogTitles = mapOf("top" to listOf(TITLE))
+        )
+        val viewModel = newViewModel(catalogRepositoryOverride = repository)
 
         viewModel.onEvent(SearchEvent.QueryChanged("wolf"))
-
-        // Past SUGGESTION_DEBOUNCE_MS, short of LIVE_SEARCH_DEBOUNCE_MS. An empty submittedQuery
-        // is what pins the ordering: the strip is full while live search is still pending.
         advanceTimeBy(200)
         runCurrent()
-        assertEquals(listOf(TITLE), viewModel.uiState.value.suggestions)
+
         assertEquals("", viewModel.uiState.value.submittedQuery)
+        assertTrue(repository.requests.isEmpty())
 
-        // Past LIVE_SEARCH_DEBOUNCE_MS. This is the run that used to empty the strip.
-        advanceTimeBy(200)
-        runCurrent()
+        advanceUntilIdle()
+
         assertEquals("wolf", viewModel.uiState.value.submittedQuery)
         assertEquals(listOf(TITLE), viewModel.uiState.value.suggestions)
+        assertEquals(listOf(CatalogRequest("addon", "top", "wolf")), repository.requests)
+    }
+
+    @Test
+    fun `company search reports loading and maps successful results without addon catalogs`() = runTest {
+        val response = CompletableDeferred<List<TmdbCompanySearchResult>>()
+        val resolver = mockk<TmdbCollectionSourceResolver>()
+        coEvery { resolver.searchCompanies("fox") } coAnswers { response.await() }
+        val viewModel = newViewModel(installedAddons = emptyList(), tmdbResolverOverride = resolver)
+
+        viewModel.onEvent(SearchEvent.QueryChanged("fox"))
+        advanceTimeBy(350)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isCompanySearchLoading)
+        response.complete(listOf(TmdbCompanySearchResult(id = 8, name = "  Fox Studios  ", originCountry = " US ")))
+        advanceUntilIdle()
+
+        assertEquals(listOf(SearchCompanyResult(8, "Fox Studios", "US")), viewModel.uiState.value.companySearchResults)
+        assertFalse(viewModel.uiState.value.isCompanySearchLoading)
+        assertEquals(null, viewModel.uiState.value.companySearchError)
+    }
+
+    @Test
+    fun `company search failures settle into an error state`() = runTest {
+        val resolver = mockk<TmdbCollectionSourceResolver>()
+        coEvery { resolver.searchCompanies("fox") } throws IllegalStateException("TMDB unavailable")
+        val viewModel = newViewModel(installedAddons = emptyList(), tmdbResolverOverride = resolver)
+
+        viewModel.onEvent(SearchEvent.QueryChanged("fox"))
+        advanceTimeBy(350)
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isCompanySearchLoading)
+        assertEquals("TMDB unavailable", viewModel.uiState.value.companySearchError)
     }
 
     @Test
@@ -269,7 +320,7 @@ class SearchViewModelSuggestionsTest {
         assertEquals(listOf(SHORT_TITLE, TITLE), viewModel.uiState.value.suggestions)
     }
 
-    /** SUGGESTION_DEBOUNCE_MS has not elapsed, so nothing has been fetched for the new query. */
+    /** The live-search debounce has not elapsed, so nothing has been fetched for the new query. */
     @Test
     fun `a keystroke that rules a title out drops it before the fetch runs`() = runTest {
         val viewModel = newViewModel(catalogIgnoresQuery = true)
@@ -316,8 +367,7 @@ class SearchViewModelSuggestionsTest {
         advanceUntilIdle()
         assertEquals(listOf(TITLE), viewModel.uiState.value.suggestions)
 
-        // Past SUGGESTION_DEBOUNCE_MS, so the unrelated batch has landed and the matching one
-        // has not. The strip should still be showing what it had.
+        // Before live search begins, the strip should still be showing what it had.
         viewModel.onEvent(SearchEvent.QueryChanged("wolf"))
         advanceTimeBy(200)
         runCurrent()
@@ -359,14 +409,99 @@ class SearchViewModelSuggestionsTest {
         assertEquals(SLO_STRIP, viewModel.uiState.value.suggestions)
     }
 
+    @Test
+    fun `all enabled addons feed suggestions once with bounded concurrency`() = runTest {
+        val enabledAddons = (0 until 6).map { index ->
+            searchableAddon(
+                catalogIds = listOf("catalog-$index"),
+                addonId = "addon-$index",
+                baseUrl = "https://addon-$index.test"
+            )
+        }
+        val disabledAddon = searchableAddon(
+            catalogIds = listOf("disabled-catalog"),
+            addonId = "disabled-addon",
+            baseUrl = "https://disabled.test",
+            enabled = false
+        )
+        val addons = enabledAddons + disabledAddon
+        val catalogTitles = enabledAddons.associate { addon ->
+            addon.catalogs.single().id to listOf("Slow ${addon.id.substringAfter('-')}")
+        }
+        val repository = OrderedCatalogRepository(
+            addons = addons,
+            catalogTitles = catalogTitles,
+            failedCatalogs = setOf("catalog-2"),
+            requestDelayMs = 100
+        )
+        val viewModel = newViewModel(
+            installedAddons = addons,
+            catalogRepositoryOverride = repository
+        )
+
+        viewModel.onEvent(SearchEvent.QueryChanged("slow"))
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("Slow 0", "Slow 1", "Slow 3", "Slow 4", "Slow 5"),
+            viewModel.uiState.value.suggestions
+        )
+        assertEquals(6, repository.requests.size)
+        assertEquals(6, repository.requests.toSet().size)
+        assertEquals(enabledAddons.map { it.id }.toSet(), repository.requests.map { it.addonId }.toSet())
+        assertTrue(repository.requests.none { it.addonId == disabledAddon.id })
+        assertTrue("catalog concurrency exceeded 4", repository.maxConcurrentRequests.get() <= 4)
+    }
+
+    @Test
+    fun `changing query cancels queued catalog requests`() = runTest {
+        val addons = (0 until 6).map { index ->
+            searchableAddon(
+                catalogIds = listOf("catalog-$index"),
+                addonId = "addon-$index",
+                baseUrl = "https://addon-$index.test"
+            )
+        }
+        val catalogTitles = addons.associate { addon ->
+            addon.catalogs.single().id to listOf("Slow ${addon.id.substringAfter('-')}")
+        }
+        val repository = OrderedCatalogRepository(
+            addons = addons,
+            catalogTitles = catalogTitles,
+            requestDelayMs = 500
+        )
+        val viewModel = newViewModel(
+            installedAddons = addons,
+            catalogRepositoryOverride = repository
+        )
+
+        viewModel.onEvent(SearchEvent.QueryChanged("slo"))
+        advanceTimeBy(360)
+        runCurrent()
+        assertEquals(4, repository.requests.count { it.query == "slo" })
+
+        viewModel.onEvent(SearchEvent.QueryChanged("slow"))
+        advanceUntilIdle()
+
+        assertEquals(4, repository.requests.count { it.query == "slo" })
+        assertEquals(6, repository.requests.count { it.query == "slow" })
+        assertEquals(6, repository.requests.filter { it.query == "slow" }.map { it.addonId }.toSet().size)
+        assertEquals(
+            listOf("Slow 0", "Slow 1", "Slow 2", "Slow 3", "Slow 4", "Slow 5"),
+            viewModel.uiState.value.suggestions
+        )
+        assertTrue("catalog concurrency exceeded 4", repository.maxConcurrentRequests.get() <= 4)
+    }
+
     /** The series catalog answers first here. The movie catalog still leads once it lands. */
     @Test
     fun `the strip order does not depend on which catalog answers first`() = runTest {
         val viewModel = newViewModel(catalogTitles = SLO_CATALOGS, slowCatalogs = setOf(MOVIE_CATALOG))
 
         viewModel.onEvent(SearchEvent.QueryChanged("slo"))
-        // Past SUGGESTION_DEBOUNCE_MS, short of the movie catalog's pause.
-        advanceTimeBy(200)
+        // Search starts at 350ms. Half-way through the slow movie response, only the series
+        // catalog has completed. Manifest order wins once the movie catalog returns.
+        advanceTimeBy(400)
         runCurrent()
         assertEquals(listOf("Slow Horses", "Slo Pitch"), viewModel.uiState.value.suggestions)
 
@@ -374,7 +509,7 @@ class SearchViewModelSuggestionsTest {
         assertEquals(SLO_STRIP, viewModel.uiState.value.suggestions)
     }
 
-    /** SUGGESTION_DEBOUNCE_MS has not elapsed, so this is narrowing alone, before any fetch. */
+    /** The live-search debounce has not elapsed, so this is narrowing alone, before any fetch. */
     @Test
     fun `narrowing keeps the addon's order`() = runTest {
         val viewModel = newViewModel(catalogTitles = SLO_CATALOGS)
@@ -411,13 +546,18 @@ class SearchViewModelSuggestionsTest {
         /** Catalog id to the titles it answers with, both in the addon's order. */
         catalogTitles: Map<String, List<String>>? = null,
         /** Catalogs of [catalogTitles] that answer after a pause. */
-        slowCatalogs: Set<String> = emptySet()
+        slowCatalogs: Set<String> = emptySet(),
+        installedAddons: List<Addon>? = null,
+        catalogRepositoryOverride: CatalogRepository? = null,
+        tmdbResolverOverride: TmdbCollectionSourceResolver? = null
     ): SearchViewModel {
-        val addon = when {
-            catalogTitles != null -> searchableAddon(catalogTitles.keys.toList())
-            staged -> searchableAddon(listOf(UNRELATED_CATALOG, MATCHING_CATALOG))
-            else -> searchableAddon()
-        }
+        val addons = installedAddons ?: listOf(
+            when {
+                catalogTitles != null -> searchableAddon(catalogTitles.keys.toList())
+                staged -> searchableAddon(listOf(UNRELATED_CATALOG, MATCHING_CATALOG))
+                else -> searchableAddon()
+            }
+        )
 
         val layoutPreferences = mockk<LayoutPreferenceDataStore>()
         every { layoutPreferences.discoverLocation } returns flowOf(com.nuvio.tv.domain.model.DiscoverLocation.OFF)
@@ -438,13 +578,17 @@ class SearchViewModelSuggestionsTest {
         val watchedSeries = mockk<WatchedSeriesStateHolder>()
         every { watchedSeries.fullyWatchedSeriesIds } returns MutableStateFlow(emptySet())
 
+        val catalogRepository = catalogRepositoryOverride ?: when {
+            addons.isEmpty() -> mockk(relaxed = true)
+            catalogTitles != null -> OrderedCatalogRepository(addons, catalogTitles, slowCatalogs)
+            staged -> StagedCatalogRepository(addons.first())
+            else -> TitleCatalogRepository(addons.first(), catalogIgnoresQuery)
+        }
+
         return SearchViewModel(
-            addonRepository = SingleAddonRepository(addon),
-            catalogRepository = when {
-                catalogTitles != null -> OrderedCatalogRepository(addon, catalogTitles, slowCatalogs)
-                staged -> StagedCatalogRepository(addon)
-                else -> TitleCatalogRepository(addon, catalogIgnoresQuery)
-            },
+            addonRepository = TestAddonRepository(addons),
+            catalogRepository = catalogRepository,
+            tmdbCollectionSourceResolver = tmdbResolverOverride ?: mockk(relaxed = true),
             metaRepository = mockk(relaxed = true),
             discoverSelectionDataStore = mockk(relaxed = true),
             layoutPreferenceDataStore = layoutPreferences,
@@ -456,8 +600,8 @@ class SearchViewModelSuggestionsTest {
         )
     }
 
-    private class SingleAddonRepository(private val addon: Addon) : AddonRepository {
-        override fun getInstalledAddons(): Flow<List<Addon>> = flowOf(listOf(addon))
+    private class TestAddonRepository(private val addons: List<Addon>) : AddonRepository {
+        override fun getInstalledAddons(): Flow<List<Addon>> = flowOf(addons)
         override suspend fun fetchAddon(baseUrl: String): NetworkResult<Addon> = error("unused")
         override suspend fun addAddon(url: String) = error("unused")
         override suspend fun removeAddon(url: String) = error("unused")
@@ -570,10 +714,16 @@ class SearchViewModelSuggestionsTest {
     /** Each catalog answers with its own titles in a fixed order, whatever the query, the slow
      *  ones after a pause. */
     private class OrderedCatalogRepository(
-        private val addon: Addon,
+        private val addons: List<Addon>,
         private val catalogTitles: Map<String, List<String>>,
-        private val slowCatalogs: Set<String>
+        private val slowCatalogs: Set<String> = emptySet(),
+        private val failedCatalogs: Set<String> = emptySet(),
+        private val requestDelayMs: Long = 0L
     ) : CatalogRepository {
+        val requests = mutableListOf<CatalogRequest>()
+        val maxConcurrentRequests = AtomicInteger()
+        private val activeRequests = AtomicInteger()
+
         override fun getCatalog(
             addonBaseUrl: String,
             addonId: String,
@@ -587,37 +737,63 @@ class SearchViewModelSuggestionsTest {
             supportsSkip: Boolean,
             posterScreen: com.nuvio.tv.core.poster.CustomPosterScreen
         ): Flow<NetworkResult<CatalogRow>> = flow {
-            emit(NetworkResult.Loading)
-            if (catalogId in slowCatalogs) delay(100)
-            emit(NetworkResult.Success(row(catalogId, catalogTitles.getValue(catalogId))))
+            requests += CatalogRequest(addonId, catalogId, extraArgs["search"].orEmpty())
+            val active = activeRequests.incrementAndGet()
+            maxConcurrentRequests.updateAndGet { current -> maxOf(current, active) }
+            try {
+                emit(NetworkResult.Loading)
+                if (catalogId in slowCatalogs) delay(100)
+                if (requestDelayMs > 0) delay(requestDelayMs)
+                if (catalogId in failedCatalogs) {
+                    emit(NetworkResult.Error("Catalog fixture failure"))
+                } else {
+                    emit(NetworkResult.Success(row(catalogId, catalogTitles.getValue(catalogId))))
+                }
+            } finally {
+                activeRequests.decrementAndGet()
+            }
         }
 
-        private fun row(catalogId: String, titles: List<String>): CatalogRow = CatalogRow(
-            addonId = addon.id,
-            addonName = addon.displayName,
-            addonBaseUrl = addon.baseUrl,
-            catalogId = catalogId,
-            catalogName = catalogId,
-            type = ContentType.MOVIE,
-            items = titles.map { title ->
-                MetaPreview(
-                    id = "id_${title.hashCode()}",
-                    type = ContentType.MOVIE,
-                    name = title,
-                    poster = null,
-                    posterShape = PosterShape.POSTER,
-                    background = null,
-                    logo = null,
-                    description = null,
-                    releaseInfo = null,
-                    imdbRating = null,
-                    genres = emptyList()
-                )
-            }
-        )
+        private fun row(catalogId: String, titles: List<String>): CatalogRow {
+            val addon = addons.first { addon -> addon.catalogs.any { it.id == catalogId } }
+            return CatalogRow(
+                addonId = addon.id,
+                addonName = addon.displayName,
+                addonBaseUrl = addon.baseUrl,
+                catalogId = catalogId,
+                catalogName = catalogId,
+                type = ContentType.MOVIE,
+                items = titles.map { title ->
+                    MetaPreview(
+                        id = "id_${title.hashCode()}",
+                        type = ContentType.MOVIE,
+                        name = title,
+                        poster = null,
+                        posterShape = PosterShape.POSTER,
+                        background = null,
+                        logo = null,
+                        description = null,
+                        releaseInfo = null,
+                        imdbRating = null,
+                        genres = emptyList()
+                    )
+                }
+            )
+        }
     }
 
-    private fun searchableAddon(catalogIds: List<String> = listOf("top")): Addon {
+    private data class CatalogRequest(
+        val addonId: String,
+        val catalogId: String,
+        val query: String
+    )
+
+    private fun searchableAddon(
+        catalogIds: List<String> = listOf("top"),
+        addonId: String = "addon",
+        baseUrl: String = "https://example.test",
+        enabled: Boolean = true
+    ): Addon {
         val catalogs = catalogIds.map { id ->
             CatalogDescriptor(
                 type = ContentType.MOVIE,
@@ -627,15 +803,16 @@ class SearchViewModelSuggestionsTest {
             )
         }
         return Addon(
-            id = "addon",
-            name = "Addon",
+            id = addonId,
+            name = addonId,
             version = "1",
             description = null,
             logo = null,
-            baseUrl = "https://example.test",
+            baseUrl = baseUrl,
             catalogs = catalogs,
             types = listOf(ContentType.MOVIE),
-            resources = emptyList()
+            resources = emptyList(),
+            enabled = enabled
         )
     }
 }

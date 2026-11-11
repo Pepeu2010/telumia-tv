@@ -5,7 +5,7 @@ import com.nuvio.tv.core.auth.AuthManager
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.core.tracking.TrackingProgressProviderRegistry
 import com.nuvio.tv.core.tracking.providerId
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchedItemsPreferences
 import com.nuvio.tv.data.remote.supabase.SupabaseWatchedItem
 import com.nuvio.tv.data.remote.supabase.SupabaseWatchedItemEvent
@@ -45,7 +45,7 @@ class WatchedItemsSyncService @Inject constructor(
     private val postgrest: Postgrest,
     private val watchedItemsPreferences: WatchedItemsPreferences,
     private val trackingProviderRegistry: TrackingProgressProviderRegistry,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val profileManager: ProfileManager,
     private val syncClientIdentity: SyncClientIdentity,
     private val mutationStore: WatchStateMutationStore
@@ -71,7 +71,7 @@ class WatchedItemsSyncService @Inject constructor(
     }
 
     private suspend fun shouldUseSupabaseWatchProgressSync(profileId: Int): Boolean {
-        val source = traktSettingsDataStore.getWatchProgressSource(profileId)
+        val source = trackingSettingsDataStore.getWatchProgressSource(profileId)
         val providerId = source.providerId ?: return true
         return trackingProviderRegistry.provider(providerId)?.isAuthenticated?.first() != true
     }

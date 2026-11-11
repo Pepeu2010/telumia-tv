@@ -324,8 +324,6 @@ fun EpisodesRow(
     onMarkSeasonUnwatched: (Int) -> Unit = {},
     isSeasonFullyWatched: Boolean = false,
     selectedSeason: Int = 1,
-    onOpenEpisodeComments: (Video) -> Unit = {},
-    showOpenEpisodeComments: Boolean = false,
     onMarkPreviousEpisodesWatched: (Video) -> Unit = {},
     upFocusRequester: FocusRequester,
     downFocusRequester: FocusRequester? = null,
@@ -531,11 +529,6 @@ fun EpisodesRow(
                 onEpisodeStartFromBeginningClick(selectedEpisode)
                 optionsEpisode = null
             },
-            onOpenEpisodeComments = {
-                onOpenEpisodeComments(selectedEpisode)
-                optionsEpisode = null
-            },
-            showOpenEpisodeComments = showOpenEpisodeComments,
             onPlayManually = {
                 onEpisodeManualPlayClick(selectedEpisode)
                 optionsEpisode = null

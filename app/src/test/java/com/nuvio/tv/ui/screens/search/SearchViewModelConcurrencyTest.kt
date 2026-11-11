@@ -172,6 +172,7 @@ class SearchViewModelConcurrencyTest {
         return SearchViewModel(
             addonRepository = addonRepository,
             catalogRepository = catalogRepository,
+            tmdbCollectionSourceResolver = mockk(relaxed = true),
             metaRepository = mockk(relaxed = true),
             discoverSelectionDataStore = mockk(relaxed = true),
             layoutPreferenceDataStore = layoutPreferences,

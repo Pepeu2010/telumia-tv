@@ -307,7 +307,7 @@ class WatchProgressPreferencesStorageTest {
     }
 
     @Test
-    fun `clear preserving non trakt ids filters both buckets`() = runTest {
+    fun `clear preserving selected ids filters both buckets`() = runTest {
         val entries = legacyEntries().toMutableMap().apply {
             this["custom:recent"] = progress("custom:recent", lastWatched = 2_000L)
             this["custom:archive"] = progress("custom:archive", lastWatched = -1L)
@@ -315,12 +315,28 @@ class WatchProgressPreferencesStorageTest {
         val harness = harness(entries)
         harness.preferences.getAllRawEntries()
 
-        harness.preferences.clearAllPreservingNonTraktIds { it.startsWith("custom:") }
+        harness.preferences.clearAllPreservingIds { it.startsWith("custom:") }
 
         val result = harness.preferences.getAllRawEntries()
         assertEquals(setOf("custom:recent", "custom:archive"), result.keys)
         assertEquals(setOf("custom:recent", "custom:archive"), harness.recent.keys())
         assertTrue(harness.archive.keys().isEmpty())
+    }
+
+    @Test
+    fun `rows cached by the retired Trakt integration are dropped and local progress is kept`() = runTest {
+        val entries = mapOf(
+            "local-movie" to progress("local-movie", lastWatched = 1_000L),
+            "cached-playback" to progress("cached-playback", lastWatched = 2_000L)
+                .copy(source = "trakt_playback"),
+            "cached-history" to progress("cached-history", lastWatched = 3_000L)
+                .copy(source = "trakt_history")
+        )
+        val harness = harness(entries)
+
+        val result = harness.preferences.getAllRawEntries()
+
+        assertEquals(setOf("local-movie"), result.keys)
     }
 
     @Test

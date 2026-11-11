@@ -20,6 +20,7 @@ internal fun PlayerRuntimeController.showRecoveryOverlay() {
     _uiState.update { state ->
         state.copy(
             error = null,
+            playbackFailureReport = null,
             isBuffering = true,
             showLoadingOverlay = true,
             loadingMessage = context.getString(R.string.player_loading_buffering),
@@ -55,6 +56,7 @@ internal fun PlayerRuntimeController.attemptStartupRecovery(
         _uiState.update {
             it.copy(
                 error = null,
+                playbackFailureReport = null,
                 isBuffering = true,
                 showLoadingOverlay = it.loadingOverlayEnabled,
                 loadingMessage = context.getString(R.string.player_loading_buffering),
@@ -277,6 +279,7 @@ internal fun PlayerRuntimeController.attemptAutoRetry(
         _uiState.update {
             it.copy(
                 error = null,
+                playbackFailureReport = null,
                 showLoadingOverlay = if (isFirstAttempt) false else it.loadingOverlayEnabled,
                 showPauseOverlay = false
             )

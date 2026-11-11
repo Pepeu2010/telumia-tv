@@ -850,7 +850,7 @@ fun ClassicHomeContent(
                         focusedPosterBackdropExpandEnabled = uiState.focusedPosterBackdropExpandEnabled,
                         focusedPosterBackdropExpandDelaySeconds = uiState.focusedPosterBackdropExpandDelaySeconds,
                         focusedPosterBackdropTrailerEnabled = uiState.focusedPosterBackdropTrailerEnabled,
-                        focusedPosterBackdropTrailerMuted = uiState.focusedPosterBackdropTrailerMuted,
+                        focusedPosterBackdropTrailerMuted = false,
                         trailerPreviewUrls = stableTrailerPreviewUrls.value,
                         trailerPreviewAudioUrls = stableTrailerPreviewAudioUrls.value,
                         onRequestTrailerPreview = onRequestTrailerPreview,

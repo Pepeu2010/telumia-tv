@@ -35,7 +35,6 @@ class MDBListRepositoryTest {
     private val settings = MDBListSettings(
         enabled = true,
         apiKey = "test-key",
-        showTrakt = false,
         showImdb = false,
         showTmdb = false,
         showLetterboxd = false,
@@ -47,7 +46,6 @@ class MDBListRepositoryTest {
     private val media = MDBListMediaResponseDto(
         ratings = listOf(
             MDBListMediaRatingDto("imdb", 8.1),
-            MDBListMediaRatingDto("trakt", 81.0),
             MDBListMediaRatingDto("tmdb", 78.0),
             MDBListMediaRatingDto("letterboxd", 4.2, 84.0),
             MDBListMediaRatingDto("metacritic", 75.0),
@@ -223,8 +221,8 @@ class MDBListRepositoryTest {
         assertEquals(8.1, repository.getImdbRatingForItem("tt1234567", "movie"))
         preferences.value = MDBListSettings(enabled = true, apiKey = "test-key")
         val ratings = requireNotNull(repository.getRatingsForMeta(meta(), "tt1234567", "movie")).ratings
-        assertEquals(listOf(8.1, 81.0, 78.0, 4.2, 72.0, 85.0, 75.0, 8.5), listOf(
-            ratings.imdb, ratings.trakt, ratings.tmdb, ratings.letterboxd,
+        assertEquals(listOf(8.1, 78.0, 4.2, 72.0, 85.0, 75.0, 8.5), listOf(
+            ratings.imdb, ratings.tmdb, ratings.letterboxd,
             ratings.tomatoes, ratings.audience, ratings.metacritic, ratings.mal
         ))
         preferences.value = settings.copy(showTomatoes = false, showAudience = false, showMal = true)

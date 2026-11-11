@@ -78,6 +78,7 @@ private const val HOME_STABLE_GATE_TIMEOUT_MS = 5_000L
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    onHomeTrailerFullscreenChanged: (Boolean) -> Unit = {},
     onNavigateToDetail: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit = { item ->
         onNavigateToDetail(
@@ -108,11 +109,15 @@ fun HomeScreen(
                 viewModel.beginShuffleHomeVisit()
                 viewModel.refreshHomeCatalogsIfStale()
             }
-            if (event == Lifecycle.Event.ON_STOP) viewModel.cancelTrailerPreview()
+            if (event == Lifecycle.Event.ON_STOP) {
+                viewModel.cancelTrailerPreview()
+                onHomeTrailerFullscreenChanged(false)
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             viewModel.cancelTrailerPreview()
+            onHomeTrailerFullscreenChanged(false)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -407,6 +412,7 @@ fun HomeScreen(
                                 onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
                                 onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
                                 showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
+                                onHomeTrailerFullscreenChanged = onHomeTrailerFullscreenChanged,
                                 onNavigateToFolderDetail = onNavigateToFolderDetailStable,
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onCatalogItemLongPress = onCatalogItemLongPress
@@ -441,7 +447,6 @@ fun HomeScreen(
                 Text(
                     text = when (startupAuthNotice) {
                         StartupAuthNotice.NUVIO -> stringResource(R.string.auth_notice_nuvio_logged_out)
-                        StartupAuthNotice.TRAKT -> stringResource(R.string.auth_notice_trakt_logged_out)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = NuvioTheme.colors.TextPrimary
@@ -494,7 +499,7 @@ fun HomeScreen(
     if (uiState.showPosterListPicker) {
         val localTab = LibraryListTab(
             key = LOCAL_LIBRARY_LIST_KEY,
-            title = stringResource(R.string.trakt_library_source_nuvio),
+            title = stringResource(R.string.tracking_library_source_nuvio),
             type = LibraryListTab.Type.WATCHLIST
         )
         val contentType = uiState.posterListPickerContentType.orEmpty()
@@ -642,6 +647,7 @@ private fun ModernHomeRoute(
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
     showContinueWatchingManualPlayOption: Boolean,
+    onHomeTrailerFullscreenChanged: (Boolean) -> Unit,
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
     isCatalogItemWatched: (MetaPreview) -> Boolean,
     onCatalogItemLongPress: (MetaPreview, String) -> Unit
@@ -696,6 +702,7 @@ private fun ModernHomeRoute(
         onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
         onContinueWatchingPlayManually = onContinueWatchingPlayManually,
         showContinueWatchingManualPlayOption = showContinueWatchingManualPlayOption,
+        onFullscreenTrailerChanged = onHomeTrailerFullscreenChanged,
         onRequestTrailerPreview = requestTrailerPreview,
         onCancelTrailerPreview = { viewModel.cancelTrailerPreview() },
         onLoadMoreCatalog = loadMoreCatalog,

@@ -19,10 +19,8 @@ data class LibraryEntry(
     val listKeys: Set<String> = emptySet(),
     val listRanks: Map<String, Int> = emptyMap(),
     val listedAt: Long = 0L,
-    val traktRank: Int? = null,
     val imdbId: String? = null,
     val tmdbId: Int? = null,
-    val traktId: Int? = null,
     val simklId: Long? = null,
     /** Original media category from the tracking provider (e.g. "anime").
      *  Used for UI filtering while [type] stays as "movie"/"series" for meta addon compatibility. */
@@ -58,7 +56,6 @@ data class LibraryEntry(
 
 enum class LibrarySourceMode {
     LOCAL,
-    TRAKT,
     SIMKL,
     MDBLIST
 }
@@ -81,7 +78,6 @@ data class LibraryListTab(
     val key: String,
     val title: String,
     val type: Type,
-    val traktListId: Long? = null,
     val slug: String? = null,
     val description: String? = null,
     val privacy: LibraryListPrivacy? = null,
@@ -115,7 +111,6 @@ data class LibraryEntryInput(
     val itemType: String,
     val title: String,
     val year: Int? = null,
-    val traktId: Int? = null,
     val simklId: Long? = null,
     val imdbId: String? = null,
     val tmdbId: Int? = null,

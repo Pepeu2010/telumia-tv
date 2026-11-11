@@ -7,7 +7,6 @@ import com.nuvio.tv.domain.model.TmdbCollectionFilters
 import com.nuvio.tv.domain.model.TmdbCollectionMediaType
 import com.nuvio.tv.domain.model.TmdbCollectionSource
 import com.nuvio.tv.domain.model.TmdbCollectionSourceType
-import com.nuvio.tv.domain.model.TraktCollectionSource
 import io.mockk.mockk
 import io.mockk.every
 import org.junit.Assert.assertEquals
@@ -17,8 +16,6 @@ import org.junit.Test
 class CollectionsDataStoreSourceMigrationTest {
     private val store = CollectionsDataStore(
         appContext = mockk<Context>(relaxed = true) {
-            every { getString(com.nuvio.tv.R.string.collections_import_error_missing_trakt_list_id,
-                any(), any(), any()) } returns "Source requires a Trakt list ID"
         },
         factory = mockk<ProfileDataStoreFactory>(relaxed = true),
         profileManager = mockk<ProfileManager>(relaxed = true),
@@ -102,56 +99,20 @@ class CollectionsDataStoreSourceMigrationTest {
     }
 
     @Test
-    fun `export and import preserve trakt public list sources`() {
-        val collection = com.nuvio.tv.domain.model.Collection(
-            id = "collection",
-            title = "Trakt",
-            folders = listOf(
-                com.nuvio.tv.domain.model.CollectionFolder(
-                    id = "folder",
-                    title = "Public Lists",
-                    sources = listOf(
-                        TraktCollectionSource(
-                            title = "Criterion Movies",
-                            traktListId = 123456L,
-                            mediaType = TmdbCollectionMediaType.MOVIE,
-                            sortBy = "added",
-                            sortHow = "desc"
-                        )
-                    )
-                )
-            )
-        )
-
-        val json = store.exportToJson(listOf(collection))
-        val source = store.importFromJson(json).single().folders.single().sources.single()
-
-        assertTrue(json.contains("\"provider\":\"trakt\""))
-        assertTrue(json.contains("\"traktListId\":123456"))
-        assertTrue(source is TraktCollectionSource)
-        source as TraktCollectionSource
-        assertEquals("Criterion Movies", source.title)
-        assertEquals(123456L, source.traktListId)
-        assertEquals(TmdbCollectionMediaType.MOVIE, source.mediaType)
-        assertEquals("added", source.sortBy)
-        assertEquals("desc", source.sortHow)
-    }
-
-    @Test
-    fun `validation rejects trakt sources without list id`() {
+    fun `retired provider sources are dropped on import without failing validation`() {
         val json = """
             [
               {
                 "id": "collection",
-                "title": "Trakt",
+                "title": "Legacy",
                 "folders": [
                   {
                     "id": "folder",
-                    "title": "Public Lists",
+                    "title": "Old Lists",
                     "sources": [
                       {
-                        "provider": "trakt",
-                        "title": "Missing ID",
+                        "provider": "legacy-list-provider",
+                        "title": "Retired source",
                         "mediaType": "MOVIE"
                       }
                     ]
@@ -161,10 +122,11 @@ class CollectionsDataStoreSourceMigrationTest {
             ]
         """.trimIndent()
 
-        val result = store.validateCollectionsJson(json)
+        val validation = store.validateCollectionsJson(json)
+        val imported = store.importFromJson(json)
 
-        assertTrue(!result.valid)
-        assertTrue(result.error?.contains("Trakt list ID") == true)
+        assertTrue(validation.valid)
+        assertTrue(imported.single().folders.single().sources.isEmpty())
     }
 
     @Test

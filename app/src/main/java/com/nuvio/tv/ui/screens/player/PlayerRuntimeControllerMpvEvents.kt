@@ -275,6 +275,15 @@ internal fun PlayerRuntimeController.handleMpvPlaybackError(
         _uiState.update {
             it.copy(
                 error = detailedError,
+                playbackFailureReport = PlaybackFailureReport.create(
+                    source = PlaybackFailureSource.STREAM,
+                    stage = if (hasRenderedFirstFrame) PlaybackFailureStage.PLAYBACK else PlaybackFailureStage.STARTUP,
+                    mimeType = currentStreamMimeType,
+                    mediaUrl = currentStreamUrl,
+                    firstFrameRendered = hasRenderedFirstFrame,
+                    errorCode = mpvErrorCodeName(mpvErrorCode),
+                    errorMessage = detailedError
+                ),
                 showSwitchToMpvErrorAction = false,
                 showLoadingOverlay = false,
                 showPauseOverlay = false,

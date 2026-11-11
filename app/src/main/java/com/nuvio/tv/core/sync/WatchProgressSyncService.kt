@@ -5,7 +5,7 @@ import com.nuvio.tv.core.auth.AuthManager
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.core.tracking.TrackingProgressProviderRegistry
 import com.nuvio.tv.core.tracking.providerId
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.data.local.WatchProgressPreferences
 import com.nuvio.tv.data.remote.supabase.SupabaseWatchProgress
 import com.nuvio.tv.data.remote.supabase.SupabaseWatchProgressEvent
@@ -43,7 +43,7 @@ class WatchProgressSyncService @Inject constructor(
     private val postgrest: Postgrest,
     private val watchProgressPreferences: WatchProgressPreferences,
     private val trackingProviderRegistry: TrackingProgressProviderRegistry,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val profileManager: ProfileManager,
     private val syncClientIdentity: SyncClientIdentity,
     private val mutationStore: WatchStateMutationStore
@@ -70,7 +70,7 @@ class WatchProgressSyncService @Inject constructor(
     suspend fun shouldUseSupabaseWatchProgressSync(
         profileId: Int = profileManager.activeProfileId.value
     ): Boolean {
-        val source = traktSettingsDataStore.getWatchProgressSource(profileId)
+        val source = trackingSettingsDataStore.getWatchProgressSource(profileId)
         val providerId = source.providerId ?: return true
         return trackingProviderRegistry.provider(providerId)?.isAuthenticated?.first() != true
     }
@@ -267,7 +267,7 @@ class WatchProgressSyncService @Inject constructor(
      * Pull watch progress from Supabase via SECURITY DEFINER RPC.
      * Uses get_sync_owner() server-side to fetch the correct user's data,
      * bypassing RLS (which would block linked devices from reading owner data).
-     * Skips if Trakt is connected. Caller is responsible for merging into local.
+     * Skips if an external progress provider is selected. Caller is responsible for merging into local.
      *
      * @param profileId The profile to pull data for. Captured at call-site to
      *   prevent race conditions when the active profile changes mid-operation.

@@ -85,20 +85,20 @@ class TrackingLibraryMembershipTest {
 
     @Test
     fun `membership dispatch attempts every provider and isolates failures`() = runTest {
-        val trakt = FakeLibraryProvider(TrackingProviderId.TRAKT, failure = IllegalStateException("offline"))
+        val mdblist = FakeLibraryProvider(TrackingProviderId.MDBLIST, failure = IllegalStateException("offline"))
         val simkl = FakeLibraryProvider(TrackingProviderId.SIMKL)
         val changes = ListMembershipChanges(mapOf("list" to true))
 
         val failures = dispatchTrackingMembershipChanges(
             item = LibraryEntryInput("tt123", "movie", "Movie"),
-            providerChanges = listOf(trakt to changes, simkl to changes),
+            providerChanges = listOf(mdblist to changes, simkl to changes),
             confirmedRemovalProviders = setOf(TrackingProviderId.SIMKL)
         )
 
-        assertEquals(1, trakt.applyCalls)
+        assertEquals(1, mdblist.applyCalls)
         assertEquals(1, simkl.applyCalls)
-        assertEquals(listOf(TrackingProviderId.TRAKT), failures.map { it.providerId })
-        assertFalse(trakt.lastConfirmed)
+        assertEquals(listOf(TrackingProviderId.MDBLIST), failures.map { it.providerId })
+        assertFalse(mdblist.lastConfirmed)
         assertTrue(simkl.lastConfirmed)
     }
 

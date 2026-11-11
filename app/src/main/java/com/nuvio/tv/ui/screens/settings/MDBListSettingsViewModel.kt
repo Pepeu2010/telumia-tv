@@ -47,7 +47,6 @@ class MDBListSettingsViewModel @Inject constructor(
     fun onEvent(event: MDBListSettingsEvent) {
         when (event) {
             is MDBListSettingsEvent.ToggleEnabled -> update { dataStore.setEnabled(event.enabled) }
-            is MDBListSettingsEvent.ToggleTrakt -> update { dataStore.setShowTrakt(event.enabled) }
             is MDBListSettingsEvent.ToggleImdb -> update { dataStore.setShowImdb(event.enabled) }
             is MDBListSettingsEvent.ToggleTmdb -> update { dataStore.setShowTmdb(event.enabled) }
             is MDBListSettingsEvent.ToggleLetterboxd -> update { dataStore.setShowLetterboxd(event.enabled) }
@@ -103,7 +102,6 @@ data class MDBListSettingsUiState(
     val enabled: Boolean = false,
     val apiKey: String = "",
     val isConnected: Boolean = false,
-    val showTrakt: Boolean = true,
     val showImdb: Boolean = true,
     val showTmdb: Boolean = true,
     val showLetterboxd: Boolean = true,
@@ -117,7 +115,6 @@ data class MDBListSettingsUiState(
     fun fromSettings(settings: MDBListSettings): MDBListSettingsUiState = copy(
         enabled = settings.enabled,
         apiKey = settings.apiKey,
-        showTrakt = settings.showTrakt,
         showImdb = settings.showImdb,
         showTmdb = settings.showTmdb,
         showLetterboxd = settings.showLetterboxd,
@@ -132,7 +129,6 @@ data class MDBListSettingsUiState(
 
 sealed class MDBListSettingsEvent {
     data class ToggleEnabled(val enabled: Boolean) : MDBListSettingsEvent()
-    data class ToggleTrakt(val enabled: Boolean) : MDBListSettingsEvent()
     data class ToggleImdb(val enabled: Boolean) : MDBListSettingsEvent()
     data class ToggleTmdb(val enabled: Boolean) : MDBListSettingsEvent()
     data class ToggleLetterboxd(val enabled: Boolean) : MDBListSettingsEvent()

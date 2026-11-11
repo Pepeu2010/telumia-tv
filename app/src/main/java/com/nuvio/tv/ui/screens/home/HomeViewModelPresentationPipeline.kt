@@ -179,7 +179,7 @@ internal fun HomeViewModel.observeLayoutPreferencesPipeline() {
             hideUnreleasedContent = corePrefs.hideUnreleasedContent,
             showFullReleaseDate = corePrefs.showFullReleaseDate,
             modernLandscapePostersEnabled = false,
-            modernHeroFullScreenBackdropEnabled = false,
+            modernHeroFullScreenBackdropEnabled = true,
             homeImdbRatingsVisibility = HomeImdbRatingsVisibility.SHOW_ALL,
             focusedBackdropExpandEnabled = focusedBackdropPrefs.expandEnabled,
             focusedBackdropExpandDelaySeconds = focusedBackdropPrefs.expandDelaySeconds,
@@ -388,7 +388,6 @@ internal fun HomeViewModel.requestTrailerPreviewPipeline(
     fallbackYtId: String? = null
 ) {
     if (!AppFeaturePolicy.inAppTrailerPlaybackEnabled) return
-    if (startupGracePeriodActive) return
 
     // Resolve fallbackYtId from catalog item if not provided
     val resolvedFallbackYtId = fallbackYtId ?: findCatalogItemById(itemId)?.trailerYtIds?.firstOrNull()
@@ -403,6 +402,9 @@ internal fun HomeViewModel.requestTrailerPreviewPipeline(
     if (trailerPreviewUrlsState.containsKey(itemId)) return
     trailerPreviewJob = viewModelScope.launch {
         try {
+            // Keep the currently focused request alive through startup instead of dropping it:
+            // the focus may not change again when the grace period ends.
+            delay(remainingStartupGraceMs())
             // Debounce: wait for focus to settle before hitting network
             delay(180)
 
@@ -424,11 +426,28 @@ internal fun HomeViewModel.requestTrailerPreviewPipeline(
                     val primary = trailerService.getTrailerPlaybackSource(
                         title = title, year = extractYear(releaseInfo), tmdbId = tmdbId, type = apiType
                     )
-                    primary?.takeIf { it.videoUrl.isNotBlank() } ?: resolvedFallbackYtId?.let { ytId ->
-                        trailerService.getTrailerPlaybackSourceFromYouTubeUrl(
-                            youtubeUrl = "https://www.youtube.com/watch?v=$ytId",
-                            title = title, year = extractYear(releaseInfo)
-                        )?.takeIf { it.videoUrl.isNotBlank() }
+                    primary?.takeIf { it.videoUrl.isNotBlank() } ?: run {
+                        suspend fun resolveCandidate(ytId: String) =
+                            trailerService.getTrailerPlaybackSourceFromYouTubeUrl(
+                                youtubeUrl = "https://www.youtube.com/watch?v=$ytId",
+                                title = title, year = extractYear(releaseInfo)
+                            )?.takeIf { it.videoUrl.isNotBlank() }
+                        val catalogSource = resolvedFallbackYtId?.let { resolveCandidate(it) }
+                        catalogSource ?: run {
+                            val metaIds =
+                            try {
+                                val meta = metaRepository.getCachedMeta(apiType, itemId)
+                                    ?: (metaRepository.getMetaFromPrimaryAddon(apiType, itemId)
+                                        .first { it is NetworkResult.Success || it is NetworkResult.Error } as? NetworkResult.Success)?.data
+                                meta?.trailerYtIds.orEmpty()
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                emptyList()
+                            }
+                            metaIds.distinct().filterNot { it == resolvedFallbackYtId }
+                                .firstNotNullOfOrNull { resolveCandidate(it) }
+                        }
                     }
                 }.also { completed = true }
             }

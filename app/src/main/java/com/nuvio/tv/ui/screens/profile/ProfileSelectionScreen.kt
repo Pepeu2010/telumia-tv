@@ -1848,7 +1848,7 @@ internal fun EditProfileOverlay(
                 )
             }
 
-            Spacer(modifier = Modifier.height(if (compactEditor) 12.dp else NuvioTheme.spacing.xl))
+            Spacer(modifier = Modifier.height(if (compactEditor) 4.dp else NuvioTheme.spacing.xl))
 
             Row(
                 modifier = Modifier
@@ -1862,7 +1862,7 @@ internal fun EditProfileOverlay(
                     modifier = Modifier
                         .width(if (compactEditor) 160.dp else ProfileSelectionSpacing.EditorPreviewWidth)
                         .padding(if (compactEditor) 8.dp else NuvioTheme.spacing.xl),
-                    verticalArrangement = Arrangement.spacedBy(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (compactEditor) 6.dp else 18.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ProfileAvatarCircle(

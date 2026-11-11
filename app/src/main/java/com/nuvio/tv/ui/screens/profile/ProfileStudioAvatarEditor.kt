@@ -201,14 +201,16 @@ private val StudioPaper=Color(0xFFF5EFDF)
     independentScroll:Boolean=true,
     modifier:Modifier=Modifier
 ) {
-    val portuguese=LocalConfiguration.current.locales[0].language=="pt"
+    val configuration = LocalConfiguration.current
+    val portuguese=configuration.locales[0].language=="pt"
+    val compactEditor = configuration.screenHeightDp < 440
     var category by remember { mutableStateOf<String?>(null) }
     val choices=remember(library,category) { library.filter { category==null || it.category==category } }
     val scrollState=rememberScrollState()
     Column(modifier.fillMaxWidth().then(if(independentScroll)Modifier.heightIn(max=340.dp)else Modifier)
-        .clip(RoundedCornerShape(18.dp)).background(StudioInk).padding(12.dp)
+        .clip(RoundedCornerShape(18.dp)).background(StudioInk).padding(if (compactEditor) 4.dp else 12.dp)
         .then(if(independentScroll)Modifier.verticalScroll(scrollState)else Modifier)
-        .testTag("studio-tv-editor"),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        .testTag("studio-tv-editor"),verticalArrangement=Arrangement.spacedBy(if (compactEditor) 4.dp else 10.dp)) {
         Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
             AsyncImage(currentImage,stringResource(R.string.studio_avatar_current),modifier=Modifier.size(40.dp).clip(CircleShape).background(StudioPaper),contentScale=ContentScale.Crop)
             StudioButton(stringResource(R.string.studio_avatar_file),"studio-file",!busy&&eligible,onChooseFile)
@@ -269,12 +271,12 @@ private val StudioPaper=Color(0xFFF5EFDF)
                 Text(stringResource(R.string.studio_avatar_library_error),color=StudioPaper,fontSize=13.sp)
                 StudioButton(stringResource(R.string.studio_avatar_retry),"studio-retry",!busy,onRetry)
             } else if(library.isEmpty()) Text(stringResource(R.string.studio_avatar_loading),color=StudioPaper,fontSize=13.sp)
-            else LazyVerticalGrid(GridCells.Adaptive(80.dp),Modifier.fillMaxWidth().height(180.dp).testTag("studio-library"),
+            else LazyVerticalGrid(GridCells.Adaptive(80.dp),Modifier.fillMaxWidth().height(if (compactEditor) 68.dp else 180.dp).testTag("studio-library"),
                 horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 items(choices,key={it.id}) { avatar ->
                     StudioButton("","studio-${avatar.id}",!busy&&eligible,{onSelect(avatar)}) {
                         Column(horizontalAlignment=Alignment.CenterHorizontally,modifier=Modifier.width(64.dp)) {
-                            AsyncImage(avatar.imageUri,if(portuguese)avatar.namePtBr else avatar.nameEn,modifier=Modifier.size(48.dp).clip(CircleShape).background(StudioPaper),contentScale=ContentScale.Fit)
+                            AsyncImage(avatar.imageUri,if(portuguese)avatar.namePtBr else avatar.nameEn,modifier=Modifier.size(if (compactEditor) 36.dp else 48.dp).clip(CircleShape).background(StudioPaper),contentScale=ContentScale.Fit)
                             Text(if(portuguese)avatar.namePtBr else avatar.nameEn,color=androidx.tv.material3.LocalContentColor.current,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                         }
                     }

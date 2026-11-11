@@ -46,7 +46,6 @@ private data class SimklRelatedIdsDto(
     @SerialName("anidb") val anidb: String? = null,
     @SerialName("anilist") val anilist: String? = null,
     @SerialName("kitsu") val kitsu: String? = null,
-    @SerialName("traktslug") val traktSlug: String? = null,
     @SerialName("tvdbslug") val tvdbSlug: String? = null
 )
 

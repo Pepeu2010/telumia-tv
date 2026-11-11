@@ -75,10 +75,11 @@ import com.nuvio.tv.ui.screens.home.HeroBackdropState
 fun NuvioNavHost(
     navController: NavHostController,
     startDestination: String = Screen.Home.route,
-    hideBuiltInHeaders: Boolean = false
+    hideBuiltInHeaders: Boolean = false,
+    onHomeTrailerFullscreenChanged: (Boolean) -> Unit = {}
 ) {
     PlaybackAvailabilityProvider {
-        PlaybackNavHost(navController, startDestination, hideBuiltInHeaders)
+        PlaybackNavHost(navController, startDestination, hideBuiltInHeaders, onHomeTrailerFullscreenChanged)
     }
 }
 
@@ -86,7 +87,8 @@ fun NuvioNavHost(
 private fun PlaybackNavHost(
     navController: NavHostController,
     startDestination: String,
-    hideBuiltInHeaders: Boolean
+    hideBuiltInHeaders: Boolean,
+    onHomeTrailerFullscreenChanged: (Boolean) -> Unit
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val motion = LocalUiMotion.current
@@ -252,6 +254,7 @@ private fun PlaybackNavHost(
             }
 
             HomeScreen(
+                onHomeTrailerFullscreenChanged = onHomeTrailerFullscreenChanged,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
                     val heroBackdrop = HeroBackdropState.consumeAndClear()
                     navController.navigate(
@@ -1248,6 +1251,16 @@ private fun PlaybackNavHost(
                             itemType = itemType,
                             addonBaseUrl = addonBaseUrl,
                             heroBackdropUrl = heroBackdrop
+                        )
+                    )
+                },
+                onNavigateToTmdbEntityBrowse = { entityKind, entityId, entityName, sourceType ->
+                    navController.navigate(
+                        Screen.TmdbEntityBrowse.createRoute(
+                            entityKind = entityKind,
+                            entityId = entityId,
+                            entityName = entityName,
+                            sourceType = sourceType
                         )
                     )
                 },

@@ -48,8 +48,8 @@ internal fun HomeViewModel.createShuffleHomeState(): StateFlow<HomeUiState> {
 
 private fun HomeViewModel.finishedShuffleSeeds() = combine(
     watchProgressRepository.observeNextUpSeeds(),
-    traktSettingsDataStore.continueWatchingDaysCap,
-    traktSettingsDataStore.dismissedNextUpKeys,
+    trackingSettingsDataStore.continueWatchingDaysCap,
+    trackingSettingsDataStore.dismissedNextUpKeys,
     episodeShuffleStore.profiles
 ) { seeds, daysCap, dismissed, profile ->
     val cutoff = watchProgressRepository.activeProviderContinueWatchingCutoffEpochMs(daysCap, System.currentTimeMillis())

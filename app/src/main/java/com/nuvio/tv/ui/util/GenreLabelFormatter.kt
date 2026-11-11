@@ -12,7 +12,7 @@ fun localizedGenreLabel(genre: String): String {
 }
 
 fun localizedGenreLabel(context: Context, genre: String): String {
-    // Normalize Trakt-style slugs (science-fiction → science fiction) without inventing
+    // Normalize slug-style genres (science-fiction → science fiction) without inventing
     // non-existent genres. Hyphen collapse must keep '&' genres matchable: TMDB
     // "sci-fi & fantasy" becomes "sci fi & fantasy".
     val key = genre.lowercase().trim().replace("-", " ")
@@ -36,7 +36,7 @@ fun localizedGenreLabel(context: Context, genre: String): String {
         "thriller" -> context.getString(R.string.genre_thriller)
         "war" -> context.getString(R.string.genre_war)
         "western" -> context.getString(R.string.genre_western)
-        // Trakt-only genres (from Trakt get-genres movie + show lists)
+        // Additional genre slugs
         "anime" -> context.getString(R.string.genre_anime)
         "biography" -> context.getString(R.string.genre_biography)
         "children" -> context.getString(R.string.genre_children)

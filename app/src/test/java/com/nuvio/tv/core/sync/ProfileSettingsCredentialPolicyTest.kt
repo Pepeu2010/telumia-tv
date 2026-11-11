@@ -20,7 +20,7 @@ class ProfileSettingsCredentialPolicyTest {
 
     @Test
     fun `tracker and non credential settings remain in their existing sync surfaces`() {
-        assertFalse(shouldExcludePreferenceFromProfileSettingsSync("trakt_settings", "trakt_access_token"))
+        assertFalse(shouldExcludePreferenceFromProfileSettingsSync("trakt_settings", "continue_watching_days_cap"))
         assertFalse(shouldExcludePreferenceFromProfileSettingsSync("debrid_settings", "debrid_enabled"))
         assertFalse(shouldExcludePreferenceFromProfileSettingsSync("mdblist_settings", "mdblist_enabled"))
         assertFalse(shouldExcludePreferenceFromProfileSettingsSync("animeskip_settings", "animeskip_enabled"))

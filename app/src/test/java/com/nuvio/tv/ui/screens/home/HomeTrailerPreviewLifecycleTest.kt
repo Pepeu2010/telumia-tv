@@ -4,12 +4,16 @@ import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.core.tmdb.TmdbService
 import com.nuvio.tv.data.trailer.TrailerPlaybackSource
 import com.nuvio.tv.data.trailer.TrailerService
+import com.nuvio.tv.core.network.NetworkResult
+import com.nuvio.tv.domain.repository.MetaRepository
+import com.nuvio.tv.domain.model.Meta
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -27,6 +31,29 @@ class HomeTrailerPreviewLifecycleTest {
     @After fun teardown() {
         created.forEach { it.viewModelScope.cancel() }
         Dispatchers.resetMain()
+    }
+
+    @Test fun focusedTrailerDuringStartupIsRetriedWithoutMovingFocus() = runBlocking {
+        val service = service()
+        coEvery { service.getTrailerPlaybackSource(any(), any(), any(), any(), any()) } returns
+            TrailerPlaybackSource("https://fixture.test/startup.mp4")
+        val vm = newViewModel(service)
+        vm.startupGracePeriodActive = true
+        request(vm, "startup")
+        val pending = requireNotNull(vm.trailerPreviewJob)
+        withTimeout(5_000) { pending.join() }
+        assertEquals("https://fixture.test/startup.mp4", vm.trailerPreviewUrlsState["startup"])
+    }
+
+    @Test fun leavingHomeCancelsStartupDeferredTrailer() = runBlocking {
+        val service = service()
+        val vm = newViewModel(service)
+        vm.startupGracePeriodActive = true
+        request(vm, "startup")
+        val pending = requireNotNull(vm.trailerPreviewJob)
+        vm.cancelTrailerPreview()
+        withTimeout(2_000) { pending.join() }
+        coVerify(exactly = 0) { service.getTrailerPlaybackSource(any(), any(), any(), any(), any()) }
     }
 
     @Test fun repeatedFocusKeepsThePendingRequestAndPublishesOnce() = runBlocking {
@@ -162,6 +189,38 @@ class HomeTrailerPreviewLifecycleTest {
         assertEquals("https://fixture.test/fallback.m4a", vm.trailerPreviewAudioUrlsState["a"])
     }
 
+    @Test fun missingCatalogTrailerUsesAddonMetadataAndTriesAnotherCandidate() = runBlocking {
+        val service = service()
+        val meta = mockk<Meta> { every { trailerYtIds } returns listOf("aaaaaaaaaaa", "bbbbbbbbbbb") }
+        val repository = mockk<MetaRepository>(relaxed = true) {
+            every { getCachedMeta(any(), any()) } returns null
+            every { getMetaFromPrimaryAddon(any(), any()) } returns flowOf(NetworkResult.Success(meta))
+        }
+        coEvery { service.getTrailerPlaybackSourceFromYouTubeUrl(any(), any(), any()) } returns null
+        coEvery { service.getTrailerPlaybackSourceFromYouTubeUrl(match { it.contains("bbbbbbbbbbb") }, any(), any()) } returns
+            TrailerPlaybackSource("https://fixture.test/addon.mp4")
+        val vm = newViewModel(service, repository = repository)
+        request(vm, "a")
+        withTimeout(3_000) { vm.trailerPreviewJob!!.join() }
+        assertEquals("https://fixture.test/addon.mp4", vm.trailerPreviewUrlsState["a"])
+    }
+
+    @Test fun failedCatalogTrailerFallsBackToDistinctAddonCandidate() = runBlocking {
+        val service = service()
+        val meta = mockk<Meta> { every { trailerYtIds } returns listOf("aaaaaaaaaaa", "bbbbbbbbbbb") }
+        val repository = mockk<MetaRepository>(relaxed = true) {
+            every { getCachedMeta(any(), any()) } returns meta
+        }
+        coEvery { service.getTrailerPlaybackSourceFromYouTubeUrl(any(), any(), any()) } returns null
+        coEvery { service.getTrailerPlaybackSourceFromYouTubeUrl(match { it.contains("bbbbbbbbbbb") }, any(), any()) } returns
+            TrailerPlaybackSource("https://fixture.test/addon.mp4")
+        val vm = newViewModel(service, repository = repository)
+        request(vm, "a", fallback = "aaaaaaaaaaa")
+        withTimeout(3_000) { vm.trailerPreviewJob!!.join() }
+        assertEquals("https://fixture.test/addon.mp4", vm.trailerPreviewUrlsState["a"])
+        coVerify(exactly = 1) { service.getTrailerPlaybackSourceFromYouTubeUrl(match { it.contains("aaaaaaaaaaa") }, any(), any()) }
+    }
+
     private fun request(vm: HomeViewModel, id: String, fallback: String? = null) =
         vm.requestTrailerPreviewPipeline(id, "Título $id", "2026", "movie", fallback)
 
@@ -169,7 +228,7 @@ class HomeTrailerPreviewLifecycleTest {
         coEvery { getTrailerPlaybackSource(any(), any(), any(), any(), any()) } returns null
     }
 
-    private fun newViewModel(service: TrailerService, tmdb: TmdbService = mockk(relaxed=true)): HomeViewModel {
+    private fun newViewModel(service: TrailerService, tmdb: TmdbService = mockk(relaxed=true), repository: MetaRepository = mockk(relaxed=true)): HomeViewModel {
         coEvery { tmdb.ensureTmdbId(any(), any()) } returns null
         val profiles = mockk<com.nuvio.tv.core.profile.ProfileManager>(relaxed=true) {
             every { activeProfileReady } returns MutableStateFlow(false)
@@ -182,9 +241,9 @@ class HomeTrailerPreviewLifecycleTest {
             episodeShuffleStore=mockk(relaxed=true), episodeShuffle=com.nuvio.tv.domain.model.EpisodeShuffle(),
             appContext=mockk(relaxed=true), addonRepository=mockk(relaxed=true), startupSyncService=mockk(relaxed=true),
             catalogRepository=mockk(relaxed=true), watchProgressRepository=mockk(relaxed=true), libraryRepository=mockk(relaxed=true),
-            metaRepository=mockk(relaxed=true), collectionsDataStore=mockk(relaxed=true), layoutPreferenceDataStore=mockk(relaxed=true),
+            metaRepository=repository, collectionsDataStore=mockk(relaxed=true), layoutPreferenceDataStore=mockk(relaxed=true),
             playerSettingsDataStore=mockk(relaxed=true), tmdbSettingsDataStore=mockk(relaxed=true), mdbListSettingsDataStore=mockk(relaxed=true),
-            traktSettingsDataStore=mockk(relaxed=true), authSessionNoticeDataStore=mockk(relaxed=true), tmdbService=tmdb,
+            trackingSettingsDataStore=mockk(relaxed=true), authSessionNoticeDataStore=mockk(relaxed=true), tmdbService=tmdb,
             tmdbMetadataService=mockk(relaxed=true), mdbListRepository=mockk(relaxed=true), imdbEpisodeRatingsRepository=mockk(relaxed=true),
             trailerService=service, watchedSeriesStateHolder=mockk(relaxed=true), cwEnrichmentCache=enrichment,
             profileManager=profiles, tvRecommendationManager=mockk(relaxed=true)

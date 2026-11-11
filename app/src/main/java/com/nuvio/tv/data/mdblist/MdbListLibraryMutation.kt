@@ -14,11 +14,9 @@ internal fun LibraryEntryInput.mdbListLibraryItem(): MdbListLibraryItem {
             itemId.startsWith("imdb:") -> put("imdb", itemId.removePrefix("imdb:"))
             itemId.startsWith("tmdb:") -> put("tmdb", itemId.removePrefix("tmdb:"))
             itemId.startsWith("tvdb:") -> put("tvdb", itemId.removePrefix("tvdb:"))
-            itemId.startsWith("trakt:") -> put("trakt", itemId.removePrefix("trakt:"))
         }
         imdbId?.let { put("imdb", it) }
         tmdbId?.let { put("tmdb", it) }
-        traktId?.let { put("trakt", it) }
     })
     return MdbListLibraryItem(type, MdbListMedia(ids, title, year, poster, background), description, genres)
 }
@@ -28,7 +26,6 @@ internal fun MdbListLibraryItem.membershipBody(watchlist: Boolean): String {
         media.ids.imdb?.let { put("imdb", it) }
         media.ids.tmdb?.let { put("tmdb", it) }
         media.ids.tvdb?.let { put("tvdb", it) }
-        media.ids.trakt?.let { put("trakt", it) }
     }
     require(ids.isNotEmpty()) { "An external movie or show ID is required" }
     return buildJsonObject {

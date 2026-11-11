@@ -82,6 +82,10 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
         androidTvChannelSyncService.start()
+        // Credentials left behind by the retired Trakt integration are removed on a background thread.
+        kotlin.concurrent.thread(name = "legacy-trakt-cleanup") {
+            runCatching { com.nuvio.tv.data.local.LegacyTraktDataCleaner.purge(this) }
+        }
         // Load locale synchronously so it's available before Activity.attachBaseContext.
         // SharedPreferences reads are fast (cached in memory after first access).
         val tag = getSharedPreferences("app_locale", Context.MODE_PRIVATE)

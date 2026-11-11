@@ -184,7 +184,9 @@ class TrailerPlayerPool private constructor(
                 buildUponParameters()
                     .setMaxVideoSize(1280, 720)
                     .setMaxVideoBitrate(4_000_000)
-                    .setExceedVideoConstraintsIfNecessary(false)
+                    // A resolved adaptive URL may contain only one video track. Prefer
+                    // 720p, but keep that track playable if it is the only choice.
+                    .setExceedVideoConstraintsIfNecessary(true)
             )
         }
         return ExoPlayer.Builder(context)

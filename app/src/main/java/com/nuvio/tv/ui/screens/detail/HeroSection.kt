@@ -49,6 +49,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.tv.material3.Border
 import androidx.tv.material3.Button
@@ -60,6 +62,7 @@ import androidx.tv.material3.IconButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
+import coil3.BitmapImage
 import androidx.compose.ui.res.stringResource
 import android.util.Log
 import com.nuvio.tv.R
@@ -72,6 +75,8 @@ import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.components.MDBListRatingsRow
 import com.nuvio.tv.ui.components.SynopsisDescription
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.LocalUiMotion
+import com.nuvio.tv.ui.screens.tmdb.isLogoDarkAndMonochrome
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
@@ -80,6 +85,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.painter.Painter
 import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import coil3.request.crossfade
 import com.nuvio.tv.ui.util.localizedGenreLabel
 import com.nuvio.tv.ui.util.rememberLongPressKeyTracker
@@ -125,6 +131,7 @@ fun HeroContentSection(
     onTruncationChanged: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
+    val motion = LocalUiMotion.current
     val isMovie = meta.apiType.equals("movie", ignoreCase = true)
     val viewportHeight = LocalConfiguration.current.screenHeightDp
     val compactMovieHero = isMovie && viewportHeight < 480
@@ -137,10 +144,12 @@ fun HeroContentSection(
             ImageRequest.Builder(context)
                 .data(logo)
                 .crossfade(true)
+                .allowHardware(false)
                 .build()
         }
     }
     var logoLoadFailed by remember(meta.logo) { mutableStateOf(false) }
+    var logoNeedsContrast by remember(meta.logo) { mutableStateOf(false) }
     val shouldShowLogo =
         !meta.logo.isNullOrBlank() &&
             !logoLoadFailed &&
@@ -171,22 +180,22 @@ fun HeroContentSection(
     // Animate logo properties for trailer mode
     val logoHeight by animateDpAsState(
         targetValue = if (isTrailerPlaying) 60.dp else if (compactMovieHero) 64.dp else 100.dp,
-        animationSpec = tween(600),
+        animationSpec = tween(motion.durationMillis(600)),
         label = "logoHeight"
     )
     val logoBottomPadding by animateDpAsState(
         targetValue = if (isTrailerPlaying) NuvioTheme.spacing.xl else NuvioTheme.spacing.lg,
-        animationSpec = tween(600),
+        animationSpec = tween(motion.durationMillis(600)),
         label = "logoPadding"
     )
     val logoMaxWidth by animateFloatAsState(
         targetValue = if (isTrailerPlaying) 0.25f else 0.4f,
-        animationSpec = tween(600),
+        animationSpec = tween(motion.durationMillis(600)),
         label = "logoWidth"
     )
     val heroActionsAlpha by animateFloatAsState(
         targetValue = if (isTrailerPlaying && hideLogoDuringTrailer) 0f else 1f,
-        animationSpec = tween(NuvioMotion.tokens.durations.overlay),
+        animationSpec = tween(NuvioTheme.motion.durations.overlay),
         label = "heroActionsTrailerAlpha"
     )
 
@@ -200,7 +209,7 @@ fun HeroContentSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .animateContentSize(
-                    animationSpec = tween(600)
+                    animationSpec = tween(motion.durationMillis(600))
                 )
                 .padding(start = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl,
                     top = if (compactMovieHero) 16.dp else if (isMovie) 56.dp else 0.dp,
@@ -221,19 +230,24 @@ fun HeroContentSection(
                     model = logoModel,
                     contentDescription = meta.name,
                     onError = { logoLoadFailed = true },
+                    onSuccess = { state ->
+                        val bitmap = (state.result.image as? BitmapImage)?.bitmap
+                        logoNeedsContrast = bitmap != null && runCatching { isLogoDarkAndMonochrome(bitmap) }.getOrDefault(false)
+                    },
                     modifier = Modifier
                         .height(logoHeight)
                         .fillMaxWidth(logoMaxWidth)
                         .padding(bottom = logoBottomPadding),
                     contentScale = ContentScale.Fit,
-                    alignment = Alignment.CenterStart
+                    alignment = Alignment.CenterStart,
+                    colorFilter = if (logoNeedsContrast) ColorFilter.tint(Color.White, BlendMode.SrcIn) else null,
                 )
             } else {
                 // Text title hides entirely during trailer
                 AnimatedVisibility(
                     visible = !isTrailerPlaying,
-                    enter = fadeIn(tween(NuvioMotion.tokens.durations.overlay)),
-                    exit = fadeOut(tween(NuvioMotion.tokens.durations.overlay))
+                    enter = fadeIn(tween(NuvioTheme.motion.durations.overlay)),
+                    exit = fadeOut(tween(NuvioTheme.motion.durations.overlay))
                 ) {
                     Text(
                         text = meta.name,
@@ -249,8 +263,8 @@ fun HeroContentSection(
             // Everything below the logo fades out during trailer
             AnimatedVisibility(
                 visible = isTrailerPlaying && !hideLogoDuringTrailer,
-                enter = fadeIn(tween(600)),
-                exit = fadeOut(tween(300))
+                enter = fadeIn(tween(motion.durationMillis(600))),
+                exit = fadeOut(tween(motion.durationMillis(300)))
             ) {
                 Text(
                     text = stringResource(R.string.hero_press_back_trailer),
@@ -263,8 +277,8 @@ fun HeroContentSection(
             // Everything below the logo fades out during trailer
             AnimatedVisibility(
                 visible = !isTrailerPlaying || hideLogoDuringTrailer,
-                enter = fadeIn(tween(NuvioMotion.tokens.durations.overlay)),
-                exit = fadeOut(tween(NuvioMotion.tokens.durations.overlay)),
+                enter = fadeIn(tween(NuvioTheme.motion.durations.overlay)),
+                exit = fadeOut(tween(NuvioTheme.motion.durations.overlay)),
                 modifier = Modifier.alpha(heroActionsAlpha)
             ) {
                 Column {

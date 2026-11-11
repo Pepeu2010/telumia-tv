@@ -15,7 +15,7 @@ internal fun formatContinueWatchingProgressLabel(
     val effectivePosition = if (progress.position > 0L) {
         progress.position
     } else if (effectiveDuration > 0L && progress.progressPercent != null) {
-        // Trakt provides only a percentage without position/duration from playback.
+        // Remote providers can supply only a percentage without position/duration from playback.
         // Derive position from the explicit percent so remaining time is correct.
         (effectiveDuration * (progress.progressPercent / 100f)).toLong()
     } else {

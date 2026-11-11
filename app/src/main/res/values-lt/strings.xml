@@ -187,7 +187,6 @@
     <string name="settings_plugins_subtitle">Repozitorijos ir teikėjai</string>
     <string name="settings_integration">Integracijos</string>
     <string name="settings_playback">Atkūrimas</string>
-    <string name="settings_trakt_subtitle">Atidaryti „Trakt“ ryšio ekraną</string>
     <string name="settings_debug">Derinimas (Debug)</string>
     <string name="settings_plugins_section_subtitle">Valdyti repozitorijas, teikėjus ir įskiepių būsenas</string>
     <string name="settings_account_section_subtitle">Paskyros ir sinchronizavimo būsena</string>
@@ -463,8 +462,6 @@
     <string name="mdblist_enable_subtitle">Gauti įvertinimus iš išorinių teikėjų išsamios informacijos ekrane</string>
     <string name="mdblist_api_key_title">API raktas</string>
     <string name="mdblist_api_key_subtitle">Reikalingas, kad būtų galima gauti įvertinimus iš „MDBList“</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Rodyti „Trakt“ įvertinimą</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Rodyti IMDb įvertinimą (ir paslėpti numatytąją IMDb eilutę, kai prieinama)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -524,54 +521,19 @@
 
     <string name="tmdb_language_dialog_title">TMDB kalba</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Sinchronizuokite savo žiūrėjimo sąrašą, žiūrėjimo pažangą, tęsimo istoriją, peržiūrų registravimą (scrobbles) ir asmeninius sąrašus su „Trakt“.</string>
-    <string name="trakt_connected_as">Prisijungta kaip %1$s</string>
-    <string name="trakt_account_login">Paskyros prisijungimas</string>
-    <string name="trakt_awaiting_instruction">Eikite į trakt.tv/activate ir įveskite šį kodą:</string>
-    <string name="trakt_waiting_approval">Laukiama patvirtinimo…</string>
     <string name="qr_login_approved">Prisijungimas patvirtintas. Užbaigiama…</string>
     <string name="qr_login_pending">Laukiama patvirtinimo jūsų telefone…</string>
     <string name="qr_login_expired">QR prisijungimo galiojimas pasibaigė. Sugeneruokite naują kodą.</string>
-    <string name="trakt_code_expires">Kodas galioja dar %1$s</string>
-    <string name="trakt_token_refreshes">„Trakt“ prieigos raktas atnaujinamas po %1$s</string>
-    <string name="trakt_login_instruction">Paspauskite „Prisijungti“, kad pradėtumėte „Trakt“ įrenginio autentifikavimą. Čia pasirodys QR kodas.</string>
-    <string name="trakt_missing_credentials">„local.properties“ failo trūksta TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET parametrų.</string>
-    <string name="trakt_watch_progress_title">Žiūrėjimo pažanga</string>
-    <string name="trakt_watch_progress_subtitle">Pasirinkite, kuris pažangos šaltinis valdys atkūrimo tęsimą ir „Tęsti žiūrėjimą“</string>
-    <string name="trakt_watch_progress_dialog_title">Žiūrėjimo pažanga</string>
-    <string name="trakt_watch_progress_dialog_subtitle">Pasirinkite, ar tęsimui ir „Tęsti žiūrėjimą“ naudoti „Trakt“, ar „Telumia Sync“. „Trakt“ peržiūrų registravimas (scrobbling) vis tiek išliks aktyvus.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_watch_progress_trakt_selected">Žiūrėjimo pažangos šaltinis nustatytas į „Trakt“</string>
-    <string name="trakt_watch_progress_nuvio_selected">Žiūrėjimo pažangos šaltinis nustatytas į „Telumia Sync“</string>
-    <string name="trakt_continue_watching_window">„Tęsti žiūrėjimą“ langas</string>
-    <string name="trakt_continue_watching_subtitle">„Trakt“ istorija, naudojama „Tęsti žiūrėjimą“ skilčiai</string>
-    <string name="trakt_unaired_next_up">Neišleistos „Kitas“ serijos</string>
-    <string name="trakt_unaired_next_up_subtitle">Rodyti būsimas serijas prieš joms pasirodant</string>
-    <string name="trakt_unaired_shown">Rodoma</string>
-    <string name="trakt_unaired_hidden">Paslėpta</string>
-    <string name="trakt_unaired_now_shown">Neišleistos „Kitas“ serijos dabar rodomos</string>
-    <string name="trakt_unaired_now_hidden">Neišleistos „Kitas“ serijos dabar paslėptos</string>
-    <string name="trakt_cached_label">Išsaugota (Cached)</string>
-    <string name="trakt_stat_movies">Filmai</string>
-    <string name="trakt_stat_shows">Serialai</string>
-    <string name="trakt_stat_episodes">Serijos</string>
-    <string name="trakt_stat_watched_hours">Žiūrėta valandų</string>
-    <string name="trakt_disconnect">Atsijungti</string>
-    <string name="trakt_disconnect_title">Atsijungti nuo „Trakt“?</string>
-    <string name="trakt_disconnect_subtitle">Tai atsies jūsų „Trakt“ paskyrą nuo „Telumia“.</string>
-    <string name="trakt_login">Prisijungti</string>
-    <string name="trakt_retry">Bandyti dar kartą</string>
-    <string name="trakt_back">Atgal</string>
-    <string name="trakt_cw_window_title">„Tęsti žiūrėjimą“ langas</string>
-    <string name="trakt_cw_window_subtitle">Pasirinkite, kiek „Trakt“ veiklos turėtų būti rodoma „Tęsti žiūrėjimą“ lange.</string>
-    <string name="trakt_unaired_dialog_title">Neišleistos „Kitas“ serijos</string>
-    <string name="trakt_unaired_dialog_subtitle">Pasirinkite, ar į „Tęsti žiūrėjimą“ turėtų būti įtrauktos būsimos serijos prieš jų išleidimą.</string>
-    <string name="trakt_show_unaired">Rodyti neišleistas serijas</string>
-    <string name="trakt_hide_unaired">Slėpti neišleistas serijas</string>
-    <string name="trakt_all_history">Visa istorija</string>
-    <string name="trakt_days_format">%1$d d.</string>
+    <string name="tracking_code_expires">Kodas galioja dar %1$s</string>
+    <string name="tracking_watch_progress_title">Žiūrėjimo pažanga</string>
+    <string name="tracking_watch_progress_subtitle">Pasirinkite, kuris pažangos šaltinis valdys atkūrimo tęsimą ir „Tęsti žiūrėjimą“</string>
+    <string name="tracking_watch_progress_dialog_title">Žiūrėjimo pažanga</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_continue_watching_window">„Tęsti žiūrėjimą“ langas</string>
+    <string name="tracking_disconnect">Atsijungti</string>
+    <string name="tracking_cw_window_title">„Tęsti žiūrėjimą“ langas</string>
+    <string name="tracking_all_history">Visa istorija</string>
+    <string name="tracking_days_format">%1$d d.</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Derinimas (Debug)</string>
@@ -801,18 +763,15 @@ Klaida: Bandomoji simuliuojama klaida — tai nėra tikras gedimas. Šaltinis gr
     <string name="search_voice_unavailable">Balsinė paieška šiame įrenginyje neprieinama.</string>
 
     <!-- LibraryScreen -->
-    <string name="library_syncing">Sinchronizuojama „Trakt“ biblioteka…</string>
     <string name="library_title">Biblioteka</string>
     <string name="library_filter_list">Sąrašas</string>
     <string name="library_filter_type">Tipas</string>
     <string name="library_filter_sort">Rūšiuoti</string>
-    <string name="library_sort_trakt_order">„Trakt“ tvarka</string>
     <string name="library_sort_added_desc">Pridėta (nuo naujausių)</string>
     <string name="library_sort_added_asc">Pridėta (nuo seniausių)</string>
     <string name="library_sort_title_asc">Pavadinimas A-Z</string>
     <string name="library_sort_title_desc">Pavadinimas Z-A</string>
     <string name="library_manage_lists">Valdyti sąrašus</string>
-    <string name="library_manage_trakt_lists">Valdyti „Trakt“ sąrašus</string>
     <string name="library_no_lists">Asmeninių sąrašų dar nėra.</string>
     <string name="library_list_create">Sukurti</string>
     <string name="library_list_edit">Redaguoti</string>
@@ -824,15 +783,14 @@ Klaida: Bandomoji simuliuojama klaida — tai nėra tikras gedimas. Šaltinis gr
     <string name="library_list_description_label">Aprašymas</string>
     <string name="library_list_privacy">Privatumas</string>
     <string name="library_delete_title">Ištrinti šį sąrašą?</string>
-    <string name="library_delete_subtitle">Tai pašalins sąrašą ir visus jo elementus iš „Trakt“.</string>
     <string name="library_delete_confirm">Ištrinti</string>
     <string name="library_source_local">VIETINĖ</string>
     <string name="library_type_all">Visi</string>
     <string name="library_type_items">elementai</string>
     <string name="library_empty_local_title">Kol kas čia nieko nėra</string>
-    <string name="library_empty_trakt_title">Šiame sąraše nieko nėra</string>
+    <string name="library_empty_remote_title">Šiame sąraše nieko nėra</string>
     <string name="library_empty_local_subtitle">Išsaugokite mėgstamiausius, kad pamatytumėte juos čia</string>
-    <string name="library_empty_trakt_subtitle">Naudokite „+“ informacijos lange turiniui pridėti į žiūrėjimo ar kitus sąrašus</string>
+    <string name="library_empty_remote_subtitle">Naudokite „+“ informacijos lange turiniui pridėti į žiūrėjimo ar kitus sąrašus</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Įkeliama…</string>
@@ -945,7 +903,6 @@ Klaida: Bandomoji simuliuojama klaida — tai nėra tikras gedimas. Šaltinis gr
     <string name="update_unknown_sources">Leisti diegti iš nežinomų šaltinių</string>
     <!-- AccountScreen -->
     <string name="account_title">Paskyra</string>
-    <string name="account_sign_in_description">Prisijunkite, kad sinchronizuotumėte biblioteką, pažangą ir priedus tarp įrenginių. Biblioteka sinchronizuojama per „Telumia Sync“, kai „Trakt“ neprijungta.</string>
     <string name="account_sync_code_title">Sinchronizavimo kodas</string>
     <string name="account_sync_code_description">Susiekite savo įrenginius naudodami kodą</string>
     <string name="account_linked_devices">Susieti įrenginiai</string>

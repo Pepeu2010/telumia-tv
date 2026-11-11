@@ -455,7 +455,7 @@ class HomeEnrichmentRetryTest {
             playerSettingsDataStore = mockk(relaxed = true),
             tmdbSettingsDataStore = mockk(relaxed = true),
             mdbListSettingsDataStore = mockk(relaxed = true),
-            traktSettingsDataStore = mockk(relaxed = true),
+            trackingSettingsDataStore = mockk(relaxed = true),
             authSessionNoticeDataStore = mockk(relaxed = true),
             tmdbService = tmdbService,
             tmdbMetadataService = tmdbMetadataService,

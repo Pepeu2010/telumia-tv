@@ -67,7 +67,6 @@ import com.nuvio.tv.core.cloud.cloudLibraryDisplayArtworkUrl
 
 private const val NuvioRepositoryUrl = "https://github.com/NuvioMedia/NuvioTV"
 private const val TmdbUrl = "https://www.themoviedb.org"
-private const val TraktUrl = "https://trakt.tv"
 private const val SimklUrl = "https://simkl.com"
 private const val PremiumizeUrl = "https://www.premiumize.me"
 private const val TorboxUrl = "https://torbox.app"
@@ -377,12 +376,6 @@ private fun dataAttributionItems() = listOf(
         body = stringResource(R.string.licenses_attributions_tmdb_body),
         url = TmdbUrl,
         logo = LicenseLogo.Drawable(R.drawable.rating_tmdb)
-    ),
-    LicenseAttributionItem(
-        title = stringResource(R.string.licenses_attributions_trakt_title),
-        body = stringResource(R.string.licenses_attributions_trakt_body),
-        url = TraktUrl,
-        logo = LicenseLogo.Raw(R.raw.trakt_tv_favicon)
     ),
     LicenseAttributionItem(
         title = stringResource(R.string.licenses_attributions_simkl_title),

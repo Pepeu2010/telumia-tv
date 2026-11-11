@@ -16,7 +16,7 @@ import com.nuvio.tv.core.tracking.TrackingRefreshIntent
 import com.nuvio.tv.core.tracking.effectiveLibrarySourceMode
 import com.nuvio.tv.core.tracking.providerId
 import com.nuvio.tv.data.local.LibraryPreferences
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import com.nuvio.tv.domain.repository.MetaRepository
 import com.nuvio.tv.domain.model.LibraryEntry
 import com.nuvio.tv.domain.model.LibraryEntryInput
@@ -53,7 +53,7 @@ import javax.inject.Singleton
 class LibraryRepositoryImpl @Inject constructor(
     @dagger.hilt.android.qualifiers.ApplicationContext private val appContext: android.content.Context,
     private val libraryPreferences: LibraryPreferences,
-    private val traktSettingsDataStore: TraktSettingsDataStore,
+    private val trackingSettingsDataStore: TrackingSettingsDataStore,
     private val librarySyncService: LibrarySyncService,
     private val authManager: AuthManager,
     private val metaRepository: MetaRepository,
@@ -88,7 +88,7 @@ class LibraryRepositoryImpl @Inject constructor(
     ) { states -> states.toMap() }
 
     override val sourceMode: Flow<LibrarySourceMode> = combine(
-        traktSettingsDataStore.librarySourceMode,
+        trackingSettingsDataStore.librarySourceMode,
         providerConnections
     ) { mode, connections ->
         effectiveLibrarySourceMode(mode) { providerId -> connections[providerId] == true }

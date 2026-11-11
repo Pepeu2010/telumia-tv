@@ -129,7 +129,6 @@
     <string name="settings_plugins_subtitle">Depozite și furnizori</string>
     <string name="settings_integration">Integrări</string>
     <string name="settings_playback">Redare</string>
-    <string name="settings_trakt_subtitle">Deschide ecranul de conectare Trakt</string>
     <string name="settings_debug">Depanare</string>
     <string name="settings_plugins_section_subtitle">Gestionează depozitele, furnizorii și stările pluginurilor</string>
     <string name="settings_account_section_subtitle">Statutul contului și sincronizării</string>
@@ -369,8 +368,6 @@
     <string name="mdblist_enable_subtitle">Obține ratinguri de la furnizori externi în ecranul de detalii ale metadatelor</string>
     <string name="mdblist_api_key_title">Cheie API</string>
     <string name="mdblist_api_key_subtitle">Necesară pentru a obține ratinguri de la MDBList</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">Afișează scorul Trakt</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">Afișează scorul IMDb (și ascunde linia implicită IMDb când este disponibilă)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -414,44 +411,15 @@
     <string name="tmdb_more_like_this_subtitle">Fundaluri de recomandare TMDB pe pagina de detalii</string>
     <string name="tmdb_language_dialog_title">Limba TMDB</string>
 
-    <!-- TraktScreen -->
-    <string name="trakt_description">Sincronizați lista de vizionare, progresul de vizionare, continuarea vizionării, scrobbles și listele personale cu Trakt.</string>
-    <string name="trakt_connected_as">Connected as %1$s</string>
-    <string name="trakt_account_login">Autentificare cont</string>
-    <string name="trakt_awaiting_instruction">Accesați trakt.tv/activate și introduceți acest cod:</string>
-    <string name="trakt_waiting_approval">Aștept aprobare…</string>
     <string name="qr_login_approved">Autentificare aprobată. Se finalizează conectarea…</string>
     <string name="qr_login_pending">Aștept aprobare pe telefonul dvs.…</string>
     <string name="qr_login_expired">Autentificarea QR a expirat. Generați un cod nou.</string>
-    <string name="trakt_code_expires">Codul expiră în %1$s</string>
-    <string name="trakt_token_refreshes">Tokenul de acces Trakt se reînnoiește în %1$s</string>
-    <string name="trakt_login_instruction">Apăsați Autentificare pentru a începe autentificarea dispozitivului Trakt. Un cod QR va apărea aici.</string>
-    <string name="trakt_missing_credentials">Lipsă TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET în local.properties.</string>
-    <string name="trakt_continue_watching_window">Fereastră de continuare a vizionării</string>
-    <string name="trakt_continue_watching_subtitle">Istoricul Trakt este luat în considerare pentru continuarea vizionării</string>
-    <string name="trakt_unaired_next_up">Episoade următoare neemise</string>
-    <string name="trakt_unaired_next_up_subtitle">Afișează episoadele viitoare înainte de difuzare</string>
-    <string name="trakt_unaired_shown">Afișat</string>
-    <string name="trakt_unaired_hidden">Ascuns</string>
-    <string name="trakt_cached_label">Cacheat</string>
-    <string name="trakt_stat_movies">Filme</string>
-    <string name="trakt_stat_shows">Seriale</string>
-    <string name="trakt_stat_episodes">Episoade</string>
-    <string name="trakt_stat_watched_hours">Ore vizionate</string>
-    <string name="trakt_disconnect">Deconectare</string>
-    <string name="trakt_disconnect_title">Deconectare Trakt?</string>
-    <string name="trakt_disconnect_subtitle">Aceasta va deconecta contul tău Trakt de Telumia.</string>
-    <string name="trakt_login">Autentificare</string>
-    <string name="trakt_retry">Reîncercare</string>
-    <string name="trakt_back">Înapoi</string>
-    <string name="trakt_cw_window_title">Fereastră Continuă vizionarea</string>
-    <string name="trakt_cw_window_subtitle">Alege câtă activitate Trakt ar trebui să apară în continuarea vizionării.</string>
-    <string name="trakt_unaired_dialog_title">Episoade următoare neemise în difuzare</string>
-    <string name="trakt_unaired_dialog_subtitle">Alege dacă Continuă vizionarea ar trebui să includă episoadele viitoare înainte de lansare.</string>
-    <string name="trakt_show_unaired">Arată episoade neemise în difuzare</string>
-    <string name="trakt_hide_unaired">Ascunde episoade neemise în difuzare</string>
-    <string name="trakt_all_history">Tot istoricul</string>
-    <string name="trakt_days_format">%1$d zile</string>
+    <string name="tracking_code_expires">Codul expiră în %1$s</string>
+    <string name="tracking_continue_watching_window">Fereastră de continuare a vizionării</string>
+    <string name="tracking_disconnect">Deconectare</string>
+    <string name="tracking_cw_window_title">Fereastră Continuă vizionarea</string>
+    <string name="tracking_all_history">Tot istoricul</string>
+    <string name="tracking_days_format">%1$d zile</string>
 
     <!-- DebugSettingsScreen -->
     <string name="debug_title">Depanare</string>
@@ -646,13 +614,11 @@
     <string name="search_start_subtitle_no_discover">Descoperirea este dezactivată. Introdu cel puțin 2 caractere</string>
 
     !-- LibraryScreen -->
-    <string name="library_syncing">Se sincronizează biblioteca Trakt\u2026</string>
     <string name="library_title">Bibliotecă</string>
     <string name="library_filter_list">Listă</string>
     <string name="library_filter_type">Tip</string>
     <string name="library_filter_sort">Sortare</string>
     <string name="library_manage_lists">Administrează listele</string>
-    <string name="library_manage_trakt_lists">Administrează listele Trakt</string>
     <string name="library_no_lists">Încă nu există liste personale.</string>
     <string name="library_list_create">Creează</string>
     <string name="library_list_edit">Editează</string>
@@ -664,15 +630,14 @@
     <string name="library_list_description_label">Descriere</string>
     <string name="library_list_privacy">Confidențialitate</string>
     <string name="library_delete_title">Ștergi această listă?</string>
-    <string name="library_delete_subtitle">Aceasta elimină lista și toate elementele din listă de pe Trakt.</string>
     <string name="library_delete_confirm">Șterge</string>
     <string name="library_source_local">LOCAL</string>
     <string name="library_type_all">Toate</string>
     <string name="library_type_items">elemente</string>
     <string name="library_empty_local_title">Încă nu există %1$s</string>
-    <string name="library_empty_trakt_title">Nu există %1$s în această listă</string>
+    <string name="library_empty_remote_title">Nu există %1$s în această listă</string>
     <string name="library_empty_local_subtitle">Începeți să salvați favoritele pentru a le vedea aici</string>
-    <string name="library_empty_trakt_subtitle">Folosiți + în detalii pentru a adăuga elemente la lista de vizionare sau la liste</string>
+    <string name="library_empty_remote_subtitle">Folosiți + în detalii pentru a adăuga elemente la lista de vizionare sau la liste</string>
 
     <!-- AccountSettingsContent -->
     <string name="account_loading">Încărcare\u2026</string>
@@ -777,7 +742,6 @@
     <string name="update_unknown_sources">Permite instalarea din surse necunoscute pentru a continua.</string>
     <!-- AccountScreen -->
     <string name="account_title">Cont</string>
-    <string name="account_sign_in_description">Conectează-te pentru a sincroniza biblioteca, progresul de vizionare, suplimentele și plugin-urile pe toate dispozitivele. Biblioteca și progresul de vizionare se sincronizează doar când Trakt nu este conectat.</string>
     <string name="account_sync_code_title">Cod de sincronizare</string>
     <string name="account_sync_code_description">Sincronizează pe dispozitive fără a crea un cont.</string>
     <string name="account_linked_devices">Dispozitive conectate (%1$d)</string>

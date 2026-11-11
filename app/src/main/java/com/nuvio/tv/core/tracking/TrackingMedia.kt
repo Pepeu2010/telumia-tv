@@ -4,7 +4,6 @@ data class TrackingExternalIds(
     val imdb: String? = null,
     val tmdb: Long? = null,
     val tvdb: String? = null,
-    val trakt: Long? = null,
     val simkl: Long? = null,
     val mal: Long? = null,
     val anidb: Long? = null,
@@ -13,13 +12,12 @@ data class TrackingExternalIds(
     val mdblist: String? = null
 ) {
     val hasAny: Boolean
-        get() = listOf(imdb, tmdb, tvdb, trakt, simkl, mal, anidb, anilist, kitsu, mdblist).any { it != null }
+        get() = listOf(imdb, tmdb, tvdb, simkl, mal, anidb, anilist, kitsu, mdblist).any { it != null }
 
     fun mergeMissing(other: TrackingExternalIds): TrackingExternalIds = TrackingExternalIds(
         imdb = imdb ?: other.imdb,
         tmdb = tmdb ?: other.tmdb,
         tvdb = tvdb ?: other.tvdb,
-        trakt = trakt ?: other.trakt,
         simkl = simkl ?: other.simkl,
         mal = mal ?: other.mal,
         anidb = anidb ?: other.anidb,
@@ -71,7 +69,6 @@ data class TrackingMediaReference(
                     ?: ids.imdb?.takeIf(String::isNotBlank)?.let { "imdb:$it" }
                     ?: ids.tmdb?.let { "tmdb:$it" }
                     ?: ids.tvdb?.takeIf(String::isNotBlank)?.let { "tvdb:$it" }
-                    ?: ids.trakt?.let { "trakt:$it" }
                     ?: ids.mal?.let { "mal:$it" }
                     ?: ids.anidb?.let { "anidb:$it" }
                     ?: ids.anilist?.let { "anilist:$it" }
@@ -94,14 +91,13 @@ fun parseTrackingExternalIds(rawValue: String?): TrackingExternalIds {
         "imdb" -> TrackingExternalIds(imdb = value.takeIf(String::isNotBlank))
         "tmdb" -> TrackingExternalIds(tmdb = value.toLongOrNull())
         "tvdb" -> TrackingExternalIds(tvdb = value.takeIf(String::isNotBlank))
-        "trakt" -> TrackingExternalIds(trakt = value.toLongOrNull())
         "simkl" -> TrackingExternalIds(simkl = value.toLongOrNull())
         "mal" -> TrackingExternalIds(mal = value.toLongOrNull())
         "anidb" -> TrackingExternalIds(anidb = value.toLongOrNull())
         "anilist" -> TrackingExternalIds(anilist = value.toLongOrNull())
         "kitsu" -> TrackingExternalIds(kitsu = value.toLongOrNull())
         "mdblist" -> TrackingExternalIds(mdblist = value.takeIf(String::isNotBlank))
-        else -> TrackingExternalIds(trakt = full.toLongOrNull())
+        else -> TrackingExternalIds()
     }
 }
 

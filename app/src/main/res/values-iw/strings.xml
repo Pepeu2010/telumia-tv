@@ -92,14 +92,12 @@
     <string name="web_import_error_source_invalid_format">אוסף \"{collection}\", תיקייה \"{folder}\", מקור {index}: פורמט לא תקין</string>
     <string name="web_import_error_source_missing_addon_fields">אוסף \"{collection}\", תיקייה \"{folder}\", מקור {index}: חסרים שדות חובה (addonId, type, catalogId)</string>
     <string name="web_import_error_source_missing_tmdb_type">אוסף \"{collection}\", תיקייה \"{folder}\", מקור {index}: חסר סוג מקור TMDB</string>
-    <string name="web_import_error_source_missing_trakt_id">אוסף \"{collection}\", תיקייה \"{folder}\", מקור {index}: חסר מזהה רשימת Trakt</string>
     <string name="web_import_success">יובאו {count} .אוספים. יש לסקור אותם וללחוץ על \"שמירת שינויים\" כדי להחיל</string>
     <string name="web_import_invalid_json">לא תקין JSON</string>
 
     <string name="home_no_addons">אין עדיין תוספים מותקנים. יש להוסיף תוסף כדי להתחיל לצפות.</string>
     <string name="home_no_catalog_addons">אין תוספי קטלוג מותקנים עדיין. יש להתקין תוסף קטלוג כדי להתחיל לראות תוכן.</string>
     <string name="auth_notice_nuvio_logged_out">יצאת מחשבון Telumia. נדרשת התחברות מחדש.</string>
-    <string name="auth_notice_trakt_logged_out">יצאת מחשבון Trakt. נדרשת התחברות מחדש.</string>
     <string name="error_generic">אירעה שגיאה</string>
 
     <string name="action_retry">ניסיון נוסף</string>
@@ -200,7 +198,6 @@
     <string name="episodes_mark_previous_watched">סימון פרקים קודמים בעונה זו כנצפו</string>
     <string name="episodes_mark_previous_seasons_watched">סימון עונות קודמות כנצפו</string>
     <string name="episodes_play">הפעל</string>
-    <string name="episodes_open_comments">פתיחת תגובות לפרק</string>
     <string name="play_manually">הפעלה ידנית</string>
     <string name="episodes_season_actions">פעולות עבור העונה הזו</string>
 
@@ -234,30 +231,11 @@
     <string name="detail_tab_more_like_this">עוד כמו זה</string>
     <string name="detail_tab_trailer">טריילר</string>
     <string name="detail_more_like_this_powered_by_tmdb">מבוסס על TMDB</string>
-    <string name="detail_more_like_this_powered_by_trakt">מבוסס על Trakt</string>
     <string name="detail_more_like_this_powered_by_simkl">מבוסס על Simkl</string>
-    <string name="detail_comments_title">תגובות</string>
-    <string name="detail_comments_subtitle">ביקורות מ-Trakt</string>
-    <string name="detail_comments_subtitle_episode">ביקורות מ-Trakt עבור S%1$dE%2$d</string>
-    <string name="detail_comments_mode_show">סדרה</string>
-    <string name="detail_comments_mode_episode">פרק</string>
-    <string name="detail_comments_mode_episode_change">החלפת פרק (%1$s)</string>
-    <string name="detail_comments_episode_picker_title">בחירת פרק</string>
-    <string name="detail_comments_episode_picker_subtitle">יש לבחור פרק כדי לראות את הביקורות שלו מ-Trakt</string>
     <string name="detail_section_network">רשת שידור</string>
     <string name="detail_section_production">הפקה</string>
-    <string name="detail_comments_empty">אין עדיין ביקורות מ-Trakt.</string>
-    <string name="detail_comments_error">לא ניתן לטעון כרגע ביקורות מ-Trakt.</string>
     <string name="detail_trailer_loading">טוען טריילר…</string>
     <string name="detail_trailer_error">לא ניתן לטעון טריילר כרגע. תסתפקו בדימיון.</string>
-    <string name="detail_comments_spoiler_hidden">ביקורת מכילה ספוילר. יש ללחוץ על אישור כדי לחשוף.</string>
-    <string name="detail_comments_reveal_spoiler">חשיפת הספוילר</string>
-    <string name="detail_comments_reveal_spoiler_hint">יש ללחוץ על אישור כדי לחשוף את הספוילר.</string>
-    <string name="detail_comments_back_hint">יש ללחוץ חזרה כדי לסגור</string>
-    <string name="detail_comments_badge_review">ביקורת</string>
-    <string name="detail_comments_badge_spoiler">ספוילר</string>
-    <string name="detail_comments_badge_rating">%1$d/10</string>
-    <string name="detail_comments_likes">%1$d לייקים</string>
     <string name="tmdb_entity_kind_company">חברת הפקה</string>
     <string name="tmdb_entity_kind_network">רשת שידור</string>
     <string name="tmdb_entity_rail_popular">פופולרי</string>
@@ -427,8 +405,6 @@
     <string name="licenses_attributions_nuvio_body">קוד המקור ותנאי הרישיון זמינים במאגר הפרויקט. מורשה תחת רישיון GNU General Public License v3.0.</string>
     <string name="licenses_attributions_tmdb_title">The Movie Database (TMDB)</string>
     <string name="licenses_attributions_tmdb_body">Telumia משתמשת ב-API של TMDB עבור מטה-דאטה של סרטים וסדרות, תמונות, טריילרים, שחקנים, פרטי הפקה, אוספים והמלצות. מוצר זה משתמש ב-API של TMDB אך אינו מאושר או מאומת על ידי TMDB.</string>
-    <string name="licenses_attributions_trakt_title">Trakt</string>
-    <string name="licenses_attributions_trakt_body">Telumia מתחברת ל-Trakt לצורך אימות חשבון, היסטוריית צפייה, סנכרון התקדמות, נתוני ספרייה, דירוגים, רשימות ותגובות. Telumia אינה קשורה או מאושרת על ידי Trakt.</string>
     <string name="licenses_attributions_simkl_title">Simkl</string>
     <string name="licenses_attributions_simkl_body">Telumia מתחברת ל-Simkl לצורך אימות חשבון, רשימות צפייה, היסטוריית צפייה, התקדמות צפייה וסקרובלינג. נתוני מעקב סרטים, סדרות ואנימה מסופקים על ידי Simkl. Telumia אינה קשורה או מאושרת על ידי Simkl.</string>
     <string name="licenses_attributions_premiumize_title">Premiumize</string>
@@ -459,15 +435,12 @@
     <string name="settings_plugins_subtitle">מאגרים וספקים</string>
     <string name="settings_integration">אינטגרציות</string>
     <string name="settings_playback">הפעלה</string>
-    <string name="settings_trakt_subtitle">פתיחת מסך החיבור ל-Trakt</string>
     <string name="settings_tracking_title">מעקב</string>
     <string name="settings_tracking_description">יש לחבר ספקי מעקב ולבחור איזה מהם מפעיל את הספרייה והמשך הצפייה שלך.</string>
     <string name="tracking_accounts_title">חשבונות</string>
     <string name="tracking_accounts_subtitle">חיבור וניהול שירותי מעקב</string>
     <string name="tracking_sources_title">מקורות</string>
     <string name="tracking_sources_subtitle">יש לבחור מאיפה Telumia קוראת את הספרייה והתקדמות הצפייה שלך. הצפייה תסונכרן לכל שירות מחובר.</string>
-    <string name="tracking_trakt_features_title">תכונות Trakt</string>
-    <string name="tracking_trakt_features_subtitle">היסטוריה, ביקורות והמלצות ייעודיות ל-Trakt</string>
     <string name="tracking_simkl_features_title">תכונות Simkl</string>
     <string name="tracking_simkl_features_subtitle">הגדרות ייעודיות ל-Simkl</string>
     <string name="tracking_simkl_anime_id_title">העדפת מזהה אנימה</string>
@@ -484,8 +457,6 @@
     <string name="tracking_connecting_provider">מתחיל חיבור ל-%1$s…</string>
     <string name="tracking_watch_progress_dialog_subtitle">יש לבחור את השירות ש-Telumia קוראת ממנו להמשך צפייה. הסקרובלינג נשאר פעיל עבור כל שירות מחובר.</string>
     <string name="tracking_library_source_dialog_subtitle">יש לבחור את השירות ש-Telumia קוראת ממנו את הספרייה שלך. הצפייה מסונכרנת לכל שירות מחובר.</string>
-    <string name="tracking_trakt_progress_required">זמין כאשר Trakt הוא מקור התקדמות הצפייה</string>
-    <string name="trakt_name">Trakt</string>
     <string name="simkl_name">Simkl</string>
     <string name="settings_network">מהירות רשת</string>
     <string name="settings_network_subtitle">אבחון זמן תגובה ומהירות הורדה</string>
@@ -495,7 +466,7 @@
     <string name="experience_mode_advanced">מתקדם</string>
     <string name="experience_mode_choose_title">בחירת חוויית ה-Telumia</string>
     <string name="experience_mode_choose_subtitle">אפשר להתחיל בפשטות או לפתוח את כל האפשרויות להגדרה. ניתן להחליף בכל עת.</string>
-    <string name="experience_mode_essential_card_subtitle">הגדרה ממוקדת, תוספים, הפעלה בסיסית, Trakt והגדרות חשבון.</string>
+    <string name="experience_mode_essential_card_subtitle">הגדרה ממוקדת, תוספים, הפעלה בסיסית והגדרות חשבון.</string>
     <string name="experience_mode_advanced_card_subtitle">הגדרות מלאות, בחירת תצוגה, סדר קטלוגים, אוספים, פלאגינים ואבחון.</string>
     <string name="experience_mode_group_title">מצב חווית שימוש</string>
     <string name="essential_addon_continue_for_now">המשך לעת עתה</string>
@@ -1208,8 +1179,6 @@
     <string name="mdblist_ratings_credentials_subtitle">ניתן להשתמש בחשבון ה-MDBList המחובר במעקב, או להזין מפתח API נפרד לדירוגים.</string>
     <string name="mdblist_ratings_connected_account">בשימוש: החשבון המחובר</string>
     <string name="mdblist_ratings_key_override_subtitle">מפתח API עוקף את החשבון המחובר לצורך דירוגים. יש לנקות אותו כדי לחזור לשימוש בחשבון המחובר.</string>
-    <string name="mdblist_trakt_title">Trakt</string>
-    <string name="mdblist_trakt_subtitle">הצגת ציון Trakt</string>
     <string name="mdblist_imdb_title">IMDb</string>
     <string name="mdblist_imdb_subtitle">הצגת ציון IMDb (והסתרת שורת IMDb המובנית כשזמין)</string>
     <string name="mdblist_tmdb_title">TMDB</string>
@@ -1442,11 +1411,6 @@
 
     <string name="tmdb_language_dialog_title">שפת TMDB</string>
 
-    <string name="trakt_description">סנכרון רשימת הצפייה, ההתקדמות, המשך הצפייה, הסקרובלינג והרשימות האישיות עם Trakt.</string>
-    <string name="trakt_connected_as">מחוברים בתור %1$s</string>
-    <string name="trakt_account_login">התחברות לחשבון</string>
-    <string name="trakt_awaiting_instruction">יש לעבור אל trakt.tv/activate ולהזין את הקוד:</string>
-    <string name="trakt_waiting_approval">ממתין לאישור…</string>
     <string name="qr_login_approved">ההתחברות אושרה. מסיים כניסה…</string>
     <string name="qr_login_pending">ממתין לאישור בטלפון שלך…</string>
     <string name="qr_login_expired">קוד ה-QR פג. יש ללחוץ על \"רענון קוד QR\".</string>
@@ -1457,68 +1421,26 @@
     <string name="qr_login_signing_in">מחבר אותך…</string>
     <string name="qr_login_success">ההתחברות הצליחה</string>
     <string name="qr_login_exchange_failed">לא ניתן היה להשלים כניסה באמצעות QR</string>
-    <string name="trakt_code_expires">הקוד יפוג בעוד %1$s</string>
-    <string name="trakt_token_refreshes">אסימון גישה Trakt יתחדש בעוד %1$s</string>
-    <string name="trakt_login_instruction">יש ללחוץ על \"התחברות\" להתחלת אימות מכשיר Trakt.</string>
-    <string name="trakt_missing_credentials">חסר TRAKT_CLIENT_ID / TRAKT_CLIENT_SECRET ב-local.properties.</string>
-    <string name="trakt_watch_progress_title">התקדמות צפייה</string>
-    <string name="trakt_watch_progress_subtitle">בחירת מקור התקדמות שמניע המשך וצפייה מתמשכת</string>
-    <string name="trakt_watch_progress_dialog_title">התקדמות צפייה</string>
-    <string name="trakt_watch_progress_dialog_subtitle">בחירת מקום לשמירת התקדמות הצפייה: ב-Trakt או בשרת של Telumia.</string>
-    <string name="trakt_watch_progress_source_trakt">Trakt</string>
-    <string name="trakt_watch_progress_source_nuvio">Telumia Sync</string>
-    <string name="trakt_library_source_title">מקור ספרייה</string>
-    <string name="trakt_library_source_subtitle">בחירת הספרייה שתשמש לשמירה וצפייה באוסף שלך</string>
-    <string name="trakt_library_source_dialog_title">מקור ספרייה</string>
-    <string name="trakt_library_source_dialog_subtitle">בחירת המקום לשמירה ולניהול של פריטי הספרייה שלך</string>
-    <string name="trakt_library_source_trakt">Trakt</string>
-    <string name="trakt_library_source_nuvio">ספריית Telumia</string>
-    <string name="trakt_library_source_trakt_selected">ספריית Trakt נבחרה</string>
-    <string name="trakt_library_source_nuvio_selected">ספריית Telumia נבחרה</string>
-    <string name="trakt_setting_on">פעיל</string>
-    <string name="trakt_setting_off">כבוי</string>
-    <string name="trakt_watch_progress_trakt_selected">מקור התקדמות צפייה הוגדר ל-Trakt</string>
-    <string name="trakt_watch_progress_nuvio_selected">מקור התקדמות צפייה הוגדר ל-Telumia Sync</string>
-    <string name="trakt_continue_watching_window">חלון \"המשך בצפייה\"</string>
-    <string name="trakt_continue_watching_subtitle">היסטוריית Trakt הנחשבת להמשך צפייה</string>
-    <string name="trakt_unaired_next_up">פרקים הבאים שטרם שודרו</string>
-    <string name="trakt_unaired_next_up_subtitle">הצגת פרקים קרובים לפני שידורם</string>
-    <string name="trakt_unaired_shown">מוצג</string>
-    <string name="trakt_unaired_hidden">מוסתר</string>
-    <string name="trakt_unaired_now_shown">פרקי הבא שטרם שודרו מוצגים עכשיו</string>
-    <string name="trakt_unaired_now_hidden">פרקי הבא שטרם שודרו מוסתרים עכשיו</string>
-    <string name="trakt_comments_title">תגובות</string>
-    <string name="trakt_comments_subtitle">הצגת ביקורות Trakt בעמודי מטה-דאטה</string>
-    <string name="trakt_comments_dialog_title">תגובות</string>
-    <string name="trakt_comments_dialog_subtitle">בחירה אם עמודי מטה-דאטה יציגו ביקורות Trakt כאשר החשבון שלך מחובר.</string>
-    <string name="trakt_comments_now_shown">ביקורות Trakt בעמודי מטה-דאטה מוצגות כעת</string>
-    <string name="trakt_comments_now_hidden">ביקורות Trakt בעמודי מטה-דאטה מוסתרות כעת</string>
-    <string name="trakt_more_like_this_source_title">מקור \"עוד כמו זה\"</string>
-    <string name="trakt_more_like_this_source_subtitle">בחירת מקור ההמלצות במסכי הפרטים ואחרי ההפעלה</string>
-    <string name="trakt_more_like_this_source_dialog_title">מקור \"עוד כמו זה\"</string>
-    <string name="trakt_more_like_this_source_dialog_subtitle">יש לבחור את מקור ההמלצות המוצגות במסכי הפרטים ואחרי ההפעלה.</string>
-    <string name="trakt_more_like_this_source_trakt">Trakt</string>
-    <string name="trakt_more_like_this_source_tmdb">TMDB</string>
-    <string name="trakt_more_like_this_source_simkl">Simkl</string>
-    <string name="trakt_cached_label">שמור במטמון</string>
-    <string name="trakt_stat_movies">סרטים</string>
-    <string name="trakt_stat_shows">סדרות</string>
-    <string name="trakt_stat_episodes">פרקים</string>
-    <string name="trakt_stat_watched_hours">שעות צפייה</string>
-    <string name="trakt_disconnect">ניתוק</string>
-    <string name="trakt_disconnect_title">לנתק Trakt?</string>
-    <string name="trakt_disconnect_subtitle">פעולה זו תנתק את חשבון Trakt שלך מ-Telumia.</string>
-    <string name="trakt_login">התחבר</string>
-    <string name="trakt_retry">ניסיון נוסף</string>
-    <string name="trakt_back">חזרה</string>
-    <string name="trakt_cw_window_title">חלון המשך צפייה</string>
-    <string name="trakt_cw_window_subtitle">בחירת היקף פעילות ה-Trakt שתופיע בהמשך צפייה.</string>
-    <string name="trakt_unaired_dialog_title">פרקים הבאים שטרם שודרו</string>
-    <string name="trakt_unaired_dialog_subtitle">בחירה אם המשך צפייה יכלול פרקים קרובים לפני יציאתם.</string>
-    <string name="trakt_show_unaired">הצגת פרקים שטרם שודרו</string>
-    <string name="trakt_hide_unaired">הסתרת פרקים שטרם שודרו</string>
-    <string name="trakt_all_history">כל ההיסטוריה</string>
-    <string name="trakt_days_format">%1$d ימים</string>
+    <string name="tracking_code_expires">הקוד יפוג בעוד %1$s</string>
+    <string name="tracking_watch_progress_title">התקדמות צפייה</string>
+    <string name="tracking_watch_progress_subtitle">בחירת מקור התקדמות שמניע המשך וצפייה מתמשכת</string>
+    <string name="tracking_watch_progress_dialog_title">התקדמות צפייה</string>
+    <string name="tracking_watch_progress_source_nuvio">Telumia Sync</string>
+    <string name="tracking_library_source_title">מקור ספרייה</string>
+    <string name="tracking_library_source_subtitle">בחירת הספרייה שתשמש לשמירה וצפייה באוסף שלך</string>
+    <string name="tracking_library_source_dialog_title">מקור ספרייה</string>
+    <string name="tracking_library_source_nuvio">ספריית Telumia</string>
+    <string name="tracking_continue_watching_window">חלון \"המשך בצפייה\"</string>
+    <string name="tracking_more_like_this_source_title">מקור \"עוד כמו זה\"</string>
+    <string name="tracking_more_like_this_source_subtitle">בחירת מקור ההמלצות במסכי הפרטים ואחרי ההפעלה</string>
+    <string name="tracking_more_like_this_source_dialog_title">מקור \"עוד כמו זה\"</string>
+    <string name="tracking_more_like_this_source_dialog_subtitle">יש לבחור את מקור ההמלצות המוצגות במסכי הפרטים ואחרי ההפעלה.</string>
+    <string name="tracking_more_like_this_source_tmdb">TMDB</string>
+    <string name="tracking_more_like_this_source_simkl">Simkl</string>
+    <string name="tracking_disconnect">ניתוק</string>
+    <string name="tracking_cw_window_title">חלון המשך צפייה</string>
+    <string name="tracking_all_history">כל ההיסטוריה</string>
+    <string name="tracking_days_format">%1$d ימים</string>
 
     <string name="debug_title">ניפוי שגיאות</string>
     <string name="debug_subtitle">כלי מפתחים ודגלי פיצ׳רים (גרסאות debug בלבד)</string>
@@ -1665,7 +1587,6 @@
     <string name="essential_addon_setup_subtitle">התקנת תוסף אחד תאפשר צפייה. ניתן להוסיף עוד מאוחר יותר מתוך תוספים.</string>
     <string name="essential_addon_show_qr">הצגת QR</string>
     <!-- Collection editor fallbacks -->
-    <string name="collection_editor_no_trakt_lists_found">לא נמצאו רשימות Trakt</string>
     <string name="collection_editor_untitled_folder">ללא כותרת</string>
     <string name="collection_editor_untitled_collection">אוסף ללא כותרת</string>
     <!-- AddonManagerScreen -->
@@ -2004,7 +1925,6 @@
     <string name="search_no_results_subtitle">כדאי לנסות לחפש במילים אחרות</string>
     <string name="search_error_no_catalogs">אף אחד מהתוספים המותקנים לא תומך בחיפוש.</string>
 
-    <string name="library_syncing">מסנכרן ספריית Trakt…</string>
     <string name="library_title">ספרייה</string>
     <string name="library_filter_list">רשימה</string>
     <string name="library_filter_type">סוג</string>
@@ -2057,7 +1977,6 @@
     <string name="genre_sporting_event">אירוע ספורט</string>
     <string name="genre_superhero">גיבור-על</string>
     <string name="genre_suspense">מתח</string>
-    <string name="library_sort_trakt_order">סדר Trakt</string>
     <string name="library_sort_provider_order">לפי סדר ספק</string>
     <string name="library_sort_added_desc">התווסף ↓</string>
     <string name="library_sort_added_asc">התווסף ↑</string>
@@ -2065,7 +1984,6 @@
     <string name="library_sort_title_desc">כותרת ת׳-א׳</string>
     <string name="library_error_sort_failed">לא ניתן היה לטעון את סדר המיון. מוצג סדר הספק.</string>
     <string name="library_manage_lists">ניהול רשימות</string>
-    <string name="library_manage_trakt_lists">ניהול רשימות Trakt</string>
     <string name="library_no_lists">אין רשימות אישיות עדיין.</string>
     <string name="library_list_create">יצירה</string>
     <string name="library_list_edit">עריכה</string>
@@ -2078,11 +1996,9 @@
     <string name="library_list_description_label">תיאור</string>
     <string name="library_list_privacy">פרטיות</string>
     <string name="library_delete_title">למחוק רשימה זו?</string>
-    <string name="library_delete_subtitle">פעולה זו מסירה את הרשימה וכל הפריטים שבה מ-Trakt.</string>
     <string name="library_delete_confirm">מחיקה</string>
     <string name="library_source_local">מקומי</string>
     <string name="library_source_nuvio">TELUMIA</string>
-    <string name="library_source_trakt">TRAKT</string>
     <string name="library_source_saved">נשמר</string>
     <string name="library_source_cloud">ענן</string>
     <string name="library_watchlist">רשימת צפייה</string>
@@ -2095,11 +2011,9 @@
     <string name="library_type_all">הכול</string>
     <string name="library_type_items">פריטים</string>
     <string name="library_empty_local_title">אין עדיין פריטים ב\"%1$s\"</string>
-    <string name="library_empty_trakt_title">אין %1$s ברשימה זו</string>
+    <string name="library_empty_remote_title">אין %1$s ברשימה זו</string>
     <string name="library_empty_local_subtitle">אפשר להתחיל לשמור מועדפים כדי לראותם כאן</string>
-    <string name="library_empty_trakt_subtitle">שימוש ב-+ בפרטים להוספת פריטים לרשימת צפייה</string>
-    <string name="library_empty_trakt_not_auth_title">Trakt לא מחובר</string>
-    <string name="library_empty_trakt_not_auth_subtitle">יש לחבר את חשבון ה-Trakt בהגדרות כדי לצפות בספריית ה-Trakt</string>
+    <string name="library_empty_remote_subtitle">שימוש ב-+ בפרטים להוספת פריטים לרשימת צפייה</string>
     <string name="library_empty_simkl_title">אין %1$s בסטטוס זה</string>
     <string name="library_empty_simkl_subtitle">יש ללחוץ על + בפרטים כדי להוסיף פריטים לסטטוס Simkl</string>
     <string name="library_empty_simkl_not_auth_title">Simkl לא מחובר</string>
@@ -2341,7 +2255,6 @@
     <string name="update_unknown_sources">יש לאפשר התקנות ממקורות לא ידועים כדי להמשיך.</string>
     <!-- AccountScreen -->
     <string name="account_title">חשבון</string>
-    <string name="account_sign_in_description">התחברות לסנכרון הספרייה, התקדמות הצפייה, התוספים והפלאגינים בין מכשירים. סנכרון הספרייה משתמש ב-Telumia Sync כאשר Trakt לא מחובר, והתקדמות הצפייה יכולה להשתמש ב-Trakt או ב-Telumia Sync.</string>
     <string name="account_sync_code_title">קוד סנכרון</string>
     <string name="account_sync_code_description">סנכרון בין מכשירים ללא יצירת חשבון.</string>
     <string name="account_linked_devices">מכשירים מקושרים (%1$d)</string>
@@ -2434,30 +2347,7 @@
     <string name="plugin_repo_removed">המאגר הוסר</string>
     <string name="plugin_repo_refreshed">המאגר רוענן</string>
 
-    <!-- Trakt errors -->
 
-    <string name="trakt_error_code_expired">קוד המכשיר פג תוקף. יש להתחיל מחדש.</string>
-    <string name="trakt_error_code_used">קוד המכשיר כבר נוצל. יש להתחיל מחדש.</string>
-    <string name="trakt_error_denied">האימות נדחה ב-Trakt.</string>
-    <string name="trakt_error_missing_credentials">פרטי TRAKT חסרים</string>
-    <string name="trakt_error_network_retry">שגיאת רשת, כדאי לנסות שוב</string>
-    <string name="trakt_error_network_will_retry">שגיאת רשת, מנסה שוב</string>
-    <string name="trakt_error_rate_limited_minutes">Trakt מגביל את קצב הבקשות. כדאי לנסות שוב בעוד כ-%1$d דק׳</string>
-    <string name="trakt_error_failed_start_code">התחלת אימות Trakt נכשלה (%1$d)</string>
-    <string name="trakt_error_no_active_device_code">אין קוד מכשיר פעיל ל-Trakt</string>
-    <string name="trakt_error_invalid_device_code">קוד מכשיר שגוי</string>
-    <string name="trakt_error_token_polling_failed_code">בדיקת ה-Token נכשלה (%1$d)</string>
-    <string name="trakt_error_public_request_failed">בקשת Trakt נכשלה</string>
-    <string name="trakt_error_list_not_found_or_private">רשימת Trakt לא נמצאה או שאינה ציבורית</string>
-    <string name="trakt_error_rate_limit_reached">הגעת למגבלת הקצב של Trakt</string>
-    <string name="trakt_status_enter_activation_code">הזנת הקוד בכתובת trakt.tv/activate</string>
-    <string name="trakt_status_syncing">מסנכרן…</string>
-    <string name="trakt_status_sync_completed">הסנכרון הושלם</string>
-    <string name="trakt_status_disconnected">מנותק מ-Trakt</string>
-    <string name="trakt_status_cw_window_updated">חלון המשך הצפייה עודכן</string>
-    <string name="trakt_status_rate_limited_slowing_polling">קצב מוגבל, מאט את הבדיקה…</string>
-    <string name="trakt_user_fallback">משתמש Trakt</string>
-    <string name="trakt_error_failed_start">התחלת אימות Trakt נכשלה</string>
 
     <!-- General errors -->
     <string name="error_unknown">שגיאה לא ידועה</string>
@@ -2510,8 +2400,6 @@
     <string name="cd_test">בדיקה</string>
     <string name="cd_unlink">ביטול קישור</string>
     <string name="cd_nuvio_logo">Telumia</string>
-    <string name="cd_trakt_logo">Trakt לוגו</string>
-    <string name="cd_trakt_qr">קוד QR להפעלת Trakt</string>
     <string name="cd_imdb">IMDb</string>
     <string name="cd_open_discover">פתיחת גילוי</string>
     <string name="cd_clear_search">ניקוי חיפוש</string>
@@ -2612,18 +2500,8 @@
     <string name="collections_editor_addon_missing">התוסף אינו מותקן: %1$s</string>
     <string name="collections_editor_catalog_missing">הקטלוג אינו זמין</string>
     <string name="collections_editor_add_tmdb_source">הוספת מקור TMDB</string>
-    <string name="collections_editor_add_trakt_source">הוספת רשימת Trakt</string>
     <string name="collections_editor_edit_tmdb_source">עריכת מקור TMDB</string>
     <string name="collections_editor_tmdb_sources">מקורות TMDB</string>
-    <string name="collections_editor_trakt_sources">רשימות Trakt</string>
-    <string name="collections_editor_edit_trakt_source">עריכת רשימת Trakt</string>
-    <string name="collections_editor_trakt_list">רשימת Trakt</string>
-    <string name="collections_editor_trakt_search_results">תוצאות חיפוש</string>
-    <string name="collections_editor_trakt_trending">רשימות חמות</string>
-    <string name="collections_editor_trakt_popular">רשימות פופולריות</string>
-    <string name="collections_editor_trakt_direction">כיוון</string>
-    <string name="collections_editor_trakt_ascending">עולה</string>
-    <string name="collections_editor_trakt_descending">יורד</string>
     <string name="collections_editor_tmdb_id_or_url">מזהה TMDB או כתובת URL</string>
     <string name="collections_editor_tmdb_public_list">רשימת TMDB ציבורית</string>
     <string name="collections_editor_tmdb_network_id">מזהה רשת שידור</string>
@@ -2707,27 +2585,13 @@
     <string name="collections_editor_sort_votes">הצבעות</string>
     <string name="collections_editor_direction_asc_short">עולה</string>
     <string name="collections_editor_direction_desc_short">יורד</string>
-    <string name="collections_editor_trakt_movie_list">רשימת סרטי Trakt</string>
-    <string name="collections_editor_trakt_series_list">רשימת סדרות Trakt</string>
-    <string name="collections_editor_trakt_list_with_id">רשימת Trakt %1$d</string>
-    <string name="collections_editor_trakt_public_list">רשימה ציבורית של Trakt</string>
-    <string name="collections_editor_trakt_items_count">%1$d פריטים</string>
-    <string name="collections_editor_trakt_likes_count">%1$d לייקים</string>
     <string name="collections_editor_error_valid_tmdb_id_or_url">הזנת מזהה TMDB תקין או כתובת URL</string>
     <string name="collections_editor_error_load_tmdb_source">לא ניתן היה לטעון את מקור ה-TMDB</string>
-    <string name="collections_editor_error_trakt_list_id_or_url">הזנת מזהה רשימת Trakt או כתובת URL</string>
-    <string name="collections_editor_error_trakt_list_name_id_or_url">הזנת שם רשימת Trakt, כתובת URL, או מזהה</string>
-    <string name="collections_editor_error_load_trakt_list">לא ניתן היה לטעון את רשימת ה-Trakt</string>
-    <string name="collections_editor_error_load_trakt_lists">לא ניתן היה לטעון את רשימות ה-Trakt</string>
-    <string name="collections_editor_error_search_trakt_lists">לא ניתן היה לחפש ברשימות Trakt</string>
-    <string name="collections_editor_error_trakt_list_not_found">רשימת Trakt לא נמצאה</string>
-    <string name="collections_editor_error_trakt_list_missing_numeric_id">רשימת ה-Trakt לא כללה מזהה מספרי</string>
     <string name="collections_editor_tmdb_placeholder_list">https://www.themoviedb.org/list/8504994 או 8504994</string>
     <string name="collections_editor_tmdb_placeholder_collection">10 עבור Star Wars Collection</string>
     <string name="collections_editor_tmdb_placeholder_company">Marvel Studios, 420, או כתובת URL של חברה</string>
     <string name="collections_editor_tmdb_placeholder_network">213 עבור Netflix, 49 עבור HBO, 2739 עבור Disney+</string>
     <string name="collections_editor_tmdb_person_placeholder">31 עבור Tom Hanks, או כתובת URL של אדם</string>
-    <string name="collections_editor_trakt_id_placeholder">https://trakt.tv/lists/123456 או 123456</string>
     <string name="collections_editor_url_short_placeholder">https://…</string>
     <string name="collections_editor_tmdb_genres_movie_placeholder">28,12</string>
     <string name="collections_editor_tmdb_genres_tv_placeholder">18,35</string>
@@ -2780,9 +2644,6 @@
     <string name="collections_tab_combined">משולב</string>
     <string name="collection_editor_remove_cd">הסרה</string>
     <string name="collection_editor_choice_both">שניהם</string>
-    <string name="collection_editor_resolved_trakt_list">רשימת Trakt שזוהתה</string>
-    <string name="collection_editor_trakt_search_placeholder">חיפוש כותרת, כתובת URL של Trakt, או מזהה רשימה</string>
-    <string name="collection_editor_trakt_name_placeholder">צפייה לסוף שבוע, זוכי פרסים</string>
     <string name="collection_editor_folder_count_one">פריט %1$d</string>
     <string name="collection_editor_folder_count_other">%1$d פריטים</string>
     <string name="collections_editor_delete_folder_title">למחוק תיקייה?</string>
@@ -2896,7 +2757,6 @@
     <string name="collections_import_error_source_invalid">אוסף \"%1$s\", תיקייה \"%2$s\", מקור %3$d: פורמט לא תקין</string>
     <string name="collections_import_error_source_required_fields">אוסף \"%1$s\", תיקייה \"%2$s\", מקור %3$d: חסרים שדות חובה</string>
     <string name="collections_import_error_missing_tmdb_type">אוסף \"%1$s\", תיקייה \"%2$s\", מקור %3$d: חסר סוג מקור TMDB</string>
-    <string name="collections_import_error_missing_trakt_list_id">אוסף \"%1$s\", תיקייה \"%2$s\", מקור %3$d: חסר מזהה רשימת Trakt</string>
     <string name="collections_import_error_json_parse">שגיאת פענוח JSON: %1$s</string>
 
     <!-- Library messages -->
@@ -2917,26 +2777,6 @@
     <string name="library_privacy_friends">חברים</string>
     <string name="library_privacy_public">ציבורי</string>
 
-    <!-- Trakt errors -->
-    <string name="trakt_error_auth_required">נדרש אימות Trakt</string>
-    <string name="trakt_library_error_request_failed">בקשת Trakt נכשלה</string>
-    <string name="trakt_library_error_create_list_failed">נכשל ביצירת רשימה</string>
-    <string name="trakt_library_error_update_list_failed">נכשל בעדכון הרשימה</string>
-    <string name="trakt_library_error_delete_list_failed">נכשל במחיקת הרשימה</string>
-    <string name="trakt_library_error_reorder_lists_failed">נכשל בסידור מחדש של הרשימות</string>
-    <string name="trakt_library_error_fetch_watchlist_movies">נכשל בשליפת סרטי רשימת הצפייה</string>
-    <string name="trakt_library_error_fetch_watchlist_shows">נכשל בשליפת סדרות רשימת הצפייה</string>
-    <string name="trakt_library_error_fetch_personal_lists">נכשל בשליפת רשימות אישיות</string>
-    <string name="trakt_library_error_add_watchlist_failed">נכשל בהוספה לרשימת הצפייה</string>
-    <string name="trakt_library_error_remove_watchlist_failed">נכשל בהסרה מרשימת הצפייה</string>
-    <string name="trakt_library_error_add_to_list_failed">נכשל בהוספה לרשימה</string>
-    <string name="trakt_library_error_remove_from_list_failed">נכשל בהסרה מהרשימה</string>
-    <string name="trakt_library_error_missing_compatible_ids">חסרים מזהים תואמים לפעולת רשימת Trakt</string>
-    <string name="trakt_library_error_auth_expired">אימות ה-Trakt פג תוקף</string>
-    <string name="trakt_library_error_list_not_found">רשימת Trakt לא נמצאה</string>
-    <string name="trakt_library_error_list_limit_reached">הגעת למגבלת רשימות Trakt. נדרש שדרוג.</string>
-    <string name="trakt_error_insufficient_ids_mark_watched">אין מספיק מזהי Trakt כדי לסמן כנצפה</string>
-    <string name="trakt_error_request_failed">בקשת Trakt נכשלה</string>
     <string name="simkl_account_title">חשבון Simkl</string>
     <string name="simkl_description">חיבור Simkl לסנכרון רשימות, היסטוריית צפייה, התקדמות צפייה וסקרובלינג.</string>
     <string name="simkl_connect">חיבור Simkl</string>
@@ -2977,7 +2817,6 @@
     <string name="action_remove_anyway">הסרה בכל זאת</string>
     <string name="cd_simkl_qr">קוד QR להפעלת Simkl</string>
     <string name="cd_simkl_logo">לוגו Simkl</string>
-    <string name="trakt_error_mark_watched_failed">נכשל בסימון כנצפה ב-Trakt (%1$d)</string>
 
     <!-- Detail / poster options errors -->
     <string name="detail_error_update_library_failed">נכשל בעדכון הספרייה</string>
@@ -3055,8 +2894,6 @@
     <string name="stream_error_detail_addon_request_failed">בקשת התוסף נכשלה</string>
     <string name="stream_error_fetch_failed">משיכת הזרמים נכשלה</string>
 
-    <!-- Trakt: paginated fetch + comments -->
-    <string name="trakt_library_error_paginated_fetch_failed">משיכת הנתונים המפוצלת מ-Trakt נכשלה (%1$d)</string>
 
     <!-- Home: poster long-press list picker errors -->
     <string name="home_poster_lists_error_load_failed">טעינת הרשימות נכשלה</string>
@@ -3066,10 +2903,6 @@
     <string name="profile_pin_saved_for_profile">הסיסמה נשמרה עבור %1$s.</string>
     <string name="profile_pin_lock_removed_for_profile">נעילת הסיסמה הוסרה עבור %1$s.</string>
 
-    <!-- Trakt: Related / comments / list items error fallbacks -->
-    <string name="trakt_related_error_request_failed">בקשת התכנים הקשורים מ-Trakt נכשלה</string>
-    <string name="trakt_comments_error_request_failed">בקשת התגובות מ-Trakt נכשלה</string>
-    <string name="trakt_library_error_fetch_list_items">משיכת פריטי הרשימה נכשלה</string>
 
     <string name="watchlist_removed">הוסר מרשימת צפייה</string>
     <string name="watchlist_added">התווסף לרשימת צפייה</string>

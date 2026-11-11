@@ -9,18 +9,18 @@ import org.junit.Test
 class TrackingSourcesTest {
     @Test
     fun `MDBList is available independently for watch and library sources`() {
-        val connected = setOf(TrackingProviderId.TRAKT, TrackingProviderId.SIMKL, TrackingProviderId.MDBLIST)
+        val connected = setOf(TrackingProviderId.SIMKL, TrackingProviderId.MDBLIST)
         assertEquals(WatchProgressSource.MDBLIST, WatchProgressSource.fromStorage("MDBLIST"))
         assertEquals(TrackingProviderId.MDBLIST, WatchProgressSource.MDBLIST.providerId)
         assertEquals(
-            listOf(WatchProgressSource.NUVIO_SYNC, WatchProgressSource.TRAKT, WatchProgressSource.SIMKL, WatchProgressSource.MDBLIST),
+            listOf(WatchProgressSource.NUVIO_SYNC, WatchProgressSource.SIMKL, WatchProgressSource.MDBLIST),
             availableWatchProgressSources(connected)
         )
         assertEquals(
-            listOf(LibrarySourceMode.LOCAL, LibrarySourceMode.TRAKT, LibrarySourceMode.SIMKL, LibrarySourceMode.MDBLIST),
+            listOf(LibrarySourceMode.LOCAL, LibrarySourceMode.SIMKL, LibrarySourceMode.MDBLIST),
             availableLibrarySourceModes(connected)
         )
-        val selection = TrackingSourceSelection(WatchProgressSource.MDBLIST, LibrarySourceMode.TRAKT)
+        val selection = TrackingSourceSelection(WatchProgressSource.MDBLIST, LibrarySourceMode.SIMKL)
         assertEquals(selection, effectiveTrackingSourceSelection(selection, connected))
         assertEquals(
             selection.copy(watchProgressSource = WatchProgressSource.NUVIO_SYNC),
@@ -29,10 +29,14 @@ class TrackingSourcesTest {
     }
 
     @Test
-    fun `legacy source names retain their stored meaning`() {
-        assertEquals(WatchProgressSource.TRAKT, WatchProgressSource.fromStorage("TRAKT"))
+    fun `stored source names keep their meaning and retired names fall back to local sources`() {
+        assertEquals(WatchProgressSource.SIMKL, WatchProgressSource.fromStorage("SIMKL"))
         assertEquals(WatchProgressSource.NUVIO_SYNC, WatchProgressSource.fromStorage("NUVIO_SYNC"))
-        assertEquals(LibrarySourceMode.TRAKT, LibrarySourceMode.valueOf("TRAKT"))
+        // Values persisted by the retired Trakt integration must not crash and must resolve to local data.
+        assertEquals(WatchProgressSource.NUVIO_SYNC, WatchProgressSource.fromStorage("TRAKT"))
+        assertEquals(WatchProgressSource.NUVIO_SYNC, WatchProgressSource.fromStorage(null))
+        assertNull(LibrarySourceMode.entries.firstOrNull { it.name == "TRAKT" })
+        assertNull(TrackingProviderId.fromStorage("trakt"))
     }
 
     @Test
@@ -69,35 +73,26 @@ class TrackingSourcesTest {
     fun `source reconciliation covers every provider connection combination`() {
         val requested = TrackingSourceSelection(
             watchProgressSource = WatchProgressSource.SIMKL,
-            librarySourceMode = LibrarySourceMode.TRAKT
+            librarySourceMode = LibrarySourceMode.MDBLIST
         )
 
         assertEquals(
-            TrackingSourceSelection(
-                WatchProgressSource.NUVIO_SYNC,
-                LibrarySourceMode.LOCAL
-            ),
+            TrackingSourceSelection(WatchProgressSource.NUVIO_SYNC, LibrarySourceMode.LOCAL),
             effectiveTrackingSourceSelection(requested, emptySet())
         )
         assertEquals(
-            TrackingSourceSelection(
-                WatchProgressSource.NUVIO_SYNC,
-                LibrarySourceMode.TRAKT
-            ),
-            effectiveTrackingSourceSelection(requested, setOf(TrackingProviderId.TRAKT))
+            TrackingSourceSelection(WatchProgressSource.NUVIO_SYNC, LibrarySourceMode.MDBLIST),
+            effectiveTrackingSourceSelection(requested, setOf(TrackingProviderId.MDBLIST))
         )
         assertEquals(
-            TrackingSourceSelection(
-                WatchProgressSource.SIMKL,
-                LibrarySourceMode.LOCAL
-            ),
+            TrackingSourceSelection(WatchProgressSource.SIMKL, LibrarySourceMode.LOCAL),
             effectiveTrackingSourceSelection(requested, setOf(TrackingProviderId.SIMKL))
         )
         assertEquals(
             requested,
             effectiveTrackingSourceSelection(
                 requested,
-                setOf(TrackingProviderId.TRAKT, TrackingProviderId.SIMKL)
+                setOf(TrackingProviderId.MDBLIST, TrackingProviderId.SIMKL)
             )
         )
     }
@@ -106,54 +101,48 @@ class TrackingSourcesTest {
     fun `disconnecting an active provider resets only its selected source`() {
         val requested = TrackingSourceSelection(
             watchProgressSource = WatchProgressSource.SIMKL,
-            librarySourceMode = LibrarySourceMode.TRAKT
+            librarySourceMode = LibrarySourceMode.MDBLIST
         )
 
         assertEquals(
             TrackingSourceSelection(
                 watchProgressSource = WatchProgressSource.NUVIO_SYNC,
-                librarySourceMode = LibrarySourceMode.TRAKT
+                librarySourceMode = LibrarySourceMode.MDBLIST
             ),
-            effectiveTrackingSourceSelection(
-                requested,
-                setOf(TrackingProviderId.TRAKT)
-            )
+            effectiveTrackingSourceSelection(requested, setOf(TrackingProviderId.MDBLIST))
         )
     }
 
     @Test
     fun `disconnecting an inactive provider preserves selected sources`() {
         val requested = TrackingSourceSelection(
-            watchProgressSource = WatchProgressSource.TRAKT,
-            librarySourceMode = LibrarySourceMode.TRAKT
+            watchProgressSource = WatchProgressSource.MDBLIST,
+            librarySourceMode = LibrarySourceMode.MDBLIST
         )
 
         assertEquals(
             requested,
-            effectiveTrackingSourceSelection(
-                requested,
-                setOf(TrackingProviderId.TRAKT)
-            )
+            effectiveTrackingSourceSelection(requested, setOf(TrackingProviderId.MDBLIST))
         )
     }
 
     @Test
-    fun `both connected pickers expose Nuvio Trakt and Simkl in stable order`() {
-        val connected = setOf(TrackingProviderId.TRAKT, TrackingProviderId.SIMKL)
+    fun `both connected pickers expose Nuvio Simkl and MDBList in stable order`() {
+        val connected = setOf(TrackingProviderId.MDBLIST, TrackingProviderId.SIMKL)
 
         assertEquals(
             listOf(
                 WatchProgressSource.NUVIO_SYNC,
-                WatchProgressSource.TRAKT,
-                WatchProgressSource.SIMKL
+                WatchProgressSource.SIMKL,
+                WatchProgressSource.MDBLIST
             ),
             availableWatchProgressSources(connected)
         )
         assertEquals(
             listOf(
                 LibrarySourceMode.LOCAL,
-                LibrarySourceMode.TRAKT,
-                LibrarySourceMode.SIMKL
+                LibrarySourceMode.SIMKL,
+                LibrarySourceMode.MDBLIST
             ),
             availableLibrarySourceModes(connected)
         )
@@ -174,8 +163,8 @@ class TrackingSourcesTest {
             availableWatchProgressSources(setOf(TrackingProviderId.SIMKL))
         )
         assertEquals(
-            listOf(LibrarySourceMode.LOCAL, LibrarySourceMode.TRAKT),
-            availableLibrarySourceModes(setOf(TrackingProviderId.TRAKT))
+            listOf(LibrarySourceMode.LOCAL, LibrarySourceMode.MDBLIST),
+            availableLibrarySourceModes(setOf(TrackingProviderId.MDBLIST))
         )
     }
 }

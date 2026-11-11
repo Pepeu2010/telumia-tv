@@ -87,7 +87,6 @@ data class NuvioDisabledColors(
 
 @Immutable
 data class NuvioSourceColors(
-    val trakt: Color,
     val tmdb: Color,
     val imdb: Color,
     val mdblist: Color
@@ -238,7 +237,6 @@ class NuvioColorScheme(
     )
 
     val source = NuvioSourceColors(
-        trakt = NuvioPrimitives.trakt,
         tmdb = NuvioPrimitives.tmdb,
         imdb = NuvioPrimitives.imdb,
         mdblist = NuvioPrimitives.mdblist

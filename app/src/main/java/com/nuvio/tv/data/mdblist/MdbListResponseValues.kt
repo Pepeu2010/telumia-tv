@@ -59,7 +59,6 @@ internal fun decodeMdbListIds(value: JsonObject): MdbListIds {
         imdb = ids.text("imdb", "imdbid")?.takeIf { it.matches(Regex("tt[0-9]+")) },
         tmdb = ids.number("tmdb", "tmdbid")?.takeIf { it > 0L },
         tvdb = ids.number("tvdb", "tvdbid")?.takeIf { it > 0L },
-        trakt = ids.number("trakt", "traktid")?.takeIf { it > 0L },
         mdblist = ids.text("mdblist")
     ).also { it.key }
 }

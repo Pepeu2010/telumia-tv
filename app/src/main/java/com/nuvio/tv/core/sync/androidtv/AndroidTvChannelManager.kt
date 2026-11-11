@@ -317,7 +317,7 @@ class AndroidTvChannelManager @Inject constructor(
             }
             builder.setLastPlaybackPositionMillis(positionMs)
         } else if (progress.progressPercent != null && progress.progressPercent > 0f) {
-            // No real duration known (e.g. Simkl/Trakt sync), but we have a percent.
+            // No real duration known (e.g. Simkl sync), but we have a percent.
             // Use synthetic values so the launcher can render a progress bar.
             val syntheticDuration = 100_000
             val syntheticPosition = (progress.progressPercent / 100f * syntheticDuration).toInt()

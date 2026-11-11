@@ -107,6 +107,7 @@ class TrailerPlayerPoolTvTest {
                 val policy=player.trackSelectionParameters
                 assertEquals(1280,policy.maxVideoWidth); assertEquals(720,policy.maxVideoHeight)
                 assertEquals(4_000_000,policy.maxVideoBitrate)
+                assertTrue((policy as androidx.media3.exoplayer.trackselection.DefaultTrackSelector.Parameters).exceedVideoConstraintsIfNecessary)
                 assertFalse(player.playWhenReady)
             }
         } finally { instrumentation.runOnMainSync { if (created) pool.release() } }

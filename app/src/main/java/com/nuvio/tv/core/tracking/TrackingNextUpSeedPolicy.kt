@@ -43,9 +43,6 @@ internal fun selectPreferredTrackingNextUpSeed(
 }
 
 private fun trackingNextUpSeedSourceRank(progress: WatchProgress): Int = when (progress.source) {
-    WatchProgress.SOURCE_TRAKT_PLAYBACK -> 0
-    WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS -> 0
-    WatchProgress.SOURCE_TRAKT_HISTORY -> 1
     WatchProgress.SOURCE_LOCAL -> 2
     else -> 4
 }

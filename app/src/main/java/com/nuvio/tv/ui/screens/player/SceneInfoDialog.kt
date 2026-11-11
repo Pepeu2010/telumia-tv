@@ -37,13 +37,20 @@ import com.nuvio.tv.ui.theme.LocalUiMotion
 
 @Composable
 internal fun SceneInfoDialog(
-    entries: List<TvSceneInfoEntry>,
+    context: TvSceneInfoChapterContext,
+    onSeekTo: (Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val closeFocus = remember { FocusRequester() }
+    val chapterFocus = remember { FocusRequester() }
     val motion = LocalUiMotion.current
     val actionScale = ButtonDefaults.scale(focusedScale = motion.scale(1.03f), pressedScale = motion.scale(0.98f))
-    LaunchedEffect(Unit) { closeFocus.requestFocusAfterFrames() }
+    val initialFocusPosition = when {
+        context.current != null -> TvSceneInfoChapterPosition.CURRENT
+        context.next != null -> TvSceneInfoChapterPosition.NEXT
+        else -> TvSceneInfoChapterPosition.PREVIOUS
+    }
+    LaunchedEffect(context) { chapterFocus.requestFocusAfterFrames() }
 
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         BoxWithConstraints(Modifier.fillMaxSize().padding(24.dp)) {
@@ -82,35 +89,109 @@ internal fun SceneInfoDialog(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                entries.take(16).forEachIndexed { index, entry ->
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(NuvioTheme.colors.BackgroundCard, RoundedCornerShape(14.dp))
-                            .padding(horizontal = 20.dp, vertical = 16.dp)
-                            .testTag("scene-info-entry-$index"),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.scene_info_chapter),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = NuvioTheme.colors.TextSecondary,
-                        )
-                        Text(
-                            text = entry.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = NuvioTheme.colors.TextPrimary,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = formatSceneInfoTime(entry.startMs),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = NuvioTheme.colors.TextSecondary,
-                        )
-                    }
+                context.previous?.let { entry ->
+                    SceneInfoChapterAction(
+                        position = TvSceneInfoChapterPosition.PREVIOUS,
+                        entry = entry,
+                        focused = initialFocusPosition == TvSceneInfoChapterPosition.PREVIOUS,
+                        focusRequester = chapterFocus,
+                        scale = actionScale,
+                        onSeekTo = onSeekTo,
+                    )
+                }
+                context.current?.let { entry ->
+                    SceneInfoChapterAction(
+                        position = TvSceneInfoChapterPosition.CURRENT,
+                        entry = entry,
+                        focused = initialFocusPosition == TvSceneInfoChapterPosition.CURRENT,
+                        focusRequester = chapterFocus,
+                        scale = actionScale,
+                        onSeekTo = onSeekTo,
+                    )
+                } ?: Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(NuvioTheme.colors.BackgroundCard, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                        .testTag("scene-info-current-unavailable"),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.scene_info_current),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = NuvioTheme.colors.TextSecondary,
+                    )
+                    Text(
+                        text = stringResource(R.string.scene_info_no_current_chapter),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = NuvioTheme.colors.TextPrimary,
+                    )
+                }
+                context.next?.let { entry ->
+                    SceneInfoChapterAction(
+                        position = TvSceneInfoChapterPosition.NEXT,
+                        entry = entry,
+                        focused = initialFocusPosition == TvSceneInfoChapterPosition.NEXT,
+                        focusRequester = chapterFocus,
+                        scale = actionScale,
+                        onSeekTo = onSeekTo,
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SceneInfoChapterAction(
+    position: TvSceneInfoChapterPosition,
+    entry: TvSceneInfoEntry,
+    focused: Boolean,
+    focusRequester: FocusRequester,
+    scale: androidx.tv.material3.ButtonScale,
+    onSeekTo: (Long) -> Unit,
+) {
+    val label = when (position) {
+        TvSceneInfoChapterPosition.PREVIOUS -> stringResource(R.string.scene_info_previous)
+        TvSceneInfoChapterPosition.CURRENT -> stringResource(R.string.scene_info_current)
+        TvSceneInfoChapterPosition.NEXT -> stringResource(R.string.scene_info_next)
+    }
+    val focusModifier = if (focused) Modifier.focusRequester(focusRequester) else Modifier
+
+    Button(
+        onClick = { onSeekTo(entry.startMs) },
+        scale = scale,
+        modifier = focusModifier
+            .fillMaxWidth()
+            .testTag("scene-info-entry-${position.name.lowercase()}"),
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            androidx.compose.foundation.layout.Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = NuvioTheme.colors.TextSecondary,
+                )
+                Text(
+                    text = entry.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = NuvioTheme.colors.TextPrimary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                text = formatSceneInfoTime(entry.startMs),
+                style = MaterialTheme.typography.bodyMedium,
+                color = NuvioTheme.colors.TextSecondary,
+            )
         }
     }
 }

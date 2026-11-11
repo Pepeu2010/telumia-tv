@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.settings
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.LocalUiMotion
 
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RawRes
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -75,6 +77,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
@@ -86,6 +89,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -139,6 +143,7 @@ private const val NO_RAIL_FALLBACK = -1L
 private const val SETTINGS_TAB_FOCUS_SELECT_DELAY_MS = 140L
 private const val SETTINGS_DETAIL_ANIM_IN_DURATION_MS = 200
 private const val SETTINGS_DETAIL_ANIM_OUT_DURATION_MS = 180
+private val SettingsRailIndicatorClearance = 36.dp
 
 // The focus window has two parts: SETTINGS_DETAIL_FOCUS_DELAY_MS before the first request, then
 // this long retrying once per frame, so a category has both added together before focus falls
@@ -159,7 +164,7 @@ private fun settingsSectionSpec(category: SettingsCategory): SettingsSectionSpec
     SettingsCategory.PROFILES -> SettingsSectionSpec(category, stringResource(R.string.settings_profiles), Icons.Default.People, destination = SettingsSectionDestination.Inline)
     SettingsCategory.APPEARANCE -> SettingsSectionSpec(category, stringResource(R.string.appearance_title), Icons.Default.Palette, destination = SettingsSectionDestination.Inline)
     SettingsCategory.LAYOUT -> SettingsSectionSpec(category, stringResource(R.string.settings_layout), Icons.Default.GridView, destination = SettingsSectionDestination.Inline)
-    SettingsCategory.CONTENT_DISCOVERY -> SettingsSectionSpec(category, stringResource(R.string.settings_content_discovery), Icons.Default.Explore, destination = SettingsSectionDestination.Inline)
+    SettingsCategory.CONTENT_DISCOVERY -> SettingsSectionSpec(category, stringResource(R.string.settings_content_discovery_nav), Icons.Default.Explore, destination = SettingsSectionDestination.Inline)
     SettingsCategory.PLAYBACK -> SettingsSectionSpec(category, stringResource(R.string.settings_playback), Icons.Rounded.PlayArrow, destination = SettingsSectionDestination.Inline)
     SettingsCategory.INTEGRATION -> SettingsSectionSpec(category, stringResource(R.string.settings_integration), Icons.Default.Link, destination = SettingsSectionDestination.Inline)
     SettingsCategory.TRACKING -> SettingsSectionSpec(category, stringResource(R.string.settings_tracking_title), Icons.Default.Sync, destination = SettingsSectionDestination.External)
@@ -196,8 +201,43 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(NuvioTheme.colors.Background)
-        )
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            NuvioTheme.colors.Background,
+                            NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.42f),
+                            NuvioTheme.colors.Background
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(42.dp)
+                        .height(3.dp)
+                        .clip(RoundedCornerShape(SettingsPillRadius))
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(
+                                    NuvioTheme.colors.Secondary.copy(alpha = 0.35f),
+                                    NuvioTheme.colors.Secondary,
+                                    NuvioTheme.colors.SecondaryVariant.copy(alpha = 0.75f)
+                                )
+                            )
+                        )
+                )
+                androidx.tv.material3.Text(
+                    text = stringResource(R.string.account_loading),
+                    style = androidx.tv.material3.MaterialTheme.typography.bodyMedium,
+                    color = NuvioTheme.colors.TextSecondary
+                )
+            }
+        }
         return
     }
 
@@ -214,6 +254,8 @@ fun SettingsScreen(
 
     val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     val isHorizonStyle = NuvioTheme.settingsUiStyle == SettingsUiStyle.HORIZON
+    val compactHeight = LocalConfiguration.current.screenHeightDp < 440
+    val uiMotion = LocalUiMotion.current
     var selectedCategory by rememberSaveable {
         mutableStateOf(
             visibleSections.firstOrNull()?.category ?: SettingsCategory.APPEARANCE
@@ -405,17 +447,26 @@ fun SettingsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(NuvioTheme.colors.Background)
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        NuvioTheme.colors.Background,
+                        NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.28f),
+                        NuvioTheme.colors.Background
+                    )
+                )
+            )
             .padding(
                 start = NuvioTheme.spacing.xxl,
                 end = NuvioTheme.spacing.xxl,
-                top = if (showBuiltInHeader) NuvioTheme.spacing.xl else 68.dp,
+                top = if (showBuiltInHeader) NuvioTheme.spacing.xl else if (compactHeight) 44.dp else 68.dp,
                 bottom = NuvioTheme.spacing.xl
             )
     ) {
         SettingsWorkspaceSurface(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            classicContainer = false,
         ) {
 
             val onSectionClick: (SettingsSectionSpec) -> Unit = { section ->
@@ -473,14 +524,17 @@ fun SettingsScreen(
                             .onGloballyPositioned { topBarCoordinates = it }
                     ) {
                         focusedTabBounds?.let { bounds ->
-                            val glideSpec = tween<Float>(durationMillis = 250, easing = FastOutSlowInEasing)
+                            val glideSpec = tween<Float>(
+                                durationMillis = uiMotion.durationMillis(250),
+                                easing = FastOutSlowInEasing
+                            )
                             val pillLeft by animateFloatAsState(bounds.left, glideSpec, label = "pillLeft")
                             val pillTop by animateFloatAsState(bounds.top, glideSpec, label = "pillTop")
                             val pillWidth by animateFloatAsState(bounds.width, glideSpec, label = "pillWidth")
                             val pillHeight by animateFloatAsState(bounds.height, glideSpec, label = "pillHeight")
                             val pillAlpha by animateFloatAsState(
                                 targetValue = if (railHadFocus) 1f else 0f,
-                                animationSpec = tween(durationMillis = 200),
+                                animationSpec = tween(durationMillis = uiMotion.durationMillis(200)),
                                 label = "pillAlpha"
                             )
                             Box(
@@ -607,16 +661,25 @@ fun SettingsScreen(
                                 val order = visibleSections.map { it.category }
                                 val forward = order.indexOf(targetState) >= order.indexOf(initialState)
                                 val toStart = forward != isRtl
-                                (slideInHorizontally(
-                                    animationSpec = tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS, easing = FastOutSlowInEasing)
-                                ) { fullWidth -> if (toStart) fullWidth / 4 else -fullWidth / 4 } +
-                                    fadeIn(tween(SETTINGS_DETAIL_ANIM_IN_DURATION_MS)))
-                                    .togetherWith(
-                                        slideOutHorizontally(
-                                            animationSpec = tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS, easing = FastOutSlowInEasing)
-                                        ) { fullWidth -> if (toStart) -fullWidth / 4 else fullWidth / 4 } +
-                                            fadeOut(tween(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS))
-                                    )
+                                val enterDuration = uiMotion.durationMillis(SETTINGS_DETAIL_ANIM_IN_DURATION_MS)
+                                val exitDuration = uiMotion.durationMillis(SETTINGS_DETAIL_ANIM_OUT_DURATION_MS)
+                                val enter = if (uiMotion.allowsSpatialEffects) {
+                                    slideInHorizontally(
+                                        animationSpec = tween(enterDuration, easing = FastOutSlowInEasing)
+                                    ) { fullWidth -> if (toStart) fullWidth / 4 else -fullWidth / 4 } +
+                                        fadeIn(tween(enterDuration))
+                                } else {
+                                    fadeIn(tween(enterDuration))
+                                }
+                                val exit = if (uiMotion.allowsSpatialEffects) {
+                                    slideOutHorizontally(
+                                        animationSpec = tween(exitDuration, easing = FastOutSlowInEasing)
+                                    ) { fullWidth -> if (toStart) -fullWidth / 4 else fullWidth / 4 } +
+                                        fadeOut(tween(exitDuration))
+                                } else {
+                                    fadeOut(tween(exitDuration))
+                                }
+                                enter.togetherWith(exit)
                             },
                             label = "settingsDetailTransition"
                         ) { animatedCategory ->
@@ -667,6 +730,7 @@ fun SettingsScreen(
                             // no longer composed, which is what the retry there is for.
                             .focusRestorer()
                             .fillMaxSize()
+                            .padding(vertical = SettingsRailIndicatorClearance)
                             .onFocusChanged { state ->
                                 val justGainedFocus = !railHadFocus && state.hasFocus
                                 railHadFocus = state.hasFocus
@@ -734,7 +798,7 @@ fun SettingsScreen(
                             }
                         }
                     }
-                    SettingsVerticalScrollIndicators(state = railListState)
+                    SettingsVerticalScrollIndicators(state = railListState, alignToEnd = true)
                 }
 
                 Box(

@@ -124,7 +124,6 @@ import com.nuvio.tv.domain.model.MetaTrailer
 import com.nuvio.tv.domain.model.resolveContentLanguage
 import com.nuvio.tv.domain.model.MDBListRatings
 import com.nuvio.tv.domain.model.NextToWatch
-import com.nuvio.tv.domain.model.TraktCommentReview
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
 import com.nuvio.tv.ui.components.ErrorState
@@ -462,8 +461,6 @@ fun MetaDetailsScreen(
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsStateWithLifecycle(
         initialValue = false
     )
-    val selectedComment = uiState.selectedComment
-    var commentOverlayDirection by remember { mutableIntStateOf(0) }
     var restorePlayFocusAfterTrailerBackToken by rememberSaveable { mutableIntStateOf(0) }
     var restoreSharedTrailerFocusToken by rememberSaveable { mutableIntStateOf(0) }
     var isTrailerPaused by remember { mutableStateOf(false) }
@@ -489,10 +486,7 @@ fun MetaDetailsScreen(
 
     val childOverlayVisible = LocalDetailChildOverlayVisible.current
     BackHandler(enabled = !childOverlayVisible) {
-        if (selectedComment != null) {
-            commentOverlayDirection = 0
-            viewModel.onEvent(MetaDetailsEvent.OnDismissCommentOverlay)
-        } else if (uiState.isSharedTrailerOverlayVisible) {
+        if (uiState.isSharedTrailerOverlayVisible) {
             restoreSharedTrailerFocusToken += 1
             viewModel.onEvent(MetaDetailsEvent.OnDismissSharedTrailer)
         } else if (uiState.isTrailerPlaying) {
@@ -875,16 +869,6 @@ fun MetaDetailsScreen(
                     mdbListRatingOrder = uiState.mdbListRatingOrder,
                     isMdbListRatingsActive = uiState.isMdbListRatingsActive,
                     tmdbRating = uiState.tmdbRating,
-                    comments = uiState.comments,
-                    commentsCurrentPage = uiState.commentsCurrentPage,
-                    commentsPageCount = uiState.commentsPageCount,
-                    isCommentsLoading = uiState.isCommentsLoading,
-                    isCommentsLoadingMore = uiState.isCommentsLoadingMore,
-                    commentsError = uiState.commentsError,
-                    shouldShowCommentsSection = uiState.shouldShowCommentsSection,
-                    commentsMode = uiState.commentsMode,
-                    commentsEpisodeTarget = uiState.commentsEpisodeTarget,
-                    selectedComment = uiState.selectedComment,
                     onSeasonSelected = { viewModel.onEvent(MetaDetailsEvent.OnSeasonSelected(it)) },
                     onEpisodeClick = playEpisode,
                     onEpisodeManualPlayClick = playEpisodeManually,
@@ -1036,27 +1020,6 @@ fun MetaDetailsScreen(
                     onSharedTrailerSelected = { viewModel.onEvent(MetaDetailsEvent.OnSharedTrailerSelected(it)) },
                     onDismissSharedTrailer = { viewModel.onEvent(MetaDetailsEvent.OnDismissSharedTrailer) },
                     onRetrySharedTrailer = { viewModel.onEvent(MetaDetailsEvent.OnRetrySharedTrailer) },
-                    onRetryComments = { viewModel.onEvent(MetaDetailsEvent.OnRetryComments) },
-                    onLoadMoreComments = { viewModel.onEvent(MetaDetailsEvent.OnLoadMoreComments) },
-                    onCommentsModeSelected = { viewModel.onEvent(MetaDetailsEvent.OnCommentsModeSelected(it)) },
-                    onCommentsEpisodeSelected = { viewModel.onEvent(MetaDetailsEvent.OnCommentsEpisodeSelected(it)) },
-                    onCommentClick = {
-                        commentOverlayDirection = 0
-                        viewModel.onEvent(MetaDetailsEvent.OnCommentSelected(it))
-                    },
-                    onShowPreviousComment = {
-                        commentOverlayDirection = -1
-                        viewModel.onEvent(MetaDetailsEvent.OnAdvanceCommentOverlay(direction = -1))
-                    },
-                    onShowNextComment = {
-                        commentOverlayDirection = 1
-                        viewModel.onEvent(MetaDetailsEvent.OnAdvanceCommentOverlay(direction = 1))
-                    },
-                    onDismissCommentOverlay = {
-                        commentOverlayDirection = 0
-                        viewModel.onEvent(MetaDetailsEvent.OnDismissCommentOverlay)
-                    },
-                    commentOverlayDirection = commentOverlayDirection,
                     restorePlayFocusAfterTrailerBackToken = restorePlayFocusAfterTrailerBackToken,
                     restoreSharedTrailerFocusToken = restoreSharedTrailerFocusToken,
                     onSharedTrailerFocusRestored = { restoreSharedTrailerFocusToken = 0 },
@@ -1071,7 +1034,7 @@ fun MetaDetailsScreen(
         if (uiState.showListPicker) {
             val nuvioListTab = LibraryListTab(
                 key = LOCAL_LIBRARY_LIST_KEY,
-                title = stringResource(R.string.trakt_library_source_nuvio),
+                title = stringResource(R.string.tracking_library_source_nuvio),
                 type = LibraryListTab.Type.WATCHLIST
             )
             val contentType = uiState.meta?.apiType?.lowercase().orEmpty()
@@ -1201,16 +1164,6 @@ private fun MetaDetailsContent(
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
     isMdbListRatingsActive: Boolean,
     tmdbRating: Float?,
-    comments: List<TraktCommentReview>,
-    commentsCurrentPage: Int,
-    commentsPageCount: Int,
-    isCommentsLoading: Boolean,
-    isCommentsLoadingMore: Boolean,
-    commentsError: String?,
-    shouldShowCommentsSection: Boolean,
-    commentsMode: CommentsMode,
-    commentsEpisodeTarget: Video?,
-    selectedComment: TraktCommentReview?,
     onSeasonSelected: (Int) -> Unit,
     onEpisodeClick: (Video) -> Unit,
     onEpisodeManualPlayClick: (Video) -> Unit,
@@ -1253,15 +1206,6 @@ private fun MetaDetailsContent(
     onSharedTrailerSelected: (MetaTrailer) -> Unit,
     onDismissSharedTrailer: () -> Unit,
     onRetrySharedTrailer: () -> Unit,
-    onRetryComments: () -> Unit,
-    onLoadMoreComments: () -> Unit,
-    onCommentsModeSelected: (CommentsMode) -> Unit,
-    onCommentsEpisodeSelected: (Video) -> Unit,
-    onCommentClick: (TraktCommentReview) -> Unit,
-    onShowPreviousComment: () -> Unit,
-    onShowNextComment: () -> Unit,
-    onDismissCommentOverlay: () -> Unit,
-    commentOverlayDirection: Int,
     restorePlayFocusAfterTrailerBackToken: Int,
     restoreSharedTrailerFocusToken: Int,
     onSharedTrailerFocusRestored: () -> Unit,
@@ -1271,10 +1215,6 @@ private fun MetaDetailsContent(
     onPosterLongPress: (MetaPreview) -> Unit = {}
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
-    val canLoadMoreComments = commentsCurrentPage in 1 until commentsPageCount
-    val selectedCommentIndex = remember(comments, selectedComment?.id) {
-        selectedComment?.let { review -> comments.indexOfFirst { it.id == review.id } } ?: -1
-    }
     val isSeries = remember(meta.type, meta.videos) {
         meta.type == ContentType.SERIES || meta.videos.isNotEmpty()
     }
@@ -1300,7 +1240,6 @@ private fun MetaDetailsContent(
     val moreLikeThisListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val trailerListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val collectionListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
-    val commentsListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val networkLogosListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     val productionLogosListState = rememberLazyListState(prefetchStrategy = nestedPrefetchStrategy)
     var lastFocusedCastKey by rememberSaveable(meta.id) { mutableStateOf<String?>(null) }
@@ -1339,9 +1278,6 @@ private fun MetaDetailsContent(
     val moreLikeSectionFocusRequester = remember { FocusRequester() }
     val trailerSectionFocusRequester = remember { FocusRequester() }
     val collectionSectionFocusRequester = remember { FocusRequester() }
-    val commentsTitleModeFocusRequester = remember { FocusRequester() }
-    val commentsEpisodeModeFocusRequester = remember { FocusRequester() }
-    val commentsRowEntryFocusRequester = remember { FocusRequester() }
     val networkSectionFocusRequester = remember { FocusRequester() }
     val productionSectionFocusRequester = remember { FocusRequester() }
     var pendingRestoreType by rememberSaveable { mutableStateOf<RestoreTarget?>(null) }
@@ -1351,7 +1287,6 @@ private fun MetaDetailsContent(
     var pendingRestoreCollectionItemId by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingRestoreCompanyId by rememberSaveable { mutableStateOf<Int?>(null) }
     var restoreFocusToken by rememberSaveable { mutableIntStateOf(0) }
-    var commentsEntryFocusToken by rememberSaveable { mutableIntStateOf(0) }
     var companyRestoreToken by rememberSaveable { mutableIntStateOf(0) }
     var restoreOnNextResume by rememberSaveable { mutableStateOf(false) }
     var consumeReturnEpisodeFocusOnClear by rememberSaveable(meta.id) { mutableStateOf(false) }
@@ -1662,11 +1597,6 @@ private fun MetaDetailsContent(
         ) {
             collectionListState.scrollToItem(0)
         }
-        if (commentsListState.firstVisibleItemIndex != 0 ||
-            commentsListState.firstVisibleItemScrollOffset != 0
-        ) {
-            commentsListState.scrollToItem(0)
-        }
     }
 
     LaunchedEffect(
@@ -1859,7 +1789,6 @@ private fun MetaDetailsContent(
     val strTabCollection = stringResource(R.string.tmdb_collections_title)
     val moreLikeThisSourceLabel = when (moreLikeThisSource) {
         MoreLikeThisSource.TMDB -> stringResource(R.string.detail_more_like_this_powered_by_tmdb)
-        MoreLikeThisSource.TRAKT -> stringResource(R.string.detail_more_like_this_powered_by_trakt)
         MoreLikeThisSource.SIMKL -> stringResource(R.string.detail_more_like_this_powered_by_simkl)
         null -> null
     }
@@ -1929,22 +1858,6 @@ private fun MetaDetailsContent(
     val visiblePeopleTabItems = if (shouldSplitCollection) peopleTabItems.filterNot { it.tab == PeopleSectionTab.COLLECTION } else peopleTabItems
     val hasVisiblePeopleSection = visiblePeopleTabItems.isNotEmpty()
     val hasVisiblePeopleTabs = visiblePeopleTabItems.size > 1
-    val commentsItemIndex = remember(
-        isSeries,
-        seasons,
-        hasVisiblePeopleSection,
-        hasVisiblePeopleTabs
-    ) {
-        var index = 1
-        if (isSeries && seasons.isNotEmpty()) {
-            index += 2
-        }
-        if (hasVisiblePeopleSection) {
-            if (hasVisiblePeopleTabs) index += 1
-            index += 1
-        }
-        index
-    }
     val initialPeopleTab = when {
         availablePeopleTabs.contains(PeopleSectionTab.CAST) -> PeopleSectionTab.CAST
         availablePeopleTabs.isNotEmpty() -> availablePeopleTabs.first()
@@ -1993,7 +1906,7 @@ private fun MetaDetailsContent(
         activePeopleTab == PeopleSectionTab.RATINGS -> ratingsContentFocusRequester
         else -> null
     }
-    val commentsUpFocusRequester = when {
+    val sectionsBelowUpFocusRequester = when {
         shouldSplitCollection && collection.isNotEmpty() -> collectionSectionFocusRequester
         hasVisiblePeopleSection -> when (activePeopleTab) {
             PeopleSectionTab.CAST -> castSectionFocusRequester
@@ -2005,9 +1918,6 @@ private fun MetaDetailsContent(
         isSeries -> seasonDownFocusRequester ?: heroPlayFocusRequester
         else -> heroPlayFocusRequester
     }
-    val canToggleEpisodeComments = isSeries && episodesForSeason.isNotEmpty()
-    val commentsSelectedModeFocusRequester =
-        if (commentsMode == CommentsMode.EPISODE) commentsEpisodeModeFocusRequester else commentsTitleModeFocusRequester
 
     val visiblePeopleTabsList = visiblePeopleTabItems.map { it.tab }
     LaunchedEffect(visiblePeopleTabsList, pendingRestoreType, shouldSplitCollection) {
@@ -2082,24 +1992,6 @@ private fun MetaDetailsContent(
             onEpisodeManualPlayClick(video)
         }
     }
-    val episodeCommentsClick = remember(
-        onCommentsEpisodeSelected,
-        shouldShowCommentsSection
-    ) {
-        { video: Video ->
-            if (shouldShowCommentsSection) {
-                onCommentsEpisodeSelected(video)
-                commentsEntryFocusToken += 1
-            }
-            Unit
-        }
-    }
-
-    LaunchedEffect(commentsEntryFocusToken, shouldShowCommentsSection, commentsItemIndex) {
-        if (commentsEntryFocusToken <= 0 || !shouldShowCommentsSection) return@LaunchedEffect
-        listState.animateScrollToItem(commentsItemIndex)
-    }
-
     LaunchedEffect(
         pendingRestoreType,
         pendingRestoreEpisodeId,
@@ -2390,11 +2282,6 @@ private fun MetaDetailsContent(
                                     PeopleSectionTab.RATINGS -> ratingsContentFocusRequester
                                 }
                                 name == "collection_section" -> collectionSectionFocusRequester
-                                name == "trakt_comments" -> when {
-                                    comments.isNotEmpty() -> commentsRowEntryFocusRequester
-                                    canToggleEpisodeComments -> commentsSelectedModeFocusRequester
-                                    else -> commentsRowEntryFocusRequester
-                                }
                                 name == "networks" -> networkSectionFocusRequester
                                 name == "production" -> productionSectionFocusRequester
                                 else -> null
@@ -2553,8 +2440,6 @@ private fun MetaDetailsContent(
                             onMarkSeasonUnwatched = onMarkSeasonUnwatched,
                             isSeasonFullyWatched = isSeasonFullyWatched(selectedSeason),
                             selectedSeason = selectedSeason,
-                            onOpenEpisodeComments = episodeCommentsClick,
-                            showOpenEpisodeComments = shouldShowCommentsSection,
                             onMarkPreviousEpisodesWatched = onMarkPreviousEpisodesWatched,
                             upFocusRequester = if (showSeasonTabs) selectedSeasonFocusRequester else (heroPlayFocusRequester ?: heroPlayButtonFocusRequester),
                             downFocusRequester = episodesDownFocusRequester,
@@ -2665,7 +2550,7 @@ private fun MetaDetailsContent(
                                     title = if (hasVisiblePeopleTabs) "" else strTabCast,
                                     leadingCast = directorWriterMembers,
                                     upFocusRequester = if (hasVisiblePeopleTabs) castTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
-                                    downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
+                                    downFocusRequester = null,
                                     sectionFocusRequester = castSectionFocusRequester,
                                     restorePersonId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.CAST_MEMBER) pendingRestoreCastPersonId else null,
                                     restoreFocusToken = if (pendingRestoreType == RestoreTarget.CAST_MEMBER) restoreFocusToken else 0,
@@ -2680,7 +2565,7 @@ private fun MetaDetailsContent(
                                     },
                                     windowResetKey = meta.id,
                                     onCastMemberClick = { member ->
-                                        member.tmdbId?.let { id ->
+                                        member.tmdbId?.takeIf { it > 0 }?.let { id ->
                                             markCastMemberRestore(id)
                                             val preferCrew = member.character.equals("Creator", ignoreCase = true) ||
                                                 member.character.equals("Director", ignoreCase = true) ||
@@ -2699,7 +2584,7 @@ private fun MetaDetailsContent(
                                     sourceLabel = moreLikeThisSourceLabel,
                                     posterCardCornerRadius = posterCardCornerRadiusDp.dp,
                                     upFocusRequester = if (hasVisiblePeopleTabs) moreLikeTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
-                                    downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
+                                    downFocusRequester = null,
                                     sectionFocusRequester = moreLikeSectionFocusRequester,
                                     restoreItemId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.MORE_LIKE_THIS) pendingRestoreMoreLikeItemId else null,
                                     restoreFocusToken = if (pendingRestoreType == RestoreTarget.MORE_LIKE_THIS) restoreFocusToken else 0,
@@ -2732,7 +2617,6 @@ private fun MetaDetailsContent(
                                     upFocusRequester = if (hasVisiblePeopleTabs) trailerTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
                                     downFocusRequester = when {
                                         shouldSplitCollection && collection.isNotEmpty() -> collectionSectionFocusRequester
-                                        shouldShowCommentsSection && canToggleEpisodeComments -> commentsSelectedModeFocusRequester
                                         else -> null
                                     },
                                     sectionFocusRequester = trailerSectionFocusRequester,
@@ -2754,7 +2638,7 @@ private fun MetaDetailsContent(
                                     listState = collectionListState,
                                     posterCardCornerRadius = posterCardCornerRadiusDp.dp,
                                     upFocusRequester = if (hasVisiblePeopleTabs) collectionTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
-                                    downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
+                                    downFocusRequester = null,
                                     sectionFocusRequester = collectionSectionFocusRequester,
                                     restoreItemId = if (!childOverlayVisible && pendingRestoreType == RestoreTarget.COLLECTION) pendingRestoreCollectionItemId else null,
                                     restoreFocusToken = if (pendingRestoreType == RestoreTarget.COLLECTION) restoreFocusToken else 0,
@@ -2791,7 +2675,7 @@ private fun MetaDetailsContent(
                                     } else {
                                         seasonDownFocusRequester ?: heroPlayFocusRequester
                                     },
-                                    downFocusRequester = if (shouldShowCommentsSection && canToggleEpisodeComments) commentsSelectedModeFocusRequester else null,
+                                    downFocusRequester = null,
                                     firstItemFocusRequester = ratingsContentFocusRequester,
                                     ratingsGridFocusRequester = ratingsGridFocusRequester,
                                     modifier = Modifier.heightIn(min = if (!hasItemsBelow) castSectionHeight else NuvioTheme.spacing.none)
@@ -2846,40 +2730,6 @@ private fun MetaDetailsContent(
                 }
             }
 
-            if (shouldShowCommentsSection) {
-                item(key = "trakt_comments", contentType = "horizontal_row") {
-                    CommentsSection(
-                        comments = comments,
-                        commentsMode = commentsMode,
-                        canToggleEpisodeComments = canToggleEpisodeComments,
-                        titleModeFocusRequester = commentsTitleModeFocusRequester,
-                        episodeModeFocusRequester = commentsEpisodeModeFocusRequester,
-                        selectedEpisode = commentsEpisodeTarget,
-                        allEpisodes = meta.videos.filter { it.season != null && it.episode != null },
-                        selectedSeason = selectedSeason,
-                        availableSeasons = seasons,
-                        isLoading = isCommentsLoading,
-                        isLoadingMore = isCommentsLoadingMore,
-                        canLoadMore = canLoadMoreComments,
-                        error = commentsError,
-                        upFocusRequester = commentsUpFocusRequester,
-                        entryFocusToken = commentsEntryFocusToken,
-                        onEntryFocusHandled = {
-                            commentsEntryFocusToken = 0
-                        },
-                        onRetry = onRetryComments,
-                        onLoadMore = onLoadMoreComments,
-                        onCommentsModeSelected = onCommentsModeSelected,
-                        onEpisodeSelected = onCommentsEpisodeSelected,
-                        onCommentClick = onCommentClick,
-                        listState = commentsListState,
-                        windowResetKey = meta.id,
-                        rowEntryFocusRequester = commentsRowEntryFocusRequester,
-                        modifier = Modifier
-                    )
-                }
-            }
-
             if (isTvShow) {
                 if (meta.networks.isNotEmpty()) {
                     item(key = "networks", contentType = "horizontal_row") {
@@ -2893,16 +2743,12 @@ private fun MetaDetailsContent(
                             onLastFocusedCompanyIdChange = { lastFocusedNetworkCompanyId = it },
                             onRestoreFocusHandled = { clearPendingRestore() },
                             onCompanyFocused = { overflow -> onCompanyRowFocused(overflow) },
-                            upFocusRequester = if (shouldShowCommentsSection) {
-                                commentsRowEntryFocusRequester
-                            } else {
-                                commentsUpFocusRequester
-                            },
+                            upFocusRequester = sectionsBelowUpFocusRequester,
                             sectionFocusRequester = networkSectionFocusRequester,
                             allowPageScroll = ::allowCompanyPageScroll,
                             windowResetKey = meta.id,
                             onCompanyClick = { company ->
-                                company.tmdbId?.let { entityId ->
+                                company.tmdbId?.takeIf { it > 0 }?.let { entityId ->
                                     markCompanyRestore(entityId)
                                     onNavigateToTmdbEntityBrowse("network", entityId, company.name, meta.apiType)
                                 }
@@ -2924,15 +2770,14 @@ private fun MetaDetailsContent(
                             onRestoreFocusHandled = { clearPendingRestore() },
                             onCompanyFocused = { overflow -> onCompanyRowFocused(overflow) },
                             upFocusRequester = when {
-                                shouldShowCommentsSection && meta.networks.isEmpty() -> commentsRowEntryFocusRequester
-                                meta.networks.isEmpty() -> commentsUpFocusRequester
+                                meta.networks.isEmpty() -> sectionsBelowUpFocusRequester
                                 else -> null
                             },
                             sectionFocusRequester = productionSectionFocusRequester,
                             allowPageScroll = ::allowCompanyPageScroll,
                             windowResetKey = meta.id,
                             onCompanyClick = { company ->
-                                company.tmdbId?.let { entityId ->
+                                company.tmdbId?.takeIf { it > 0 }?.let { entityId ->
                                     markCompanyRestore(entityId)
                                     onNavigateToTmdbEntityBrowse("company", entityId, company.name, meta.apiType)
                                 }
@@ -2953,16 +2798,12 @@ private fun MetaDetailsContent(
                             onLastFocusedCompanyIdChange = { lastFocusedProductionCompanyId = it },
                             onRestoreFocusHandled = { clearPendingRestore() },
                             onCompanyFocused = { overflow -> onCompanyRowFocused(overflow) },
-                            upFocusRequester = if (shouldShowCommentsSection) {
-                                commentsRowEntryFocusRequester
-                            } else {
-                                commentsUpFocusRequester
-                            },
+                            upFocusRequester = sectionsBelowUpFocusRequester,
                             sectionFocusRequester = productionSectionFocusRequester,
                             allowPageScroll = ::allowCompanyPageScroll,
                             windowResetKey = meta.id,
                             onCompanyClick = { company ->
-                                company.tmdbId?.let { entityId ->
+                                company.tmdbId?.takeIf { it > 0 }?.let { entityId ->
                                     markCompanyRestore(entityId)
                                     onNavigateToTmdbEntityBrowse("company", entityId, company.name, meta.apiType)
                                 }
@@ -2984,15 +2825,14 @@ private fun MetaDetailsContent(
                             onRestoreFocusHandled = { clearPendingRestore() },
                             onCompanyFocused = { overflow -> onCompanyRowFocused(overflow) },
                             upFocusRequester = when {
-                                shouldShowCommentsSection && meta.productionCompanies.isEmpty() -> commentsRowEntryFocusRequester
-                                meta.productionCompanies.isEmpty() -> commentsUpFocusRequester
+                                meta.productionCompanies.isEmpty() -> sectionsBelowUpFocusRequester
                                 else -> null
                             },
                             sectionFocusRequester = networkSectionFocusRequester,
                             allowPageScroll = ::allowCompanyPageScroll,
                             windowResetKey = meta.id,
                             onCompanyClick = { company ->
-                                company.tmdbId?.let { entityId ->
+                                company.tmdbId?.takeIf { it > 0 }?.let { entityId ->
                                     markCompanyRestore(entityId)
                                     onNavigateToTmdbEntityBrowse("network", entityId, company.name, meta.apiType)
                                 }
@@ -3084,22 +2924,6 @@ private fun MetaDetailsContent(
                     }
                     onEpisodeStartFromBeginningClick(video)
                 }
-            )
-        }
-
-        selectedComment?.let { review ->
-            CommentOverlay(
-                review = review,
-                episode = if (commentsMode == CommentsMode.EPISODE) commentsEpisodeTarget else null,
-                canNavigatePrevious = selectedCommentIndex > 0,
-                canNavigateNext = selectedCommentIndex >= 0 && (
-                    selectedCommentIndex < comments.lastIndex || canLoadMoreComments || isCommentsLoadingMore
-                ),
-                isLoadingNext = isCommentsLoadingMore,
-                transitionDirection = commentOverlayDirection,
-                onPrevious = onShowPreviousComment,
-                onNext = onShowNextComment,
-                onDismiss = onDismissCommentOverlay
             )
         }
 

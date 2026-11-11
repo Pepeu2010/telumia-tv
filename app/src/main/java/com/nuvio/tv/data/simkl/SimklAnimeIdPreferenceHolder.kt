@@ -1,6 +1,6 @@
 package com.nuvio.tv.data.simkl
 
-import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.TrackingSettingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SimklAnimeIdPreferenceHolder @Inject constructor(
-    settingsDataStore: TraktSettingsDataStore
+    settingsDataStore: TrackingSettingsDataStore
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 

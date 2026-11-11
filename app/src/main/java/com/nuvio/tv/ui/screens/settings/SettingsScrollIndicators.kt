@@ -31,12 +31,13 @@ private val IndicatorEdgeInset = NuvioTheme.spacing.xxs
 @Composable
 internal fun BoxScope.SettingsVerticalScrollIndicators(
     state: ScrollableState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alignToEnd: Boolean = false
 ) {
     AnimatedVisibility(
         visible = state.canScrollBackward,
         modifier = modifier
-            .align(Alignment.TopCenter)
+            .align(if (alignToEnd) Alignment.TopEnd else Alignment.TopCenter)
             .padding(top = IndicatorEdgeInset),
         enter = fadeIn(animationSpec = tween(INDICATOR_FADE_MS)),
         exit = fadeOut(animationSpec = tween(INDICATOR_FADE_MS))
@@ -51,7 +52,7 @@ internal fun BoxScope.SettingsVerticalScrollIndicators(
     AnimatedVisibility(
         visible = state.canScrollForward,
         modifier = modifier
-            .align(Alignment.BottomCenter)
+            .align(if (alignToEnd) Alignment.BottomEnd else Alignment.BottomCenter)
             .padding(bottom = IndicatorEdgeInset),
         enter = fadeIn(animationSpec = tween(INDICATOR_FADE_MS)),
         exit = fadeOut(animationSpec = tween(INDICATOR_FADE_MS))

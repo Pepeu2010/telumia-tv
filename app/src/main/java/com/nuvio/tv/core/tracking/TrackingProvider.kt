@@ -5,7 +5,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 enum class TrackingProviderId(val storageId: String) {
-    TRAKT("trakt"),
     SIMKL("simkl"),
     MDBLIST("mdblist");
 

@@ -274,8 +274,8 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                 ProgressSnapshot(items, nextUpSeeds, hasLoaded)
             },
             combine(
-                traktSettingsDataStore.continueWatchingDaysCap,
-                traktSettingsDataStore.dismissedNextUpKeys,
+                trackingSettingsDataStore.continueWatchingDaysCap,
+                trackingSettingsDataStore.dismissedNextUpKeys,
                 layoutPreferenceDataStore.showUnairedNextUp,
                 layoutPreferenceDataStore.nextUpFromFurthestEpisode,
                 layoutPreferenceDataStore.continueWatchingSortMode
@@ -342,7 +342,7 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                 // Evict in-memory next-up caches for series that lost all seeds
                 // (e.g. user unmarked all episodes as watched).
                 // Skip eviction when seeds haven't loaded yet to avoid wiping
-                // valid cached items before Trakt responds.
+                // valid cached items before remote progress responds.
                 if (snapshot.hasLoadedRemoteProgress) {
                     synchronized(discoveredOlderNextUpItems) {
                         discoveredOlderNextUpItems.removeAll { it.info.contentId !in activeSeedContentIds }
@@ -359,7 +359,7 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                     cutoffMs = cutoffMs
                 )
 
-                // Load cached CW snapshots for instant render before Trakt responds
+                // Load cached CW snapshots for instant render before remote progress responds
                 val (cachedNextUp, cachedInProgress) = coroutineScope {
                     val nextUpDeferred = async(Dispatchers.IO) {
                         runCatching { cwEnrichmentCache.getNextUpSnapshot() }.getOrDefault(emptyList())
@@ -648,7 +648,7 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                                     } else if (!snapshot.hasLoadedRemoteProgress && state.continueWatchingItems.isNotEmpty()) {
                                         // Don't overwrite with partial data until remote progress
                                         // has loaded. Partial next-up resolution should not replace
-                                        // cached items that include Trakt in-progress entries.
+                                        // cached items that include remote in-progress entries.
                                         state
                                     } else {
                                         state.copy(continueWatchingItems = partialMain, upcomingItems = partialUpcoming)
@@ -691,13 +691,12 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                     val showIdSiblings = watchProgressRepository.getShowIdSiblings()
                     cwLastShowIdSiblings = showIdSiblings
 
-                    // Deduplicate IDs using Trakt's sibling mapping (IMDB ↔ TMDB from
+                    // Deduplicate IDs using the provider sibling mapping (IMDB ↔ TMDB from
                     // the same show). Resolve meta once per show, then cross-cache the
                     // result under all sibling IDs. When multiple TMDB shows share the
-                    // same IMDB (e.g. Trakt season splits), they have separate Trakt
+                    // same IMDB (e.g. season splits), they have separate
                     // entries with distinct sibling sets, so they won't collide.
                     val resolvableIds = allWatchedEpisodes.keys.filter { contentId ->
-                        if (contentId.startsWith("trakt:")) return@filter false
                         val cacheKey = "series:$contentId"
                         synchronized(cwBadgeEpisodeCache) {
                             !cwBadgeEpisodeCache.containsKey(cacheKey) &&
@@ -718,7 +717,7 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
                         val siblings = showIdSiblings[id]
                         val group = if (siblings != null && "__ambiguous__" !in siblings) {
                             val cluster = (siblings + id)
-                                .filter { it in resolvableIds && !it.startsWith("trakt:") && it !in ambiguousIds }
+                                .filter { it in resolvableIds && it !in ambiguousIds }
                             if (cluster.isEmpty()) listOf(id)
                             else cluster.sortedBy { if (it.startsWith("tt")) 0 else 1 }
                         } else {
@@ -1078,7 +1077,7 @@ internal fun HomeViewModel.loadContinueWatchingPipeline() {
 
                 _uiState.update { state ->
                     // Don't overwrite cached CW with empty data while sources are still loading.
-                    // Once remote progress is confirmed loaded (Nuvio Sync completed or Trakt
+                    // Once remote progress is confirmed loaded (Nuvio Sync completed or a remote provider
                     // responded), trust the empty result — items may have been deleted remotely.
                     val shouldProtectCache = normalMain.isEmpty() && normalUpcoming.isEmpty() &&
                         state.continueWatchingItems.isNotEmpty() &&
@@ -1208,9 +1207,7 @@ private fun shouldTreatAsInProgressForContinueWatching(progress: WatchProgress):
 
     val hasStartedPlayback = progress.position > 0L ||
         progress.progressPercent?.let { it > 0f } == true
-    return hasStartedPlayback &&
-        progress.source != WatchProgress.SOURCE_TRAKT_HISTORY &&
-        progress.source != WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS
+    return hasStartedPlayback
 }
 
 internal fun HomeViewModel.shouldUseAsCompletedSeed(progress: WatchProgress): Boolean {
@@ -1255,9 +1252,6 @@ private fun WatchProgress.toNextUpTraceString(): String {
 
 private fun nextUpSeedSourceRank(progress: WatchProgress): Int {
     return when (progress.source) {
-        WatchProgress.SOURCE_TRAKT_PLAYBACK -> 0
-        WatchProgress.SOURCE_TRAKT_SHOW_PROGRESS -> 0
-        WatchProgress.SOURCE_TRAKT_HISTORY -> 1
         WatchProgress.SOURCE_LOCAL -> 2
         else -> 4
     }
@@ -1267,7 +1261,7 @@ private fun isMalformedNextUpSeedContentId(contentId: String?): Boolean {
     val trimmed = contentId?.trim().orEmpty()
     if (trimmed.isEmpty()) return true
     return when (trimmed.lowercase(Locale.US)) {
-        "tmdb", "imdb", "trakt", "tmdb:", "imdb:", "trakt:" -> true
+        "tmdb", "imdb", "tmdb:", "imdb:" -> true
         else -> false
     }
 }
@@ -1346,7 +1340,7 @@ private fun resolveVideoForProgress(progress: WatchProgress, meta: CwMetaSummary
         videos.firstOrNull { it.season == season && it.episode == episode }?.let { return it }
 
         // Fallback: if not found by season+episode (anime with absolute numbering
-        // on Trakt vs multi-season on addon), try global index matching.
+        // on the provider vs multi-season on addon), try global index matching.
         val addonSeasons = videos.mapTo(mutableSetOf()) { it.season }
         if (season == 1 && addonSeasons.size > 1 && episode > 0) {
             val sorted = videos.sortedWith(
@@ -1471,7 +1465,7 @@ private suspend fun HomeViewModel.buildLightweightNextUpItems(
         launch(Dispatchers.IO) {
             lookupSemaphore.withPermit {
                 processedContentIds.add(progress.contentId)
-                // Remap seed from Trakt numbering to addon numbering (for anime).
+                // Remap seed from provider numbering to addon numbering (for anime).
                 // Done here (after filters) so only ~5-10 seeds are remapped, not all 189.
                 val remappedProgress = watchProgressRepository.prepareNextUpSeed(progress)
                 val nextUp = buildNextUpItem(
@@ -2531,10 +2525,6 @@ private suspend fun HomeViewModel.resolveBadgeEpisodes(
         return episodes
     }
 
-    if (contentId.startsWith("trakt:")) {
-        synchronized(cwBadgeEpisodeCache) { cwBadgeEpisodeCache[cacheKey] = null }
-        return null
-    }
     val idCandidates = buildList {
         add(contentId)
         if (contentId.startsWith("tmdb:")) add(contentId.substringAfter(':'))
@@ -3075,8 +3065,6 @@ private suspend fun HomeViewModel.resolveTmdbIdForNextUp(
         add(progress.contentId)
         add(meta.id)
         add(progress.videoId)
-        if (progress.contentId.startsWith("trakt:")) add(progress.contentId.substringAfter(':'))
-        if (meta.id.startsWith("trakt:")) add(meta.id.substringAfter(':'))
     }
         .map { it.trim() }
         .filter { it.isNotBlank() }
@@ -3230,7 +3218,7 @@ internal fun HomeViewModel.removeContinueWatchingPipeline(
             )
         }
         viewModelScope.launch {
-            traktSettingsDataStore.addDismissedNextUpKey(dismissKey)
+            trackingSettingsDataStore.addDismissedNextUpKey(dismissKey)
         }
         return
     }

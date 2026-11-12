@@ -61,11 +61,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-private val Live = Color(0xFFFF4D4F)
-
 private sealed interface GamesFilter {
     data object All : GamesFilter
-    data object Live : GamesFilter
+    data object OnlyLive : GamesFilter
     data object InGuide : GamesFilter
     data class Group(val group: SportsGroup) : GamesFilter
 }
@@ -98,7 +96,7 @@ internal fun LiveTvGamesView(
         games.filter { game ->
             when (val f = filter) {
                 GamesFilter.All -> true
-                GamesFilter.Live -> game.state == GameState.LIVE
+                GamesFilter.OnlyLive -> game.state == GameState.LIVE
                 GamesFilter.InGuide -> broadcasts.containsKey(game.id)
                 is GamesFilter.Group -> game.league.group == f.group
             }
@@ -112,12 +110,13 @@ internal fun LiveTvGamesView(
 
     Column(modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            Column(Modifier.weight(1f)) {
-                Text(stringResource(R.string.live_tv_games_title), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text(dateText.replaceFirstChar { it.titlecase() }, style = MaterialTheme.typography.titleMedium, color = NuvioTheme.colors.TextSecondary)
-            }
-            if (liveCount > 0) GamesPill("● " + stringResource(R.string.live_tv_games_live_count, liveCount), Live)
-            GamesPill(stringResource(R.string.live_tv_games_count, games.size), NuvioTheme.colors.TextSecondary)
+            Text(
+                dateText.replaceFirstChar { it.titlecase() } + "  |  " + stringResource(R.string.live_tv_games_count, games.size),
+                modifier = Modifier.weight(1f),
+                style = scoreboard(30, 1.5f),
+                color = NuvioTheme.colors.TextSecondary,
+                maxLines = 1,
+            )
             LiveTvChip(
                 if (loading) stringResource(R.string.live_tv_games_updating)
                 else stringResource(R.string.live_tv_games_refresh, if (updatedMillis > 0) timeFormat.format(Instant.ofEpochMilli(updatedMillis)) else "--:--"),
@@ -131,7 +130,7 @@ internal fun LiveTvGamesView(
             item { LiveTvChip(stringResource(R.string.live_tv_games_tomorrow), dayOffset == 1) { onDayChange(1) } }
             item { Spacer(Modifier.width(18.dp)) }
             item { LiveTvChip(stringResource(R.string.live_tv_games_all), filter == GamesFilter.All) { filter = GamesFilter.All } }
-            if (liveCount > 0) item { LiveTvChip(stringResource(R.string.live_tv_games_live), filter == GamesFilter.Live) { filter = GamesFilter.Live } }
+            if (liveCount > 0) item { LiveTvChip(stringResource(R.string.live_tv_games_live), filter == GamesFilter.OnlyLive) { filter = GamesFilter.OnlyLive } }
             if (broadcasts.isNotEmpty()) item { LiveTvChip(stringResource(R.string.live_tv_games_in_guide), filter == GamesFilter.InGuide) { filter = GamesFilter.InGuide } }
             items(groups, key = { it.name }) { group ->
                 LiveTvChip(group.label, filter == GamesFilter.Group(group)) { filter = GamesFilter.Group(group) }
@@ -148,16 +147,24 @@ internal fun LiveTvGamesView(
         }
 
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            val featured = if (filter == GamesFilter.All || filter == GamesFilter.OnlyLive)
+                shown.firstOrNull { it.state == GameState.LIVE } ?: shown.firstOrNull { it.state == GameState.UPCOMING }
+            else null
+            featured?.let { game ->
+                item(key = "featured") {
+                    GameCard(game, broadcasts[game.id], timeFormat, onWatch, featured = true, modifier = Modifier.fillMaxWidth())
+                }
+            }
             items(sections, key = { it.first.slug }) { (league, leagueGames) ->
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box(Modifier.width(4.dp).height(22.dp).clip(RoundedCornerShape(2.dp)).background(NuvioTheme.colors.Secondary))
-                        Text(league.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                        Text(league.name.uppercase(), style = scoreboard(30, 1.5f))
                         Text("${league.sport} • ${leagueGames.size}", style = MaterialTheme.typography.labelLarge, color = NuvioTheme.colors.TextSecondary)
                     }
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         items(leagueGames, key = { it.id }) { game ->
-                            GameCard(game, broadcasts[game.id], timeFormat, onWatch)
+                            GameCard(game, broadcasts[game.id], timeFormat, onWatch, modifier = Modifier.width(330.dp))
                         }
                     }
                 }
@@ -181,45 +188,54 @@ private fun GameCard(
     broadcast: GameBroadcast?,
     timeFormat: DateTimeFormatter,
     onWatch: (LiveTvChannel) -> Unit,
+    featured: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(if (featured) 28.dp else 22.dp)
     val awayColor = remember(game.away.colorHex) { parseTeamColor(game.away.colorHex) }
     val homeColor = remember(game.home.colorHex) { parseTeamColor(game.home.colorHex) }
+    val crest = if (featured) 84.dp else 60.dp
     Surface(
         onClick = { broadcast?.let { onWatch(it.channel) } },
-        modifier = Modifier.width(340.dp),
+        modifier = modifier,
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
-        colors = ClickableSurfaceDefaults.colors(
-            containerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-        ),
+        colors = ClickableSurfaceDefaults.colors(containerColor = Color.Transparent, focusedContainerColor = Color.Transparent),
         border = ClickableSurfaceDefaults.border(
             border = Border(BorderStroke(1.dp, Color.White.copy(alpha = 0.08f)), shape = shape),
             focusedBorder = Border(BorderStroke(3.dp, NuvioTheme.focusRing.solidColor), shape = shape),
         ),
     ) {
         Box(
-            Modifier.fillMaxWidth().background(Color(0xFF12181D))
-                .background(Brush.horizontalGradient(listOf(awayColor.copy(alpha = 0.30f), Color.Transparent, homeColor.copy(alpha = 0.30f))))
-                .padding(16.dp)
+            Modifier.fillMaxWidth().background(Color(0xFF10161B))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(awayColor.copy(alpha = if (featured) 0.55f else 0.34f), Color.Transparent, homeColor.copy(alpha = if (featured) 0.55f else 0.34f))
+                    )
+                )
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.35f))))
+                .padding(if (featured) 18.dp else 16.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatusRow(game, timeFormat)
-                TeamRow(game.away, game.state)
-                TeamRow(game.home, game.state)
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(if (featured) 8.dp else 10.dp)) {
+                StatusRow(game, featured)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Crest(game.away, crest, Modifier.weight(1f), featured)
+                    Scoreboard(game, timeFormat, featured)
+                    Crest(game.home, crest, Modifier.weight(1f), featured)
+                }
                 when {
                     broadcast != null -> Box(
-                        Modifier.clip(RoundedCornerShape(50)).background(NuvioTheme.colors.Secondary)
-                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                        Modifier.clip(RoundedCornerShape(50)).background(OnAirGreen)
+                            .padding(horizontal = 16.dp, vertical = 7.dp)
                     ) {
                         Text(
                             stringResource(R.string.live_tv_games_watch, broadcast.channel.displayName),
-                            style = MaterialTheme.typography.labelLarge, color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold,
+                            color = Color(0xFF04110B), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                     }
                     game.broadcasts.isNotEmpty() -> Text(
-                        game.broadcasts.take(3).joinToString(" • "),
+                        game.broadcasts.take(3).joinToString("  |  "),
                         style = MaterialTheme.typography.labelMedium, color = NuvioTheme.colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                     else -> Text(
@@ -233,56 +249,74 @@ private fun GameCard(
 }
 
 @Composable
-private fun StatusRow(game: SportsGame, timeFormat: DateTimeFormatter) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+private fun StatusRow(game: SportsGame, featured: Boolean) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         when (game.state) {
             GameState.LIVE -> {
                 val pulse by rememberInfiniteTransition(label = "live").animateFloat(
                     initialValue = 1f, targetValue = 0.25f,
                     animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse",
                 )
-                Box(Modifier.size(10.dp).alpha(pulse).clip(CircleShape).background(Live))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    stringResource(R.string.live_tv_games_live_label) + game.statusText.takeIf(String::isNotBlank)?.let { "  $it" }.orEmpty(),
-                    style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = Live, maxLines = 1,
-                )
+                Box(Modifier.clip(RoundedCornerShape(6.dp)).background(LiveRed).padding(horizontal = 10.dp, vertical = 3.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(8.dp).alpha(pulse).clip(CircleShape).background(Color.White))
+                        Spacer(Modifier.width(7.dp))
+                        Text(stringResource(R.string.live_tv_games_live_label), style = scoreboard(if (featured) 24 else 18, 1f), color = Color.White)
+                    }
+                }
+                game.statusText.takeIf(String::isNotBlank)?.let {
+                    Spacer(Modifier.width(10.dp))
+                    Text(it, style = scoreboard(if (featured) 26 else 20, 1f), color = LiveRed)
+                }
             }
             GameState.UPCOMING -> Text(
-                timeFormat.format(Instant.ofEpochMilli(game.startMillis)) + game.statusText.takeIf(String::isNotBlank)?.let { "  $it" }.orEmpty(),
-                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = NuvioTheme.colors.Secondary,
+                game.league.name.uppercase(), style = scoreboard(if (featured) 22 else 17, 1.5f),
+                color = NuvioTheme.colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             GameState.FINISHED -> Text(
-                stringResource(R.string.live_tv_games_finished),
-                style = MaterialTheme.typography.labelLarge, color = NuvioTheme.colors.TextSecondary,
+                stringResource(R.string.live_tv_games_finished).uppercase(), style = scoreboard(if (featured) 22 else 17, 1.5f),
+                color = NuvioTheme.colors.TextSecondary,
             )
         }
     }
 }
 
 @Composable
-private fun TeamRow(team: SportsTeam, state: GameState) {
-    val dim = state == GameState.FINISHED && !team.isWinner
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+private fun Crest(team: SportsTeam, size: androidx.compose.ui.unit.Dp, modifier: Modifier, featured: Boolean) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.size(size), contentAlignment = Alignment.Center) {
             if (team.logoUrl != null) AsyncImage(
                 model = team.logoUrl, contentDescription = null, contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize(),
-            ) else Text(team.abbreviation.take(3), style = MaterialTheme.typography.labelLarge, color = NuvioTheme.colors.TextSecondary)
+            ) else Text(team.abbreviation.take(3), style = scoreboard(28), color = NuvioTheme.colors.TextSecondary)
         }
         Text(
             team.name,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = if (team.isWinner) FontWeight.Bold else FontWeight.Medium,
-            color = if (dim) NuvioTheme.colors.TextSecondary else NuvioTheme.colors.TextPrimary,
-            maxLines = 1, overflow = TextOverflow.Ellipsis,
+            style = if (featured) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = NuvioTheme.colors.TextPrimary,
+            maxLines = 2, overflow = TextOverflow.Ellipsis,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
-        if (state != GameState.UPCOMING) {
-            Text(
-                team.score ?: "-",
-                style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
-                color = if (dim) NuvioTheme.colors.TextSecondary else NuvioTheme.colors.TextPrimary,
-            )
+    }
+}
+
+/** Centre of the card: the score once the game has started, the kick-off time before it. */
+@Composable
+private fun Scoreboard(game: SportsGame, timeFormat: DateTimeFormatter, featured: Boolean) {
+    val big = if (featured) 70 else 50
+    if (game.state == GameState.UPCOMING) {
+        Text(
+            timeFormat.format(Instant.ofEpochMilli(game.startMillis)),
+            style = scoreboard(if (featured) 60 else 42, 1f), color = NuvioTheme.colors.Secondary,
+            modifier = Modifier.padding(horizontal = if (featured) 28.dp else 12.dp),
+        )
+    } else {
+        val dim = NuvioTheme.colors.TextSecondary
+        val finished = game.state == GameState.FINISHED
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = if (featured) 28.dp else 8.dp)) {
+            Text(game.away.score ?: "-", style = scoreboard(big, 1f), color = if (finished && game.home.isWinner) dim else Color.White)
+            Text(" : ", style = scoreboard(big, 1f), color = dim)
+            Text(game.home.score ?: "-", style = scoreboard(big, 1f), color = if (finished && game.away.isWinner) dim else Color.White)
         }
     }
 }

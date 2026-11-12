@@ -132,12 +132,17 @@ fun LiveTvScreen(
         }.toMap()
     }
 
-    if (selectedMode == LiveTvMode.GAMES) {
-        Column(
-            modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+    val modeBar: @Composable () -> Unit = {
+        LiveTvTopBar(
+            title = stringResource(R.string.live_tv_title),
+            stats = buildList {
+                state.games.count { it.state == com.nuvio.tv.core.sports.GameState.LIVE }.takeIf { it > 0 }
+                    ?.let { add("● " + stringResource(R.string.live_tv_games_live_count, it)) }
+                if (state.isLoadingGuide) add(stringResource(R.string.live_tv_guide_loading))
+                else if (state.guideTotalChannels > 0) add("EPG ${state.guideMatchedChannels}/${state.guideTotalChannels}")
+            },
         ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 14.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
                     LiveTvChip(stringResource(mode.label), selectedMode == mode) {
                         if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
@@ -145,6 +150,15 @@ fun LiveTvScreen(
                     }
                 }
             }
+        }
+    }
+
+    if (selectedMode == LiveTvMode.GAMES) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            modeBar()
             LiveTvGamesView(
                 games = state.games,
                 broadcasts = gameBroadcasts,
@@ -167,14 +181,7 @@ fun LiveTvScreen(
             modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 14.dp)) {
-                items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
-                    LiveTvChip(stringResource(mode.label), selectedMode == mode) {
-                        if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
-                        selectedMode = mode
-                    }
-                }
-            }
+            modeBar()
             LiveTvGuideView(
                 channels = allChannels,
                 favoriteIds = state.favoriteChannelIds,
@@ -192,29 +199,7 @@ fun LiveTvScreen(
         modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        item {
-            LiveTvHeader(
-                title = stringResource(R.string.live_tv_title),
-                subtitle = stringResource(R.string.live_tv_description_addons),
-                stats = buildList {
-                    if (allChannels.isNotEmpty()) add(stringResource(R.string.live_tv_channels, allChannels.size))
-                    state.games.count { it.state == com.nuvio.tv.core.sports.GameState.LIVE }.takeIf { it > 0 }
-                        ?.let { add("● " + stringResource(R.string.live_tv_games_live_count, it)) }
-                    if (state.isLoadingGuide) add(stringResource(R.string.live_tv_guide_loading))
-                    else if (state.guideTotalChannels > 0) add(stringResource(R.string.live_tv_guide_coverage, state.guideMatchedChannels, state.guideTotalChannels))
-                },
-            )
-        }
-        item {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(vertical = 6.dp)) {
-                items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
-                    LiveTvChip(stringResource(mode.label), selectedMode == mode) {
-                        if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
-                        selectedMode = mode
-                    }
-                }
-            }
-        }
+        item { modeBar() }
         if (state.isLoading) item { Text(stringResource(R.string.live_tv_loading), color = NuvioTheme.colors.TextSecondary) }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
         if (state.backgroundRefreshUnavailable) {
@@ -406,6 +391,8 @@ fun LiveTvScreen(
                 },
                 name = channel.displayName,
                 addonName = channel.addonDisplayName,
+                art = current?.iconUrl,
+                onAir = current != null,
                 details = {
                     if (selectedMode == LiveTvMode.CHANNELS) {
                         if (!channel.isPlayable) Text(stringResource(R.string.live_tv_no_current_program),

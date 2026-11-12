@@ -320,6 +320,7 @@ private fun GuideRow(
                             requester = if (isCurrent || (currentIndex < 0 && index == 0)) firstFocus else null,
                             onFocus = { onFocus(program, startPx, endPx) },
                             onClick = onPlay,
+                            accent = genreAccent(program.category),
                         )
                     }
                 }
@@ -339,6 +340,7 @@ private fun GuideBlock(
     requester: FocusRequester?,
     onFocus: () -> Unit,
     onClick: () -> Unit,
+    accent: Color? = null,
 ) {
     Surface(
         onClick = onClick,
@@ -356,7 +358,8 @@ private fun GuideBlock(
         ),
     ) {
         Box(Modifier.fillMaxSize()) {
-            Column(Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.Center) {
+            if (accent != null) Box(Modifier.align(Alignment.CenterStart).width(4.dp).fillMaxHeight().background(accent))
+            Column(Modifier.fillMaxSize().padding(start = if (accent != null) 16.dp else 12.dp, end = 12.dp, top = 6.dp, bottom = 6.dp), verticalArrangement = Arrangement.Center) {
                 Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (timeLabel != null && widthMinutes >= 40) {
                     Text(timeLabel, style = MaterialTheme.typography.labelSmall, color = NuvioTheme.colors.TextSecondary, maxLines = 1)
@@ -430,5 +433,18 @@ private fun GuidePreview(
                 modifier = Modifier.fillMaxSize().then(if (program?.iconUrl.isNullOrBlank()) Modifier.padding(28.dp) else Modifier),
             ) else Text(channel?.displayName?.take(2)?.uppercase().orEmpty(), style = MaterialTheme.typography.displaySmall, color = NuvioTheme.colors.TextSecondary)
         }
+    }
+}
+
+/** A thin colour per genre so the grid can be scanned: news, sport, film, kids, series. */
+private fun genreAccent(category: String?): Color? {
+    val c = category?.lowercase() ?: return null
+    return when {
+        listOf("news", "notic", "jornal").any(c::contains) -> Color(0xFF4DA3FF)
+        listOf("sport", "espor", "futebol", "soccer").any(c::contains) -> Color(0xFF3DDC97)
+        listOf("movie", "film", "cine").any(c::contains) -> Color(0xFFB57BFF)
+        listOf("kid", "child", "infan", "anim", "cartoon").any(c::contains) -> Color(0xFFFFD84D)
+        listOf("series", "serie", "drama", "novela").any(c::contains) -> Color(0xFFFFA24D)
+        else -> null
     }
 }

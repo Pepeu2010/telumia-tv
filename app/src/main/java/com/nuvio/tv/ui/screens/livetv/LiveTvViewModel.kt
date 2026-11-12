@@ -241,7 +241,15 @@ class LiveTvViewModel @Inject constructor(
         loadGuide()
     }
 
-    private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog): AddonCatalogLoad =
+    /** One quiet retry: an add-on that is still waking up often answers the second request. */
+    private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog): AddonCatalogLoad {
+        val first = loadAddonCatalogOnce(request)
+        if (!first.failed) return first
+        kotlinx.coroutines.delay(1_500L)
+        return loadAddonCatalogOnce(request)
+    }
+
+    private suspend fun loadAddonCatalogOnce(request: LiveTvAddonCatalog): AddonCatalogLoad =
         try {
             val result = catalogRepository.getCatalog(
                 addonBaseUrl = request.addon.baseUrl,

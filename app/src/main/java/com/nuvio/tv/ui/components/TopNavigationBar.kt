@@ -173,6 +173,8 @@ fun TopNavigationBar(
                 contentAlignment = Alignment.Center
             ) {
                 val selectedIndex = items.indexOfFirst { it.route == selectedRoute }.coerceAtLeast(0)
+                var navigationHasFocus by remember { mutableStateOf(false) }
+                var focusedRoute by remember { mutableStateOf<String?>(null) }
                 val selectedIndicatorOffset by animateDpAsState(
                     targetValue = 12.dp + navigationItemWidths.take(selectedIndex).fold(0.dp) { total, width -> total + width } +
                         itemSpacing * selectedIndex,
@@ -189,6 +191,7 @@ fun TopNavigationBar(
                         .clip(RoundedCornerShape(50))
                         .background(Color(0xDA070707))
                         .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(50))
+                        .onFocusChanged { navigationHasFocus = it.hasFocus }
                         .focusGroup(),
                 ) {
                     Box(
@@ -214,11 +217,27 @@ fun TopNavigationBar(
                                 selectedItemFocusRequester = selectedItemFocusRequester.takeIf { item.route == selectedRoute },
                                 onClick = { onNavigate(item.route) },
                                 onMoveToContent = onMoveToContent,
-                                onNavigationItemFocused = onNavigationItemFocused,
+                                onNavigationItemFocused = { route ->
+                                    focusedRoute = route
+                                    onNavigationItemFocused(route)
+                                },
                                 modifier = Modifier.width(navigationItemWidths[index])
                             )
                         }
                     }
+                }
+                // Icons alone are hard to learn; name the focused destination under the capsule.
+                val labelRoute = focusedRoute ?: selectedRoute
+                val focusedLabel = items.firstOrNull { it.route == labelRoute }?.label.orEmpty()
+                if (navigationHasFocus && focusedLabel.isNotBlank()) {
+                    Text(
+                        text = focusedLabel,
+                        modifier = Modifier.align(Alignment.BottomCenter).offset(y = 22.dp),
+                        color = NuvioTheme.colors.TextPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                    )
                 }
             }
 

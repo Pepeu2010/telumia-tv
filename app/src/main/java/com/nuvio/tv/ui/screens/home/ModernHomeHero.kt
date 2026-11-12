@@ -404,9 +404,9 @@ internal fun HeroTitleContent(
         lineHeight = if (shortViewport) 25.sp else if (compact) 32.sp else 39.sp,
         fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp,
         textDirection = preview.title.contentTextDirection())
-    val contextLine = remember(preview.contentTypeText, preview.yearText, preview.runtimeText, preview.genres, context) {
+    val contextHead = preview.contentTypeText?.takeIf(String::isNotBlank).orEmpty()
+    val contextTail = remember(preview.yearText, preview.runtimeText, preview.genres, context) {
         buildList {
-            preview.contentTypeText?.takeIf(String::isNotBlank)?.let(::add)
             preview.yearText?.takeIf(String::isNotBlank)?.let(::add)
             preview.runtimeText?.takeIf(String::isNotBlank)?.let(::add)
             preview.genres.firstOrNull()?.takeIf(String::isNotBlank)?.let {
@@ -451,9 +451,21 @@ internal fun HeroTitleContent(
         }
         Column(Modifier,
             verticalArrangement = Arrangement.spacedBy(if (shortViewport) 3.dp else if (compact) 8.dp else 12.dp)) {
-            if (contextLine.isNotBlank()) {
-                Text(contextLine, style = if (shortViewport) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
-                    color = colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (contextHead.isNotBlank() || contextTail.isNotBlank()) {
+                val contextStyle = if (shortViewport) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium
+                // The long head (episode label/title) shrinks first; year, runtime and genre stay readable.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (contextHead.isNotBlank()) {
+                        Text(contextHead, style = contextStyle, color = colors.TextSecondary,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false))
+                    }
+                    if (contextTail.isNotBlank()) {
+                        Text(if (contextHead.isNotBlank()) "  ·  $contextTail" else contextTail,
+                            style = contextStyle, color = colors.TextSecondary,
+                            maxLines = 1, softWrap = false)
+                    }
+                }
             }
             if (secondary.isNotEmpty() || (compact && showImdbRatings && (imdb != null || preview.mdbListRatings?.isEmpty() == false))) {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -486,8 +498,10 @@ internal fun HeroTitleContent(
                 }
             }
             preview.description?.takeIf(String::isNotBlank)?.let {
-                Text(it, style = (if (shortViewport) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium).copy(textDirection = it.contentTextDirection()),
-                    color = colors.TextPrimary.copy(alpha = 0.86f), maxLines = if (shortViewport) 1 else 2,
+                Text(it, style = (if (shortViewport) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium).copy(
+                    textDirection = it.contentTextDirection(),
+                    shadow = androidx.compose.ui.graphics.Shadow(Color.Black.copy(alpha = 0.65f), blurRadius = 10f)),
+                    color = colors.TextPrimary.copy(alpha = 0.92f), maxLines = if (shortViewport) 1 else 2,
                     overflow = TextOverflow.Ellipsis)
             }
         }

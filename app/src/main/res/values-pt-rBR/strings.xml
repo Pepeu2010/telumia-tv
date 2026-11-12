@@ -1946,7 +1946,7 @@
     <string name="library_delete_title">Excluir esta lista?</string>
     <string name="library_delete_subtitle">Isso removerá a lista e todos os seus itens.</string>
     <string name="library_delete_confirm">Excluir</string>
-    <string name="library_source_local">LOCAL</string>
+    <string name="library_source_local">Salvo neste aparelho</string>
     <string name="library_source_nuvio">TELUMIA</string>
     <string name="library_source_saved">Salvos</string>
     <string name="library_source_cloud">Nuvem</string>
@@ -1961,7 +1961,7 @@
     <string name="library_type_items">itens</string>
     <string name="library_empty_local_title">Nenhum %1$s ainda</string>
     <string name="library_empty_remote_title">Nenhum %1$s nesta lista</string>
-    <string name="library_empty_local_subtitle">Comece a salvar seus favoritos para vê-los aqui</string>
+    <string name="library_empty_local_subtitle">Use + na página de um título para salvá-lo aqui</string>
     <string name="library_empty_remote_subtitle">Use "+" nos detalhes para adicionar itens à biblioteca ou outras listas</string>
     <string name="library_empty_simkl_title">Nenhum %1$s neste status</string>
     <string name="library_empty_simkl_subtitle">Use + nos detalhes para adicionar itens a um status do Simkl</string>
@@ -2817,7 +2817,7 @@
     <!-- Search errors -->
     <string name="search_error_load_addons_failed">Falha ao carregar addons</string>
     <string name="search_error_failed">Falha na busca</string>
-    <string name="search_error_tmdb_api_key_missing">A busca por produtoras precisa de uma chave da API TMDB configurada.</string>
+    <string name="search_error_tmdb_api_key_missing">A busca por produtoras não está disponível no momento.</string>
 
     <!-- Stream / TMDB / addons fallbacks -->
     <string name="stream_unknown">Fonte desconhecida</string>>
@@ -3196,4 +3196,5 @@
     <string name="live_tv_timezone_rio_branco">Rio Branco</string>
     <string name="live_tv_timezone_noronha">Fernando de Noronha</string>
     <string name="live_tv_timezone_utc">UTC</string>
+    <string name="playback_unavailable_hint">Instale um addon de streams em Configurações para assistir a este título.</string>
 </resources>

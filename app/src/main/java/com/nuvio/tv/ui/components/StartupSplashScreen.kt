@@ -185,7 +185,12 @@ fun StartupSplashScreen(
                 )
             }
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxl))
-            LoadingIndicator(modifier = Modifier.size(NuvioTheme.spacing.xxxl))
+            // The brand leads; the spinner only fades in with it so the first frame is never a bare spinner.
+            LoadingIndicator(
+                modifier = Modifier
+                    .size(NuvioTheme.spacing.xxxl)
+                    .graphicsLayer { alpha = brandReveal }
+            )
         }
     }
 }

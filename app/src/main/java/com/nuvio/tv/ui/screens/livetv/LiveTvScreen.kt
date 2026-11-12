@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.nuvio.tv.data.local.LiveTvChannelStateStore
 import kotlinx.coroutines.delay
 import androidx.tv.material3.Button
+import androidx.compose.ui.semantics.selected
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Surface
 import androidx.tv.material3.Text
@@ -106,6 +107,36 @@ fun LiveTvScreen(
         viewModel.playChannel(channel, onPlayChannel)
     }
 
+    val timeZoneSection: @Composable () -> Unit = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.live_tv_timezone), style = MaterialTheme.typography.titleMedium)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(LIVE_TV_TIME_ZONES, key = { it.id }) { option ->
+                        val selected = state.timeZoneId == option.id
+                        // Selected is a visual state, not "disabled": a disabled button reads as
+                        // unavailable and cannot take D-pad focus.
+                        Button(
+                            onClick = { viewModel.setTimeZone(option.id) },
+                            colors = if (selected) {
+                                // Tinted, so it never looks like the white focused chip.
+                                androidx.tv.material3.ButtonDefaults.colors(
+                                    containerColor = NuvioTheme.colors.Secondary,
+                                    contentColor = NuvioTheme.colors.TextPrimary,
+                                    focusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                                    focusedContentColor = androidx.compose.ui.graphics.Color.Black,
+                                )
+                            } else {
+                                androidx.tv.material3.ButtonDefaults.colors()
+                            },
+                            modifier = Modifier.semantics { this.selected = selected },
+                        ) {
+                            Text(stringResource(option.label))
+                        }
+                    }
+                }
+            }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -117,18 +148,8 @@ fun LiveTvScreen(
                     color = NuvioTheme.colors.TextSecondary)
             }
         }
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.live_tv_timezone), style = MaterialTheme.typography.titleMedium)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(LIVE_TV_TIME_ZONES, key = { it.id }) { option ->
-                        Button(onClick = { viewModel.setTimeZone(option.id) }, enabled = state.timeZoneId != option.id) {
-                            Text(stringResource(option.label))
-                        }
-                    }
-                }
-            }
-        }
+        if (state.sources.isNotEmpty()) item { timeZoneSection() }
+
         item {
             Surface(shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -152,6 +173,8 @@ fun LiveTvScreen(
                 }
             }
         }
+        // With no source yet, the form is the main action; the time zone only matters afterwards.
+        if (state.sources.isEmpty()) item { timeZoneSection() }
         if (state.isLoading) item { Text(stringResource(R.string.live_tv_loading), color = NuvioTheme.colors.TextSecondary) }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
         if (state.backgroundRefreshUnavailable) {

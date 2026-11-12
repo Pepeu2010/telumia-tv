@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -198,14 +200,17 @@ private fun LayoutOptionCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight()
                     .padding(NuvioTheme.spacing.lg),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Animated preview
+                // Animated preview: up to 200dp, but it gives way so the title and description
+                // below it are never clipped when the card height is bounded by the screen.
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .weight(1f, fill = false)
+                        .heightIn(min = 72.dp, max = 200.dp)
                 ) {
                     when (layout) {
                         HomeLayout.CLASSIC -> ClassicLayoutPreview(

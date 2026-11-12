@@ -709,6 +709,20 @@ fun SettingsScreen(
                     }
                 }
             } else {
+            // The pane previews the category the rail is resting on, as the horizontal style does,
+            // so the title and options never describe a different row than the focused one.
+            var focusedRailPreview by remember { mutableStateOf<SettingsCategory?>(null) }
+            LaunchedEffect(focusedRailPreview) {
+                val category = focusedRailPreview ?: return@LaunchedEffect
+                delay(SETTINGS_TAB_FOCUS_SELECT_DELAY_MS)
+                if (selectedCategory != category) {
+                    if (category == SettingsCategory.INTEGRATION) {
+                        integrationSection = IntegrationSettingsSection.Hub
+                    }
+                    allowDetailAutofocus = false
+                    selectedCategory = category
+                }
+            }
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
@@ -786,6 +800,9 @@ fun SettingsScreen(
                                             railFocusCategoryName = section.category.name
                                         } else if (restoringTo == null) {
                                             railFocusCategoryName = section.category.name
+                                        }
+                                        if (section.destination == SettingsSectionDestination.Inline) {
+                                            focusedRailPreview = section.category
                                         }
                                     },
                                     title = section.title,

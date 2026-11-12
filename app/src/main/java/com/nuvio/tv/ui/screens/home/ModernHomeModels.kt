@@ -293,13 +293,22 @@ internal fun buildContinueWatchingItem(
     val secondaryHighlightText = when (item) {
         is ContinueWatchingItem.InProgress -> {
             val progress = item.progress
-            formatContinueWatchingProgressLabel(
+            val progressLabel = formatContinueWatchingProgressLabel(
                 progress = progress,
                 resumeLabel = context.getString(R.string.cw_resume),
                 percentWatchedLabel = context.getString(R.string.cw_percent_watched),
                 hoursMinLeftLabel = context.getString(R.string.cw_hours_min_left),
                 minLeftLabel = context.getString(R.string.cw_min_left)
             )
+            if (progress.position > 0L && progress.duration > 0L) {
+                context.getString(
+                    R.string.home_continue_watching_status,
+                    progressLabel,
+                    formatStoppedAtLabel(progress.position)
+                )
+            } else {
+                progressLabel
+            }
         }
         is ContinueWatchingItem.NextUp -> {
             if (item.info.isReleaseAlert) {
@@ -693,5 +702,18 @@ internal fun ContinueWatchingItem.episode(): Int? {
     return when (this) {
         is ContinueWatchingItem.InProgress -> progress.episode
         is ContinueWatchingItem.NextUp -> info.seedEpisode
+    }
+}
+
+
+/** Formats a playback position as m:ss, or h:mm:ss from one hour on. */
+internal fun formatStoppedAtLabel(positionMs: Long): String {
+    val totalSeconds = positionMs.coerceAtLeast(0L) / 1_000L
+    return if (totalSeconds >= 3_600L) {
+        val minutes = ((totalSeconds / 60L) % 60L).toString().padStart(2, '0')
+        val seconds = (totalSeconds % 60L).toString().padStart(2, '0')
+        "${totalSeconds / 3_600L}:$minutes:$seconds"
+    } else {
+        "${totalSeconds / 60L}:${(totalSeconds % 60L).toString().padStart(2, '0')}"
     }
 }

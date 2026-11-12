@@ -542,14 +542,10 @@ internal fun ModernRowSection(
         )
     ) {
         val titleMediumStyle = MaterialTheme.typography.titleMedium
-        val cinematicContinueRow = row.key == MODERN_CONTINUE_WATCHING_ROW_KEY
-        val rowTitleStyle = remember(titleMediumStyle, cinematicContinueRow) {
-            titleMediumStyle.copy(
-                fontWeight = FontWeight.SemiBold,
-                letterSpacing = if (cinematicContinueRow) 2.sp else titleMediumStyle.letterSpacing,
-            )
+        val rowTitleStyle = remember(titleMediumStyle) {
+            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold)
         }
-        val rowTitle = if (cinematicContinueRow) stringResource(R.string.home_cinematic_continue) else row.title
+        val rowTitle = row.title
         val textColor = NuvioTheme.colors.TextPrimary
         val textModifier = remember(rowTitleBottom) {
             Modifier.padding(start = 52.dp, bottom = rowTitleBottom)

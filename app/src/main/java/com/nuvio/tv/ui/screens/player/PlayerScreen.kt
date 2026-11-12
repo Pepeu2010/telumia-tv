@@ -2519,7 +2519,12 @@ private fun PlayerControlsOverlay(
             }
 
             // Control buttons row — always LTR regardless of locale
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            // Icons alone are ambiguous on a 10-foot UI; the focused control reports its name here.
+            val focusedControlLabel = remember { mutableStateOf<String?>(null) }
+            CompositionLocalProvider(
+                LocalLayoutDirection provides LayoutDirection.Ltr,
+                LocalPlayerControlLabel provides focusedControlLabel
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -2729,6 +2734,15 @@ private fun PlayerControlsOverlay(
                         onDownKey = onHideControls,
                         onFocused = onResetHideTimer
                     )
+                    focusedControlLabel.value?.let { label ->
+                        Text(
+                            text = label,
+                            modifier = Modifier.padding(start = NuvioTheme.spacing.md),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = Color.White.copy(alpha = 0.92f),
+                            maxLines = 1,
+                        )
+                    }
                 }
 
                 // Right side - Time display only
@@ -2915,6 +2929,9 @@ private fun ReportControlButton(
     }
 }
 
+internal val LocalPlayerControlLabel =
+    androidx.compose.runtime.compositionLocalOf<androidx.compose.runtime.MutableState<String?>?> { null }
+
 @Composable
 internal fun ControlButton(
     icon: ImageVector,
@@ -2929,6 +2946,7 @@ internal fun ControlButton(
     onFocused: (() -> Unit)? = null
 ) {
     var isFocused by remember { mutableStateOf(false) }
+    val controlLabel = LocalPlayerControlLabel.current
 
     IconButton(
         onClick = onClick,
@@ -2974,10 +2992,15 @@ internal fun ControlButton(
             }
             .onFocusChanged {
                 isFocused = it.isFocused
-                if (it.isFocused) onFocused?.invoke()
+                if (it.isFocused) {
+                    controlLabel?.value = contentDescription
+                    onFocused?.invoke()
+                } else if (controlLabel?.value == contentDescription) {
+                    controlLabel.value = null
+                }
             },
         colors = IconButtonDefaults.colors(
-            containerColor = if (primary) Color.White.copy(alpha = 0.24f) else Color.Black.copy(alpha = 0.34f),
+            containerColor = if (primary) Color.White.copy(alpha = 0.24f) else Color.White.copy(alpha = 0.12f),
             focusedContainerColor = Color.White,
             contentColor = Color.White,
             focusedContentColor = Color.Black

@@ -1513,7 +1513,7 @@
     <string name="library_delete_title">Eliminar esta lista?</string>
     <string name="library_delete_subtitle">Isto remove a lista e todos os seus itens.</string>
     <string name="library_delete_confirm">Eliminar</string>
-    <string name="library_source_local">LOCAL</string>
+    <string name="library_source_local">Guardado neste dispositivo</string>
     <string name="library_source_nuvio">TELUMIA</string>
     <string name="library_source_saved">Guardado</string>
     <string name="library_source_cloud">Nuvem</string>
@@ -1523,7 +1523,7 @@
     <string name="library_type_items">itens</string>
     <string name="library_empty_local_title">Ainda não há %1$s</string>
     <string name="library_empty_remote_title">Nenhum %1$s nesta lista</string>
-    <string name="library_empty_local_subtitle">Começa a guardar os teus favoritos para os veres aqui</string>
+    <string name="library_empty_local_subtitle">Usa + na página de um título para o guardares aqui</string>
     <string name="library_empty_remote_subtitle">Utiliza o + nos detalhes para adicionar itens à lista de interesse ou a outras listas</string>
     <string name="library_list_create_dialog_title">Criar Lista</string>
     <string name="library_list_edit_dialog_title">Editar Lista</string>
@@ -2429,4 +2429,6 @@
     <string name="enhanced_intensity_subtle">Sutil</string>
     <string name="enhanced_intensity_standard">Padrão</string>
     <string name="enhanced_intensity_cinematic">Cinemática</string>
+    <string name="playback_unavailable_hint">Instale um addon de streams em Definições para ver este título.</string>
+    <string name="search_error_tmdb_api_key_missing">A pesquisa por produtoras não está disponível de momento.</string>
 </resources>

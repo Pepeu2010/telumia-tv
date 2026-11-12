@@ -1296,26 +1296,6 @@ fun ModernHomeContent(
                     .align(Alignment.BottomStart)
                     .onFocusChanged { contentHasFocus.value = it.hasFocus }
             )
-            uiState.continueWatchingItems
-                .filterIsInstance<ContinueWatchingItem.InProgress>()
-                .firstOrNull { it.progress.position > 0L && it.progress.duration > 0L }
-                ?.let { item ->
-                    CinematicContinueWatchingStatusPill(
-                        progress = item.progress,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(start = 52.dp, bottom = 20.dp)
-                            .graphicsLayer { alpha = trailerContentAlphaState.value }
-                            .then(
-                                if (trailerContentAlphaState.value < 0.01f) {
-                                    Modifier.clearAndSetSemantics {}
-                                } else {
-                                    Modifier
-                                }
-                            )
-                            .zIndex(5f),
-                    )
-                }
             if (fullscreenTrailerPlaying.value) {
                 // The preview is an immersive surface: the first click only restores the chrome,
                 // rather than activating an invisible card underneath it.
@@ -1369,45 +1349,6 @@ fun ModernHomeContent(
         )
     }
 }
-@Composable
-private fun CinematicContinueWatchingStatusPill(
-    progress: com.nuvio.tv.domain.model.WatchProgress,
-    modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
-    val remainingMinutes = ((progress.duration - progress.position).coerceAtLeast(0L) / 60_000L).coerceAtLeast(1L)
-    val hours = remainingMinutes / 60L
-    val minutes = remainingMinutes % 60L
-    val remainingLabel = if (hours > 0L) {
-        context.getString(R.string.cw_hours_min_left, hours, minutes)
-    } else {
-        context.getString(R.string.cw_min_left, remainingMinutes)
-    }
-    val totalSeconds = progress.position.coerceAtLeast(0L) / 1_000L
-    val stoppedAt = if (totalSeconds >= 3_600L) {
-        val hoursAt = totalSeconds / 3_600L
-        val minutesAt = ((totalSeconds / 60L) % 60L).toString().padStart(2, '0')
-        val secondsAt = (totalSeconds % 60L).toString().padStart(2, '0')
-        "$hoursAt:$minutesAt:$secondsAt"
-    } else {
-        "${totalSeconds / 60L}:${(totalSeconds % 60L).toString().padStart(2, '0')}"
-    }
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(Color(0xD90C0B09))
-            .border(1.dp, Color.White.copy(alpha = 0.28f), RoundedCornerShape(999.dp))
-            .padding(horizontal = 16.dp, vertical = 9.dp),
-    ) {
-        Text(
-            text = context.getString(R.string.home_continue_watching_status, remainingLabel, stoppedAt),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
-            color = Color.White.copy(alpha = 0.94f),
-            maxLines = 1,
-        )
-    }
-}
-
 @Composable
 private fun ModernHeroSection(
     heroSceneState: () -> ModernHeroSceneState,

@@ -291,10 +291,16 @@ fun HeroContentSection(
                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val unavailableMessage = stringResource(R.string.playback_unavailable_message)
                         PlayButton(
                             text = if (isPlayEnabled) nextToWatch?.displayText else stringResource(R.string.playback_unavailable),
-                            enabled = isPlayEnabled,
-                            onClick = onPlayClick,
+                            // Stays focusable when playback is unavailable: a disabled button cannot
+                            // take D-pad focus, which left the hero without any focus after the trailer.
+                            enabled = true,
+                            dimmed = !isPlayEnabled,
+                            onClick = if (isPlayEnabled) onPlayClick else {
+                                { android.widget.Toast.makeText(context, unavailableMessage, android.widget.Toast.LENGTH_SHORT).show() }
+                            },
                             onLongPress = onPlayLongPress,
                             focusRequester = playButtonFocusRequester,
                             restoreFocusToken = restorePlayFocusToken,
@@ -372,6 +378,19 @@ fun HeroContentSection(
                             )
                         }
                     }
+                    if (!isPlayEnabled) {
+                        Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))
+                        Text(
+                            text = stringResource(R.string.playback_unavailable_hint),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                shadow = androidx.compose.ui.graphics.Shadow(
+                                    color = Color.Black.copy(alpha = 0.75f),
+                                    blurRadius = 12f
+                                )
+                            ),
+                            color = NuvioTheme.colors.TextPrimary.copy(alpha = 0.92f),
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
 
@@ -426,6 +445,7 @@ fun HeroContentSection(
 internal fun PlayButton(
     text: String?,
     enabled: Boolean = true,
+    dimmed: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onLongPress: (() -> Unit)? = null,
@@ -496,12 +516,21 @@ internal fun PlayButton(
                 false
             }
             .focusProperties { up = FocusRequester.Cancel },
-        colors = ButtonDefaults.colors(
-            containerColor = androidx.compose.ui.graphics.Color.White,
-            focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-            contentColor = androidx.compose.ui.graphics.Color.Black,
-            focusedContentColor = androidx.compose.ui.graphics.Color.Black
-        ),
+        colors = if (dimmed) {
+            ButtonDefaults.colors(
+                containerColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.10f),
+                focusedContainerColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.22f),
+                contentColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.55f),
+                focusedContentColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f)
+            )
+        } else {
+            ButtonDefaults.colors(
+                containerColor = androidx.compose.ui.graphics.Color.White,
+                focusedContainerColor = androidx.compose.ui.graphics.Color.White,
+                contentColor = androidx.compose.ui.graphics.Color.Black,
+                focusedContentColor = androidx.compose.ui.graphics.Color.Black
+            )
+        },
         shape = ButtonDefaults.shape(
             shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
         ),
@@ -681,6 +710,12 @@ private fun ActionIconButton(
     }
 }
 
+/** Keeps year/runtime/genre text readable over bright key art. */
+private val HeroMetaLegibilityShadow = androidx.compose.ui.graphics.Shadow(
+    color = Color.Black.copy(alpha = 0.75f),
+    blurRadius = 10f
+)
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 private fun MetaInfoRow(
@@ -762,7 +797,7 @@ private fun MetaInfoRow(
                 Text(
                     text = genresText,
                     modifier = Modifier.weight(1f, fill = false),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
                     color = NuvioTheme.extendedColors.textSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -775,7 +810,7 @@ private fun MetaInfoRow(
             yearText?.let { year ->
                 Text(
                     text = year,
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
                     color = NuvioTheme.extendedColors.textSecondary
                 )
                 if (shouldShowImdbRating || shouldShowTmdbRating) {
@@ -796,7 +831,7 @@ private fun MetaInfoRow(
                     val ratingText = remember(rating) { String.format("%.1f", rating) }
                     Text(
                         text = ratingText,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
                         color = NuvioTheme.extendedColors.textSecondary
                     )
                 }
@@ -816,7 +851,7 @@ private fun MetaInfoRow(
                     val ratingText = remember(rating) { (rating * 10).toInt().toString() }
                     Text(
                         text = ratingText,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
                         color = NuvioTheme.extendedColors.textSecondary
                     )
                 }
@@ -853,7 +888,7 @@ private fun MetaInfoRow(
                 secondaryItems.forEachIndexed { index, value ->
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.labelMedium.copy(shadow = HeroMetaLegibilityShadow),
                         color = NuvioTheme.colors.TextPrimary
                     )
                     if (index < secondaryItems.lastIndex) {

@@ -1752,7 +1752,8 @@ internal fun EditProfileOverlay(
 
     LaunchedEffect(Unit) {
         repeat(2) { withFrameNanos { } }
-        runCatching { saveFocusRequester.requestFocus() }
+        // Start on the name, not on Save: Enter right after opening must not save by accident.
+        runCatching { nameFocusRequester.requestFocus() }
     }
 
     LaunchedEffect(hasProfileBackgroundAccess) {
@@ -1893,7 +1894,7 @@ internal fun EditProfileOverlay(
 
                     OverlayButton(
                         text = stringResource(R.string.profile_cancel),
-                        isPrimary = true,
+                        isPrimary = false,
                         modifier = Modifier.fillMaxWidth().testTag("studio-profile-cancel"),
                         enabled = !studioBusy && !isSaving,
                         onClick = onDismiss

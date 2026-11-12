@@ -2088,7 +2088,7 @@
     <string name="library_delete_title">Delete this list?</string>
     <string name="library_delete_subtitle">This removes the list and all list items.</string>
     <string name="library_delete_confirm">Delete</string>
-    <string name="library_source_local">LOCAL</string>
+    <string name="library_source_local">Saved on this device</string>
     <string name="library_source_nuvio">TELUMIA</string>
     <string name="library_source_saved">Saved</string>
     <string name="library_source_cloud">Cloud</string>
@@ -2103,7 +2103,7 @@
     <string name="library_type_items">items</string>
     <string name="library_empty_local_title">No %1$s yet</string>
     <string name="library_empty_remote_title">No %1$s in this list</string>
-    <string name="library_empty_local_subtitle">Start saving your favorites to see them here</string>
+    <string name="library_empty_local_subtitle">Use + on a title’s page to save it here</string>
     <string name="library_empty_remote_subtitle">Use + in details to add items to watchlist or lists</string>
     <string name="library_empty_simkl_title">No %1$s in this status</string>
     <string name="library_empty_simkl_subtitle">Use + in details to add items to a Simkl status</string>
@@ -2965,7 +2965,7 @@
     <!-- Search errors -->
     <string name="search_error_load_addons_failed">Failed to load addons</string>
     <string name="search_error_failed">Search failed</string>
-    <string name="search_error_tmdb_api_key_missing">Production company search needs a configured TMDB API key.</string>
+    <string name="search_error_tmdb_api_key_missing">Production company search isn’t available right now.</string>
 
     <!-- Stream / TMDB / addons fallbacks -->
     <string name="stream_unknown">Unknown Stream</string>
@@ -3390,4 +3390,5 @@
     <string name="live_tv_timezone_rio_branco">Rio Branco</string>
     <string name="live_tv_timezone_noronha">Fernando de Noronha</string>
     <string name="live_tv_timezone_utc">UTC</string>
+    <string name="playback_unavailable_hint">Install a stream add-on in Settings to watch this title.</string>
 </resources>

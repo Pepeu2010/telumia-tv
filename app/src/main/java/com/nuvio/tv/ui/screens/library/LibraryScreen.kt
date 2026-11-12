@@ -327,7 +327,7 @@ fun LibraryScreen(
                         uiState.sourceMode == LibrarySourceMode.SIMKL -> "SIMKL"
                         uiState.sourceMode == LibrarySourceMode.MDBLIST -> "MDBLIST"
                         uiState.isNuvioAccount -> "TELUMIA"
-                        else -> stringResource(R.string.library_source_local)
+                        else -> stringResource(R.string.library_source_local).uppercase()
                     },
                     style = MaterialTheme.typography.labelLarge,
                     color = if (showBuiltInHeader) NuvioTheme.colors.TextTertiary else Color.Transparent,
@@ -1203,12 +1203,8 @@ private fun LibrarySelectorsRow(
                     }
                 )
             }
-        }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
-        ) {
+            // One row: five compact pickers keep the posters above the fold.
             if (genres.isNotEmpty()) {
                 val genreAllOption = LibraryOption(allLabel, "__all__")
                 LibraryDropdownPicker(

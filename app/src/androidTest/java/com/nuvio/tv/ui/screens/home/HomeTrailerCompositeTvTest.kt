@@ -27,10 +27,18 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.FixMethodOrder
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.MethodSorters
 
+/**
+ * Order matters on the software-rendered emulator: the real-video test runs after the pure
+ * Compose pixel test, because running it first leaves the next test without its offscreen
+ * gradient layer (reproduced: the pixel test passes alone and fails after the video test).
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4::class)
 class HomeTrailerCompositeTvTest {
     @get:Rule val compose = createComposeRule()
@@ -78,7 +86,7 @@ class HomeTrailerCompositeTvTest {
                 fun green(x: Int, y: Int) = AndroidColor.green(shot.getPixel(shot.width * x / 100, shot.height * y / 100))
                 assertTrue("backdrop must extend behind navigation", green(90, 5) > 120)
                 assertTrue("backdrop must remain visible near the bottom", green(90, 90) > 20)
-                assertTrue("bottom edge must fade", green(90, 99) < green(90, 90))
+                assertTrue("bottom edge must fade: g90=${green(90, 90)} g95=${green(90, 95)} g97=${green(90, 97)} g99=${green(90, 99)}", green(90, 99) < green(90, 90))
                 assertTrue("left gradient must preserve text contrast", green(5, 50) < green(90, 50) / 2)
             } finally { shot.recycle() }
         } finally {

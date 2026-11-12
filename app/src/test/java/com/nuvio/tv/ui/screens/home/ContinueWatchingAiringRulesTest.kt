@@ -164,8 +164,10 @@ class ContinueWatchingAiringRulesTest {
     @Test
     fun `watchableEpisodes excludes future mid-season episodes so checkmark can apply`() {
         // Documents a58809 behavior: only aired eps count → caught-up checkmark possible.
-        val tomorrow = LocalDate.now(ZoneId.systemDefault()).plusDays(1).toString()
-        val yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(1).toString()
+        // Two days of margin: the release check is not in the device's local zone, so a one-day
+        // offset flips when local time is a few hours behind UTC late in the evening.
+        val tomorrow = LocalDate.now(ZoneId.systemDefault()).plusDays(2).toString()
+        val yesterday = LocalDate.now(ZoneId.systemDefault()).minusDays(2).toString()
         val meta = CwMetaSummary(
             id = "tt-airing",
             name = "Airing",

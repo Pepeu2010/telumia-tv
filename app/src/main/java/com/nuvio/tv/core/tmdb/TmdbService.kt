@@ -14,7 +14,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val TAG = "TmdbService"
-private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
+private val TMDB_API_KEY: String get() = TmdbApiKeyHolder.effective()
 
 /**
  * Service to handle TMDB ID conversions and lookups.

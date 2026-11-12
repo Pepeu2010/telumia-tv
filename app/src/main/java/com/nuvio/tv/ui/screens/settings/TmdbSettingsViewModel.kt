@@ -52,6 +52,7 @@ class TmdbSettingsViewModel @Inject constructor(
                     trailerService.clearCache()
                 }
             }
+            is TmdbSettingsEvent.SetApiKey -> update { dataStore.setApiKey(event.key) }
             is TmdbSettingsEvent.ToggleArtwork -> update { dataStore.setUseArtwork(event.enabled) }
             is TmdbSettingsEvent.ToggleBasicInfo -> update { dataStore.setUseBasicInfo(event.enabled) }
             is TmdbSettingsEvent.ToggleDetails -> update { dataStore.setUseDetails(event.enabled) }
@@ -75,6 +76,7 @@ data class TmdbSettingsUiState(
     val modernHomeEnabled: Boolean = false,
     val enrichContinueWatching: Boolean = true,
     val language: String = "en",
+    val apiKey: String = "",
     val useArtwork: Boolean = true,
     val useBasicInfo: Boolean = true,
     val useDetails: Boolean = true,
@@ -91,6 +93,7 @@ data class TmdbSettingsUiState(
         modernHomeEnabled = settings.modernHomeEnabled,
         enrichContinueWatching = settings.enrichContinueWatching,
         language = settings.language,
+        apiKey = settings.apiKey,
         useArtwork = settings.useArtwork,
         useBasicInfo = settings.useBasicInfo,
         useDetails = settings.useDetails,
@@ -109,6 +112,7 @@ sealed class TmdbSettingsEvent {
     data class ToggleModernHomeEnabled(val enabled: Boolean) : TmdbSettingsEvent()
     data class ToggleEnrichContinueWatching(val enabled: Boolean) : TmdbSettingsEvent()
     data class SetLanguage(val language: String) : TmdbSettingsEvent()
+    data class SetApiKey(val key: String) : TmdbSettingsEvent()
     data class ToggleArtwork(val enabled: Boolean) : TmdbSettingsEvent()
     data class ToggleBasicInfo(val enabled: Boolean) : TmdbSettingsEvent()
     data class ToggleDetails(val enabled: Boolean) : TmdbSettingsEvent()

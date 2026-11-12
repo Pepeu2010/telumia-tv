@@ -42,11 +42,12 @@ object XmlTvParser {
         try {
             val factory = SAXParserFactory.newInstance().apply {
                 isNamespaceAware = false
-                setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-                setFeature("http://xml.org/sax/features/external-general-entities", false)
-                setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-                setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+                // Android's parser rejects some hardening options; they are best-effort there.
+                runCatching { setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true) }
+                runCatching { setFeature("http://apache.org/xml/features/disallow-doctype-decl", true) }
+                runCatching { setFeature("http://xml.org/sax/features/external-general-entities", false) }
+                runCatching { setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
+                runCatching { setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false) }
             }
             val xmlReader = factory.newSAXParser().xmlReader.apply {
                 setFeature("http://xml.org/sax/features/external-general-entities", false)

@@ -3396,4 +3396,19 @@
     <string name="live_tv_empty_hero_body">Install an add-on that provides TV channels in Settings > Discover > Addons. Its channels will show up here.</string>
     <string name="live_tv_description_addons">Channels come from the add-ons you installed that provide live TV.</string>
     <string name="live_tv_m3u_advanced_note">Optional: you can also import your own M3U playlist and XMLTV guide here.</string>
+    <string name="tmdb_api_key_title">TMDB API key</string>
+    <string name="tmdb_api_key_subtitle">Needed for production-company search and richer metadata. Free at themoviedb.org (Settings &gt; API).</string>
+    <string name="tmdb_api_key_not_set">Not set</string>
+    <string name="tmdb_api_key_dialog_title">Paste your TMDB API key (v3)</string>
+    <string name="tmdb_api_key_dialog_subtitle">Paste the 32-character key from themoviedb.org</string>
+    <string name="live_tv_guide_all_channels">All channels</string>
+    <string name="live_tv_guide_favorites">Favorites</string>
+    <string name="live_tv_guide_unavailable">No schedule available</string>
+    <string name="live_tv_guide_unavailable_body">This channel has no schedule in the selected guides. You can still open it.</string>
+    <string name="live_tv_guide_minutes_left">%1$d min left</string>
+    <string name="live_tv_guide_loading">Loading guide…</string>
+    <string name="live_tv_guide_coverage">Guide: %1$d of %2$d channels</string>
+    <string name="live_tv_guide_regions_title">Programme guide (EPG)</string>
+    <string name="live_tv_guide_regions_body">Schedules come from epgshare01.online. Pick the countries that match your channels; channels are matched by name.</string>
+    <string name="live_tv_guide_failed">Could not download the guide for: %1$s</string>
 </resources>

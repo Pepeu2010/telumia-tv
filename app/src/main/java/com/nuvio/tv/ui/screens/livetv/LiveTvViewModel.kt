@@ -8,6 +8,7 @@ import com.nuvio.tv.core.livetv.LiveTvAddonCatalog
 import com.nuvio.tv.core.livetv.installedLiveTvAddonCatalogs
 import com.nuvio.tv.core.livetv.project
 import com.nuvio.tv.core.livetv.LiveTvSourceImporter
+import com.nuvio.tv.core.livetv.EpgShareRepository
 import com.nuvio.tv.core.livetv.LiveTvGuideCache
 import com.nuvio.tv.core.livetv.LiveTvRefreshScheduler
 import com.nuvio.tv.data.local.LiveTvSourceStore
@@ -53,6 +54,13 @@ data class LiveTvUiState(
     val favoriteChannelIds: Set<String> = emptySet(),
     val recentChannelIds: List<String> = emptyList(),
     val timeZoneId: String = LiveTvChannelStateStore.DEFAULT_TIME_ZONE_ID,
+    /** Real schedule for add-on channels (epgshare01), keyed by channel id. */
+    val guidePrograms: Map<String, List<LiveTvProgram>> = emptyMap(),
+    val isLoadingGuide: Boolean = false,
+    val guideMatchedChannels: Int = 0,
+    val guideTotalChannels: Int = 0,
+    val guideFailedRegions: List<String> = emptyList(),
+    val epgRegions: List<String> = emptyList(),
 )
 
 @HiltViewModel
@@ -66,10 +74,53 @@ class LiveTvViewModel @Inject constructor(
     private val addonRepository: AddonRepository,
     private val catalogRepository: CatalogRepository,
     private val streamRepository: StreamRepository,
+    private val epgRepository: EpgShareRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(LiveTvUiState(isLoading = true))
     val state: StateFlow<LiveTvUiState> = mutableState.asStateFlow()
     private var installedAddons: List<Addon> = emptyList()
+    private var guideJob: kotlinx.coroutines.Job? = null
+
+    init {
+        mutableState.update { it.copy(epgRegions = epgRepository.selectedRegions()) }
+    }
+
+    fun toggleEpgRegion(code: String) {
+        val current = mutableState.value.epgRegions
+        val next = if (code in current) current - code else current + code
+        if (next.isEmpty()) return
+        epgRepository.setRegions(next)
+        mutableState.update { it.copy(epgRegions = epgRepository.selectedRegions()) }
+        loadGuide()
+    }
+
+    fun loadGuide() {
+        guideJob?.cancel()
+        val channels = mutableState.value.addonChannels
+        if (channels.isEmpty()) {
+            mutableState.update { it.copy(guidePrograms = emptyMap(), isLoadingGuide = false, guideMatchedChannels = 0, guideTotalChannels = 0) }
+            return
+        }
+        guideJob = viewModelScope.launch {
+            mutableState.update { it.copy(isLoadingGuide = true) }
+            try {
+                val result = epgRepository.load(channels, mutableState.value.epgRegions)
+                mutableState.update {
+                    it.copy(
+                        guidePrograms = result.programsByChannelId,
+                        guideMatchedChannels = result.matchedChannels,
+                        guideTotalChannels = result.totalChannels,
+                        guideFailedRegions = result.failedRegions,
+                        isLoadingGuide = false,
+                    )
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                mutableState.update { it.copy(isLoadingGuide = false) }
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -147,6 +198,7 @@ class LiveTvViewModel @Inject constructor(
                 isLoadingAddonChannels = false,
             )
         }
+        loadGuide()
     }
 
     private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog): AddonCatalogLoad =

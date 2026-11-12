@@ -88,14 +88,14 @@ class TmdbCollectionSourceResolver @Inject constructor(
         response.body()?.results.orEmpty()
     }
 
-    private fun requireTmdbApiKey(): String = BuildConfig.TMDB_API_KEY
+    private fun requireTmdbApiKey(): String = TmdbApiKeyHolder.effective()
         .trim()
         .takeIf(String::isNotBlank)
         ?: error(string(R.string.search_error_tmdb_api_key_missing))
 
     suspend fun listImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
         val language = tmdbSettingsDataStore.settings.first().language
-        val body = tmdbApi.getListDetails(id, BuildConfig.TMDB_API_KEY, language, 1).body()
+        val body = tmdbApi.getListDetails(id, TmdbApiKeyHolder.effective(), language, 1).body()
             ?: error(string(R.string.tmdb_error_list_not_found))
         TmdbSourceImportMetadata(
             title = body.name?.takeIf { it.isNotBlank() }
@@ -104,7 +104,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     suspend fun collectionImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
         val language = tmdbSettingsDataStore.settings.first().language
-        val body = tmdbApi.getCollectionDetails(id, BuildConfig.TMDB_API_KEY, language).body()
+        val body = tmdbApi.getCollectionDetails(id, TmdbApiKeyHolder.effective(), language).body()
             ?: error(string(R.string.tmdb_error_collection_not_found))
         TmdbSourceImportMetadata(
             title = body.name?.takeIf { it.isNotBlank() },
@@ -113,7 +113,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
     }
 
     suspend fun companyImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
-        val body = tmdbApi.getCompanyDetails(id, BuildConfig.TMDB_API_KEY).body()
+        val body = tmdbApi.getCompanyDetails(id, TmdbApiKeyHolder.effective()).body()
             ?: error(string(R.string.tmdb_error_company_not_found))
         TmdbSourceImportMetadata(
             title = body.name?.takeIf { it.isNotBlank() },
@@ -122,7 +122,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
     }
 
     suspend fun networkImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
-        val body = tmdbApi.getNetworkDetails(id, BuildConfig.TMDB_API_KEY).body()
+        val body = tmdbApi.getNetworkDetails(id, TmdbApiKeyHolder.effective()).body()
             ?: error(string(R.string.tmdb_error_network_not_found))
         TmdbSourceImportMetadata(
             title = body.name?.takeIf { it.isNotBlank() },
@@ -132,7 +132,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     suspend fun personImportMetadata(id: Int): TmdbSourceImportMetadata = withContext(Dispatchers.IO) {
         val language = tmdbSettingsDataStore.settings.first().language
-        val body = tmdbApi.getPersonDetails(id, BuildConfig.TMDB_API_KEY, language).body()
+        val body = tmdbApi.getPersonDetails(id, TmdbApiKeyHolder.effective(), language).body()
             ?: error(string(R.string.tmdb_error_person_not_found))
         TmdbSourceImportMetadata(
             title = body.name?.takeIf { it.isNotBlank() },
@@ -142,7 +142,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     suspend fun searchKeywords(query: String): Map<Int, String> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyMap()
-        tmdbApi.searchKeywords(BuildConfig.TMDB_API_KEY, query.trim()).body()?.results.orEmpty()
+        tmdbApi.searchKeywords(TmdbApiKeyHolder.effective(), query.trim()).body()?.results.orEmpty()
             .mapNotNull { result ->
                 val name = result.name?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
                 result.id to name
@@ -153,8 +153,8 @@ class TmdbCollectionSourceResolver @Inject constructor(
     suspend fun genres(mediaType: TmdbCollectionMediaType): Map<Int, String> = withContext(Dispatchers.IO) {
         val language = tmdbSettingsDataStore.settings.first().language
         val response = when (mediaType) {
-            TmdbCollectionMediaType.MOVIE -> tmdbApi.getMovieGenres(BuildConfig.TMDB_API_KEY, language)
-            TmdbCollectionMediaType.TV -> tmdbApi.getTvGenres(BuildConfig.TMDB_API_KEY, language)
+            TmdbCollectionMediaType.MOVIE -> tmdbApi.getMovieGenres(TmdbApiKeyHolder.effective(), language)
+            TmdbCollectionMediaType.TV -> tmdbApi.getTvGenres(TmdbApiKeyHolder.effective(), language)
         }
         response.body()?.genres.orEmpty().associate { it.id to it.name }
     }
@@ -176,7 +176,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     private suspend fun resolveList(source: TmdbCollectionSource, language: String, page: Int): CatalogRow {
         val id = source.tmdbId ?: error(string(R.string.tmdb_error_missing_list_id))
-        val body = tmdbApi.getListDetails(id, BuildConfig.TMDB_API_KEY, language, page).body()
+        val body = tmdbApi.getListDetails(id, TmdbApiKeyHolder.effective(), language, page).body()
             ?: error(string(R.string.tmdb_error_list_not_found))
         val items = body.items.orEmpty()
             .mapNotNull { it.toPreview() }
@@ -192,7 +192,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     private suspend fun resolveCollection(source: TmdbCollectionSource, language: String): CatalogRow {
         val id = source.tmdbId ?: error(string(R.string.tmdb_error_missing_collection_id))
-        val body = tmdbApi.getCollectionDetails(id, BuildConfig.TMDB_API_KEY, language).body()
+        val body = tmdbApi.getCollectionDetails(id, TmdbApiKeyHolder.effective(), language).body()
             ?: error(string(R.string.tmdb_error_collection_not_found))
         val items = body.parts.orEmpty()
             .mapNotNull {
@@ -225,7 +225,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
 
     private suspend fun resolvePersonCredits(source: TmdbCollectionSource, language: String): CatalogRow {
         val id = source.tmdbId ?: error(string(R.string.tmdb_error_missing_person_id))
-        val body = tmdbApi.getPersonCombinedCredits(id, BuildConfig.TMDB_API_KEY, language).body()
+        val body = tmdbApi.getPersonCombinedCredits(id, TmdbApiKeyHolder.effective(), language).body()
             ?: error(string(R.string.tmdb_error_person_credits_not_found))
         val items = when (source.sourceType) {
             TmdbCollectionSourceType.DIRECTOR -> body.crew.orEmpty()
@@ -253,7 +253,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
         val today = LocalDate.now().toString()
         val response = when (mediaType) {
             TmdbCollectionMediaType.MOVIE -> tmdbApi.discoverMovies(
-                apiKey = BuildConfig.TMDB_API_KEY,
+                apiKey = TmdbApiKeyHolder.effective(),
                 language = language,
                 page = page,
                 sortBy = movieSort(source.sortBy),
@@ -282,7 +282,7 @@ class TmdbCollectionSourceResolver @Inject constructor(
                 withoutWatchProviders = filters.withoutWatchProviders
             ).body()
             TmdbCollectionMediaType.TV -> tmdbApi.discoverTv(
-                apiKey = BuildConfig.TMDB_API_KEY,
+                apiKey = TmdbApiKeyHolder.effective(),
                 language = language,
                 page = page,
                 sortBy = tvSort(source.sortBy),

@@ -89,9 +89,14 @@ fun LiveTvScreen(
         }
     }
 
-    val hasGuide = allChannels.any { channel ->
-        !channel.tvgId.isNullOrBlank() && !programsByChannel[channel.sourceId to channel.tvgId].isNullOrEmpty()
+    // Add-on channels get their schedule from epgshare01 (keyed by channel id); M3U channels from their own XMLTV.
+    val channelPrograms = remember(allChannels, state.guidePrograms, programsByChannel) {
+        allChannels.associate { channel ->
+            channel.id to (state.guidePrograms[channel.id]
+                ?: channel.tvgId?.takeIf(String::isNotBlank)?.let { programsByChannel[channel.sourceId to it] }.orEmpty())
+        }
     }
+    val hasGuide = channelPrograms.values.any { it.isNotEmpty() }
     val channelsById = remember(allChannels) { allChannels.associateBy(LiveTvChannel::id) }
     LaunchedEffect(hasGuide) {
         if (!hasGuide && selectedMode == LiveTvMode.GUIDE) selectedMode = LiveTvMode.NOW
@@ -109,6 +114,32 @@ fun LiveTvScreen(
 
     val nothingToWatch = allChannels.isEmpty() && !state.isLoading && !state.isLoadingAddonChannels
 
+    if (selectedMode == LiveTvMode.GUIDE && hasGuide) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 14.dp)) {
+                items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
+                    LiveTvChip(stringResource(mode.label), selectedMode == mode) {
+                        if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
+                        selectedMode = mode
+                    }
+                }
+            }
+            LiveTvGuideView(
+                channels = allChannels,
+                favoriteIds = state.favoriteChannelIds,
+                programsByChannel = channelPrograms,
+                nowMillis = nowMillis,
+                zone = selectedZone,
+                onPlay = ::playChannel,
+                modifier = Modifier.weight(1f).padding(bottom = 16.dp),
+            )
+        }
+        return
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -119,6 +150,8 @@ fun LiveTvScreen(
                 subtitle = stringResource(R.string.live_tv_description_addons),
                 stats = buildList {
                     if (allChannels.isNotEmpty()) add(stringResource(R.string.live_tv_channels, allChannels.size))
+                    if (state.isLoadingGuide) add(stringResource(R.string.live_tv_guide_loading))
+                    else if (state.guideTotalChannels > 0) add(stringResource(R.string.live_tv_guide_coverage, state.guideMatchedChannels, state.guideTotalChannels))
                 },
             )
         }
@@ -139,6 +172,29 @@ fun LiveTvScreen(
         }
 
         if (selectedMode == LiveTvMode.SOURCES) {
+            item { LiveTvSectionTitle(stringResource(R.string.live_tv_guide_regions_title)) }
+            item {
+                Text(
+                    stringResource(R.string.live_tv_guide_regions_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NuvioTheme.colors.TextSecondary,
+                )
+            }
+            item {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(com.nuvio.tv.core.livetv.EpgShareRepository.REGIONS, key = { it.code }) { region ->
+                        LiveTvChip(region.label, region.code in state.epgRegions) { viewModel.toggleEpgRegion(region.code) }
+                    }
+                }
+            }
+            if (state.guideFailedRegions.isNotEmpty()) {
+                item {
+                    Text(
+                        stringResource(R.string.live_tv_guide_failed, state.guideFailedRegions.joinToString()),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
             item {
                 Text(
                     stringResource(R.string.live_tv_m3u_advanced_note),
@@ -281,9 +337,7 @@ fun LiveTvScreen(
                 )
             }
         } else items(visibleChannels, key = { "channel:${it.id}" }) { channel ->
-            val programs = channel.tvgId?.takeIf(String::isNotBlank)
-                ?.let { programsByChannel[channel.sourceId to it] }
-                .orEmpty()
+            val programs = channelPrograms[channel.id].orEmpty()
             val now = nowMillis
             val current = programs.firstOrNull { now >= it.startEpochMillis && now < it.endEpochMillis }
             val next = programs.firstOrNull { it.startEpochMillis > now }

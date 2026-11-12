@@ -54,6 +54,7 @@ fun TmdbSettingsContent(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLanguageDialog by remember { mutableStateOf(false) }
+    var showApiKeyDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -119,6 +120,20 @@ fun TmdbSettingsContent(
                                 TmdbSettingsEvent.ToggleEnrichContinueWatching(!uiState.enrichContinueWatching)
                             )
                         }
+                    )
+                }
+
+                item(key = "tmdb_api_key") {
+                    val masked = uiState.apiKey.trim().let {
+                        if (it.isBlank()) stringResource(R.string.tmdb_api_key_not_set)
+                        else if (it.length <= 8) "••••" else it.take(4) + "••••" + it.takeLast(4)
+                    }
+                    SettingsActionRow(
+                        title = stringResource(R.string.tmdb_api_key_title),
+                        subtitle = stringResource(R.string.tmdb_api_key_subtitle),
+                        value = masked,
+                        enabled = true,
+                        onClick = { showApiKeyDialog = true }
                     )
                 }
 
@@ -254,6 +269,15 @@ fun TmdbSettingsContent(
             SettingsVerticalScrollIndicators(state = tmdbListState)
             }
         }
+    }
+
+    if (showApiKeyDialog) {
+        TmdbApiKeyDialog(
+            currentValue = uiState.apiKey,
+            onSave = { viewModel.onEvent(TmdbSettingsEvent.SetApiKey(it)); showApiKeyDialog = false },
+            onClear = { viewModel.onEvent(TmdbSettingsEvent.SetApiKey("")); showApiKeyDialog = false },
+            onDismiss = { showApiKeyDialog = false }
+        )
     }
 
     if (showLanguageDialog) {

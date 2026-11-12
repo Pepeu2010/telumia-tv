@@ -106,6 +106,7 @@ internal fun LiveTvEmptyHero(title: String, body: String) {
 internal fun LiveTvChannelCard(
     logo: @Composable () -> Unit,
     name: String,
+    addonName: String?,
     details: @Composable () -> Unit,
     isFavorite: Boolean,
     favoriteLabel: String,
@@ -120,6 +121,8 @@ internal fun LiveTvChannelCard(
             enabled = onPlay != null && !opening,
             modifier = Modifier.weight(1f),
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(18.dp)),
+            // Highlight without scaling: a scaled card spills outside the list's left edge.
+            scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
             colors = ClickableSurfaceDefaults.colors(
                 containerColor = Color.White.copy(alpha = 0.06f),
                 focusedContainerColor = Color.White.copy(alpha = 0.16f),
@@ -139,7 +142,16 @@ internal fun LiveTvChannelCard(
                     contentAlignment = Alignment.Center,
                 ) { logo() }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        addonName?.takeIf(String::isNotBlank)?.let { LiveTvAddonBadge(it) }
+                    }
                     details()
                 }
                 if (opening) Text(openingLabel, style = MaterialTheme.typography.labelLarge, color = NuvioTheme.colors.TextSecondary)
@@ -156,5 +168,22 @@ internal fun LiveTvChannelCard(
             shape = androidx.tv.material3.ButtonDefaults.shape(RoundedCornerShape(50)),
             modifier = Modifier.semantics { contentDescription = favoriteLabel },
         ) { Text(if (isFavorite) "★" else "☆", style = MaterialTheme.typography.titleLarge) }
+    }
+}
+
+/** Names the add-on a channel comes from, so the same channel from two add-ons can be told apart. */
+@Composable
+internal fun LiveTvAddonBadge(addonName: String) {
+    Box(
+        Modifier.clip(RoundedCornerShape(50))
+            .background(NuvioTheme.colors.Secondary.copy(alpha = 0.22f))
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+    ) {
+        Text(
+            addonName,
+            style = MaterialTheme.typography.labelMedium,
+            color = NuvioTheme.colors.Secondary,
+            maxLines = 1,
+        )
     }
 }

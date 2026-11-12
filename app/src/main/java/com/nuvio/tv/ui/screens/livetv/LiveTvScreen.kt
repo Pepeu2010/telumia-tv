@@ -301,6 +301,7 @@ fun LiveTvScreen(
                         color = NuvioTheme.colors.TextSecondary)
                 },
                 name = channel.displayName,
+                addonName = channel.addonDisplayName,
                 details = {
                     if (selectedMode == LiveTvMode.CHANNELS) {
                         if (!channel.isPlayable) Text(stringResource(R.string.live_tv_no_current_program),

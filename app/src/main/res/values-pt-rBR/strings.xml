@@ -3215,6 +3215,6 @@
     <string name="live_tv_guide_loading">Carregando guia…</string>
     <string name="live_tv_guide_coverage">Guia: %1$d de %2$d canais</string>
     <string name="live_tv_guide_regions_title">Guia de programação (EPG)</string>
-    <string name="live_tv_guide_regions_body">A programação vem do epgshare01.online. Escolha os países dos seus canais; os canais são associados pelo nome.</string>
+    <string name="live_tv_guide_regions_body">A programação vem do epgshare01.online e do free-epg.de. Escolha os países dos seus canais; os canais são associados pelo nome.</string>
     <string name="live_tv_guide_failed">Não foi possível baixar o guia de: %1$s</string>
 </resources>

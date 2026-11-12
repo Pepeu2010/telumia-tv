@@ -14,6 +14,18 @@ class EpgShareRepositoryTest {
         assertTrue(EpgShareRepository.channelKeys("Telecine Action").any { it in cityId })
     }
 
+    @Test fun freeEpgNamesWithCountryPrefixAndPlaceSuffixMatchBareNames() {
+        val sbt = EpgShareRepository.channelKeyTiers("SBT")
+        val sbtBrasil = EpgShareRepository.channelKeyTiers("BR - SBT Brasil", "FE_BR")
+        // a bare name matches the "loose" form of a name with a place word
+        assertTrue(sbt.first.any { it in sbtBrasil.second })
+        // a name that has a place word only matches exactly, never the bare channel
+        val cnnBrasil = EpgShareRepository.channelKeyTiers("CNN Brasil")
+        val cnn = EpgShareRepository.channelKeyTiers("BR - CNN", "FE_BR")
+        assertTrue(cnnBrasil.first.none { it in cnn.first })
+        assertTrue(cnnBrasil.first.any { it in EpgShareRepository.channelKeyTiers("BR - CNN Brasil", "FE_BR").first })
+    }
+
     @Test fun keepsDifferentChannelsApart() {
         val a = EpgShareRepository.channelKeys("ESPN 2")
         val b = EpgShareRepository.channelKeys("ESPN 5")

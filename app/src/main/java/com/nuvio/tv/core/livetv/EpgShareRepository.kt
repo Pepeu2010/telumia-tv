@@ -25,8 +25,8 @@ import javax.inject.Singleton
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 
-/** A regional XMLTV file published by epgshare01.online. */
-data class EpgRegion(val code: String, val label: String)
+/** A regional XMLTV file from epgshare01.online or free-epg.de. */
+data class EpgRegion(val code: String, val label: String, val url: String, val provider: String)
 
 /** Programming matched to add-on channels, keyed by [LiveTvChannel.id]. */
 data class EpgGuideResult(
@@ -61,16 +61,16 @@ class EpgShareRepository @Inject constructor(
 
     private fun defaultRegions(): List<String> {
         val local = when (Locale.getDefault().country.uppercase()) {
-            "BR" -> "BR1,BR2"
-            "PT" -> "PT1"
-            "GB", "UK" -> "UK1"
-            "ES" -> "ES1"
-            "MX" -> "MX1"
-            "AR" -> "AR1"
-            "IT" -> "IT1"
-            "FR" -> "FR1"
-            "DE" -> "DE1"
-            "CA" -> "CA2"
+            "BR" -> "FE_BR,BR1,BR2"
+            "PT" -> "FE_PT,PT1"
+            "GB", "UK" -> "FE_GB,UK1"
+            "ES" -> "FE_ES"
+            "MX" -> "FE_MX"
+            "AR" -> "FE_AR"
+            "IT" -> "FE_IT"
+            "FR" -> "FE_FR"
+            "DE" -> "FE_DE"
+            "CA" -> "FE_CA"
             else -> null
         }
         return (local?.split(",").orEmpty() + "US2").distinct()
@@ -79,15 +79,20 @@ class EpgShareRepository @Inject constructor(
     suspend fun load(channels: List<LiveTvChannel>, regionCodes: List<String>): EpgGuideResult =
         withContext(Dispatchers.IO) {
             val wanted = channels.filter { it.displayName.isNotBlank() }
-            val keysByChannel = wanted.associate { it.id to channelKeys(it.displayName) }
-            val programs = HashMap<String, MutableList<LiveTvProgram>>()
+            val keysByChannel = wanted.associate { it.id to channelKeyTiers(it.displayName) }
+            val programs = HashMap<String, List<LiveTvProgram>>()
             val failed = mutableListOf<String>()
             val now = System.currentTimeMillis()
             for (code in regionCodes) {
                 try {
-                    val file = ensureFile(code)
-                    val region = parseRegion(file, code, keysByChannel, now)
-                    region.forEach { (channelId, list) -> programs.getOrPut(channelId) { mutableListOf() }.addAll(list) }
+                    val region = REGIONS.firstOrNull { it.code == code } ?: continue
+                    val file = ensureFile(region)
+                    val parsed = parseRegion(file, code, keysByChannel, now)
+                    // Two guides often describe the same channel with different titles; mixing them would
+                    // overlap, so each channel keeps the source with the fullest schedule.
+                    parsed.forEach { (channelId, list) ->
+                        if (list.size > (programs[channelId]?.size ?: 0)) programs[channelId] = list
+                    }
                 } catch (error: IOException) {
                     android.util.Log.w(TAG, "EPG region $code failed: ${error.message}")
                     failed += code
@@ -104,15 +109,18 @@ class EpgShareRepository @Inject constructor(
             EpgGuideResult(sorted, sorted.size, wanted.size, failed)
         }
 
-    private fun ensureFile(code: String): File {
+    private fun ensureFile(region: EpgRegion): File {
+        val code = region.code
         val file = File(directory, "$code.xml.gz")
         val fresh = file.isFile && System.currentTimeMillis() - file.lastModified() < MAX_AGE_MILLIS
         if (fresh) return file
         try {
-            val connection = (URL("$BASE_URL/epg_ripper_$code.xml.gz").openConnection() as HttpURLConnection).apply {
+            val connection = (URL(region.url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 20_000
                 readTimeout = 60_000
                 setRequestProperty("User-Agent", "Telumia")
+                // Ask for the compressed body so the big files stay small; it is stored as received.
+                setRequestProperty("Accept-Encoding", "gzip")
                 instanceFollowRedirects = true
             }
             try {
@@ -150,7 +158,7 @@ class EpgShareRepository @Inject constructor(
     private fun parseRegion(
         file: File,
         regionCode: String,
-        keysByChannel: Map<String, Set<String>>,
+        keysByChannel: Map<String, Pair<Set<String>, Set<String>>>,
         nowMillis: Long,
     ): Map<String, List<LiveTvProgram>> {
         val handler = GuideHandler(regionCode.lowercase(), keysByChannel, nowMillis)
@@ -163,7 +171,12 @@ class EpgShareRepository @Inject constructor(
             runCatching { setFeature("http://xml.org/sax/features/external-general-entities", false) }
             runCatching { setFeature("http://xml.org/sax/features/external-parameter-entities", false) }
         }
-        GZIPInputStream(file.inputStream().buffered(64 * 1024)).use { stream ->
+        // The body is gzip when the server compressed it, plain XML when it already decoded it.
+        val buffered = java.io.BufferedInputStream(file.inputStream(), 64 * 1024)
+        buffered.mark(2)
+        val gzip = buffered.read() == 0x1f && buffered.read() == 0x8b
+        buffered.reset()
+        (if (gzip) GZIPInputStream(buffered, 64 * 1024) else buffered).use { stream ->
             factory.newSAXParser().parse(InputSource(java.io.InputStreamReader(stream, Charsets.UTF_8)), handler)
         }
         return handler.result()
@@ -171,7 +184,7 @@ class EpgShareRepository @Inject constructor(
 
     private class GuideHandler(
         private val regionCode: String,
-        private val keysByChannel: Map<String, Set<String>>,
+        private val keysByChannel: Map<String, Pair<Set<String>, Set<String>>>,
         private val nowMillis: Long,
     ) : DefaultHandler() {
         private class XmlChannel(val id: String) { val names = mutableListOf<String>() }
@@ -249,22 +262,33 @@ class EpgShareRepository @Inject constructor(
             }
         }
 
-        /** Chooses, for every add-on channel, the XMLTV channel that best matches its name. */
+        /** Chooses, for every add-on channel, the XMLTV channels that may match its name. */
         private fun resolveTargets() {
             resolved = true
-            val byKey = HashMap<String, MutableList<XmlChannel>>()
+            val byFull = HashMap<String, MutableList<XmlChannel>>()
+            val byLoose = HashMap<String, MutableList<XmlChannel>>()
             xmlChannels.values.forEach { channel ->
-                val keys = HashSet<String>()
-                keys += channelKeys(channel.id, regionCode)
-                channel.names.forEach { keys += channelKeys(it, regionCode) }
-                keys.forEach { byKey.getOrPut(it) { mutableListOf() }.add(channel) }
+                val full = HashSet<String>()
+                val loose = HashSet<String>()
+                (listOf(channel.id) + channel.names).forEach { name ->
+                    val (f, l) = channelKeyTiers(name, regionCode)
+                    full += f; loose += l
+                }
+                full.forEach { byFull.getOrPut(it) { mutableListOf() }.add(channel) }
+                loose.forEach { byLoose.getOrPut(it) { mutableListOf() }.add(channel) }
             }
             val result = HashMap<String, MutableList<String>>()
-            keysByChannel.forEach { (addonChannelId, keys) ->
-                // Several XMLTV channels can share a name (one per city, HD/SD); keep every candidate and
-                // pick, once the programmes are read, the one that actually has a schedule.
-                val candidates = keys.flatMap { key -> byKey[key].orEmpty() }.distinctBy { it.id }
-                    .ifEmpty { listOfNotNull(fuzzy(keys, byKey)) }
+            keysByChannel.forEach { (addonChannelId, tiers) ->
+                val (full, loose) = tiers
+                // A name with a place/region word ("CNN Brasil") only matches exactly; a bare name ("SBT")
+                // also matches "SBT Brasil", "SBT SP"... Several XMLTV channels can share a name, so keep
+                // every candidate and pick, once the programmes are read, the one with a schedule.
+                val bare = loose.isEmpty() || loose == full
+                var candidates = full.flatMap { byFull[it].orEmpty() }
+                if (bare) candidates = candidates + full.flatMap { byLoose[it].orEmpty() }
+                else if (candidates.isEmpty()) candidates = loose.flatMap { byFull[it].orEmpty() }
+                candidates = candidates.distinctBy { it.id }
+                    .ifEmpty { listOfNotNull(fuzzy(full, byFull)) }
                 candidates.forEach { result.getOrPut(it.id) { mutableListOf() }.add(addonChannelId) }
             }
             targets = result
@@ -294,30 +318,40 @@ class EpgShareRepository @Inject constructor(
 
     companion object {
         private const val BASE_URL = "https://epgshare01.online/epgshare01"
+        private const val FREE_URL = "https://www.free-epg.de/api/epg"
         private const val TAG = "EpgShare"
         private const val KEY_REGIONS = "regions"
         private const val MAX_AGE_MILLIS = 6L * 60L * 60L * 1000L
-        private const val MAX_DOWNLOAD_BYTES = 20L * 1024L * 1024L
+        private const val MAX_DOWNLOAD_BYTES = 32L * 1024L * 1024L
         private const val PAST_MILLIS = 2L * 60L * 60L * 1000L
         private const val FUTURE_MILLIS = 48L * 60L * 60L * 1000L
         private const val MAX_TEXT = 4_096
 
         /** Files published by epgshare01 that fit comfortably on a TV (the world-wide dumps do not). */
+        private fun share(code: String, label: String) =
+            EpgRegion(code, label, "$BASE_URL/epg_ripper_$code.xml.gz", "epgshare01")
+        private fun free(country: String, label: String) =
+            EpgRegion("FE_${country.uppercase()}", "$label (FreeEPG)", "$FREE_URL/${country.lowercase()}.xml.gz", "free-epg")
+
         val REGIONS = listOf(
-            EpgRegion("BR1", "Brasil"),
-            EpgRegion("BR2", "Brasil 2"),
-            EpgRegion("US2", "Estados Unidos"),
-            EpgRegion("US_SPORTS1", "EUA - Esportes"),
-            EpgRegion("PT1", "Portugal"),
-            EpgRegion("UK1", "Reino Unido"),
-            EpgRegion("ES1", "Espanha"),
-            EpgRegion("MX1", "México"),
-            EpgRegion("AR1", "Argentina"),
-            EpgRegion("IT1", "Itália"),
-            EpgRegion("FR1", "França"),
-            EpgRegion("DE1", "Alemanha"),
-            EpgRegion("CA2", "Canadá"),
-            EpgRegion("PLEX1", "Plex"),
+            free("br", "Brasil"),
+            share("BR1", "Brasil"),
+            share("BR2", "Brasil 2"),
+            free("pt", "Portugal"),
+            share("PT1", "Portugal"),
+            free("us", "Estados Unidos"),
+            share("US2", "Estados Unidos"),
+            share("US_SPORTS1", "EUA - Esportes"),
+            free("gb", "Reino Unido"),
+            share("UK1", "Reino Unido"),
+            free("es", "Espanha"),
+            free("mx", "México"),
+            free("ar", "Argentina"),
+            free("it", "Itália"),
+            free("fr", "França"),
+            free("de", "Alemanha"),
+            free("ca", "Canadá"),
+            share("PLEX1", "Plex"),
         )
 
         private val timestamp = DateTimeFormatter.ofPattern("uuuuMMddHHmmss")
@@ -340,29 +374,44 @@ class EpgShareRepository @Inject constructor(
         private val noiseTokens = setOf("hd", "fhd", "uhd", "sd", "4k", "hevc", "h265", "canal", "channel")
         private val placePrefix = Regex("^.*?/[a-z]{2}\\.*\\s*")
 
+        private val countryPrefix = Regex("^[a-z]{2}\\s*[-–]\\s+")
+        private val placeWords = setOf("brasil", "brazil", "sp", "rj", "mg", "rs", "pr", "ba", "pe", "df", "ce", "latam")
+
+        /** All comparable keys of a channel name (full and without place words). */
+        internal fun channelKeys(raw: String, regionCode: String? = null): Set<String> =
+            channelKeyTiers(raw, regionCode).let { it.first + it.second }
+
         /**
-         * Comparable keys for a channel name: lower-case, no accents, no city prefix
-         * ("Sao Paulo/SP ..."), no quality or country markers, letters and digits only.
+         * Comparable keys for a channel name: lower-case, no accents, no "BR - " or city prefix, no quality
+         * or country markers, letters and digits only. [Pair.first] keeps place words ("cnnbrasil");
+         * [Pair.second] drops trailing ones ("cnn").
          */
-        internal fun channelKeys(raw: String, regionCode: String? = null): Set<String> {
+        internal fun channelKeyTiers(raw: String, regionCode: String? = null): Pair<Set<String>, Set<String>> {
             val ascii = Normalizer.normalize(raw, Normalizer.Form.NFD)
                 .replace(Regex("\\p{Mn}+"), "")
                 .lowercase()
                 .replace(Regex("\\(.*?\\)|\\[.*?]"), " ")
+                .trim()
+                .replace(countryPrefix, "")
             val withoutPlace = ascii.replace(placePrefix, "")
-            val keys = LinkedHashSet<String>()
+            val full = LinkedHashSet<String>()
+            val loose = LinkedHashSet<String>()
             for (candidate in listOf(withoutPlace, ascii)) {
                 val tokens = candidate.replace("&amp;", " and ").replace("&", " and ")
                     .split(Regex("[^a-z0-9]+")).filter(String::isNotBlank)
                     .filterNot { it in noiseTokens }
                     .toMutableList()
-                val countryTail = setOfNotNull(regionCode, regionCode?.trimEnd { it.isDigit() })
-                    .plus(listOf("br", "us", "uk", "pt", "es", "mx", "ar", "it", "fr", "de", "ca", "us2", "us1"))
+                val countryTail = setOfNotNull(regionCode?.lowercase(), regionCode?.lowercase()?.trimEnd { it.isDigit() })
+                    .plus(listOf("br", "us", "uk", "gb", "pt", "es", "mx", "ar", "it", "fr", "de", "ca", "us2", "us1"))
                 if (tokens.size > 1 && tokens.last() in countryTail) tokens.removeAt(tokens.lastIndex)
-                val key = tokens.joinToString("")
-                if (key.length >= 2) keys += key
+                val fullKey = tokens.joinToString("")
+                if (fullKey.length >= 2) full += fullKey
+                val trimmed = tokens.toMutableList()
+                while (trimmed.size > 1 && trimmed.last() in placeWords) trimmed.removeAt(trimmed.lastIndex)
+                val looseKey = trimmed.joinToString("")
+                if (looseKey.length >= 2 && looseKey != fullKey) loose += looseKey
             }
-            return keys
+            return full to loose
         }
     }
 }

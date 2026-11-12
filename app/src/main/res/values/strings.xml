@@ -3409,6 +3409,6 @@
     <string name="live_tv_guide_loading">Loading guide…</string>
     <string name="live_tv_guide_coverage">Guide: %1$d of %2$d channels</string>
     <string name="live_tv_guide_regions_title">Programme guide (EPG)</string>
-    <string name="live_tv_guide_regions_body">Schedules come from epgshare01.online. Pick the countries that match your channels; channels are matched by name.</string>
+    <string name="live_tv_guide_regions_body">Schedules come from epgshare01.online and free-epg.de. Pick the countries that match your channels; channels are matched by name.</string>
     <string name="live_tv_guide_failed">Could not download the guide for: %1$s</string>
 </resources>

@@ -3391,4 +3391,7 @@
     <string name="live_tv_timezone_noronha">Fernando de Noronha</string>
     <string name="live_tv_timezone_utc">UTC</string>
     <string name="playback_unavailable_hint">Install a stream add-on in Settings to watch this title.</string>
+    <string name="live_tv_sources_view">Sources</string>
+    <string name="live_tv_empty_hero_title">Add your first channel list</string>
+    <string name="live_tv_empty_hero_body">Paste the link to your own M3U playlist (and an XMLTV guide, if you have one) below. Channels are never included with the app.</string>
 </resources>

@@ -2431,4 +2431,7 @@
     <string name="enhanced_intensity_cinematic">Cinemática</string>
     <string name="playback_unavailable_hint">Instale um addon de streams em Definições para ver este título.</string>
     <string name="search_error_tmdb_api_key_missing">A pesquisa por produtoras não está disponível de momento.</string>
+    <string name="live_tv_sources_view">Fontes</string>
+    <string name="live_tv_empty_hero_title">Adicione a sua primeira lista de canais</string>
+    <string name="live_tv_empty_hero_body">Cole abaixo a ligação da sua lista M3U (e de um guia XMLTV, se tiver). Nenhum canal acompanha a aplicação.</string>
 </resources>

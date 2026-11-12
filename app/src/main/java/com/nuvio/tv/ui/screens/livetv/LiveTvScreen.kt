@@ -107,11 +107,7 @@ fun LiveTvScreen(
         viewModel.playChannel(channel, onPlayChannel)
     }
 
-    // With nothing to watch yet, open on Sources: it is the only useful place.
     val nothingToWatch = allChannels.isEmpty() && !state.isLoading && !state.isLoadingAddonChannels
-    LaunchedEffect(nothingToWatch) {
-        if (nothingToWatch) selectedMode = LiveTvMode.SOURCES
-    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
@@ -120,7 +116,7 @@ fun LiveTvScreen(
         item {
             LiveTvHeader(
                 title = stringResource(R.string.live_tv_title),
-                subtitle = stringResource(R.string.live_tv_description),
+                subtitle = stringResource(R.string.live_tv_description_addons),
                 stats = buildList {
                     if (allChannels.isNotEmpty()) add(stringResource(R.string.live_tv_channels, allChannels.size))
                 },
@@ -143,13 +139,12 @@ fun LiveTvScreen(
         }
 
         if (selectedMode == LiveTvMode.SOURCES) {
-            if (state.sources.isEmpty() && allChannels.isEmpty()) {
-                item {
-                    LiveTvEmptyHero(
-                        stringResource(R.string.live_tv_empty_hero_title),
-                        stringResource(R.string.live_tv_empty_hero_body),
-                    )
-                }
+            item {
+                Text(
+                    stringResource(R.string.live_tv_m3u_advanced_note),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = NuvioTheme.colors.TextSecondary,
+                )
             }
             item {
                 Surface(shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
@@ -206,31 +201,32 @@ fun LiveTvScreen(
                     }
                 }
             }
-            if (state.isLoadingAddonChannels) {
-                item { Text(stringResource(R.string.live_tv_addon_channels_loading), color = NuvioTheme.colors.TextSecondary) }
-            } else if (state.addonCatalogCount == 0) {
-                item { Text(stringResource(R.string.live_tv_addon_catalogs_empty), color = NuvioTheme.colors.TextSecondary) }
-            } else if (state.addonChannels.isEmpty()) {
-                item { Text(stringResource(R.string.live_tv_addon_channels_empty), color = NuvioTheme.colors.TextSecondary) }
-            } else {
-                item {
-                    Text(
-                        stringResource(R.string.live_tv_addon_channels, state.addonChannels.size),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = NuvioTheme.colors.TextSecondary,
-                    )
-                }
-            }
-            if (state.addonCatalogErrorCount > 0) {
-                item {
-                    Text(
-                        stringResource(R.string.live_tv_addon_catalog_errors, state.addonCatalogErrorCount),
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                }
-            }
         } else {
-            if (!state.isLoading && !state.isLoadingAddonChannels && visibleChannels.isEmpty()) {
+            if (nothingToWatch) {
+                item {
+                    LiveTvEmptyHero(
+                        stringResource(R.string.live_tv_empty_hero_title),
+                        stringResource(R.string.live_tv_empty_hero_body),
+                    )
+                }
+            }
+        if (state.isLoadingAddonChannels) {
+            item { Text(stringResource(R.string.live_tv_addon_channels_loading), color = NuvioTheme.colors.TextSecondary) }
+        } else if (state.addonCatalogCount == 0) {
+            item { Text(stringResource(R.string.live_tv_addon_catalogs_empty), color = NuvioTheme.colors.TextSecondary) }
+        } else if (state.addonChannels.isEmpty()) {
+            item { Text(stringResource(R.string.live_tv_addon_channels_empty), color = NuvioTheme.colors.TextSecondary) }
+        }
+        if (state.addonCatalogErrorCount > 0) {
+            item {
+                Text(
+                    stringResource(R.string.live_tv_addon_catalog_errors, state.addonCatalogErrorCount),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+
+            if (!state.isLoading && !state.isLoadingAddonChannels && visibleChannels.isEmpty() && !nothingToWatch) {
                 val emptyMessage = when {
                     allChannels.isEmpty() -> R.string.live_tv_empty_channels
                     selectedMode == LiveTvMode.FAVORITES -> R.string.live_tv_empty_favorites
@@ -309,7 +305,7 @@ fun LiveTvScreen(
                     if (selectedMode == LiveTvMode.CHANNELS) {
                         if (!channel.isPlayable) Text(stringResource(R.string.live_tv_no_current_program),
                             style = MaterialTheme.typography.bodySmall, color = NuvioTheme.colors.TextSecondary)
-                    } else {
+                    } else if (programs.isNotEmpty()) {
                         val nowLabel = current?.let { "${formatter.format(java.time.Instant.ofEpochMilli(it.startEpochMillis))}  ${it.title}" }
                             ?: stringResource(R.string.live_tv_no_current_program)
                         val nextLabel = next?.let { "${formatter.format(java.time.Instant.ofEpochMilli(it.startEpochMillis))}  ${it.title}" }

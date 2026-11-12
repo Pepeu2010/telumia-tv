@@ -712,7 +712,8 @@ fun ModernHomeContent(
     val portraitBaseWidth = uiState.posterCardWidthDp.dp
     val portraitBaseHeight = uiState.posterCardHeightDp.dp
     val shortHomeViewport = LocalConfiguration.current.screenHeightDp < 480
-    val portraitModernPosterScale = if (shortHomeViewport) 0.72f else 0.86f
+    // ~14% larger than before so posters and their titles read from the sofa.
+    val portraitModernPosterScale = if (shortHomeViewport) 0.82f else 0.98f
     val landscapeModernPosterScale = 1.34f
     val portraitCatalogCardWidth = portraitBaseWidth * 0.84f * portraitModernPosterScale
     val portraitCatalogCardHeight = portraitBaseHeight * 0.84f * portraitModernPosterScale

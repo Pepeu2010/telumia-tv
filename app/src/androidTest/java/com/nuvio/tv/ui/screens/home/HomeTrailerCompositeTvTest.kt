@@ -34,9 +34,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.MethodSorters
 
 /**
- * Order matters on the software-rendered emulator: the real-video test runs after the pure
- * Compose pixel test, because running it first leaves the next test without its offscreen
- * gradient layer (reproduced: the pixel test passes alone and fails after the video test).
+ * Environment sensitivity (reproduced): the offscreen gradient layer in the pixel test passes on a
+ * freshly booted software-rendered (SwiftShader) emulator and can fail after the emulator has been
+ * running other GL work for a while. The product Home draws the gradient correctly. The video test
+ * runs after the pure Compose test to keep the result deterministic within one run.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(AndroidJUnit4::class)

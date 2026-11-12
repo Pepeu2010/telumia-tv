@@ -239,7 +239,7 @@ class EpgShareRepository @Inject constructor(
                 "category" -> if (keepProgramme && category == null) category = text.toString().trim().ifBlank { null }
                 "programme" -> {
                     if (keepProgramme) {
-                        val name = title?.takeIf(String::isNotBlank)
+                        val name = title?.takeIf { it.isNotBlank() && !isPlaceholderTitle(it) }
                         if (name != null) {
                             targets[programmeChannel].orEmpty().forEach { addonChannelId ->
                                 collected.getOrPut(addonChannelId to programmeChannel.orEmpty()) { mutableListOf() }.add(
@@ -370,6 +370,13 @@ class EpgShareRepository @Inject constructor(
                 0L
             }
         }
+
+        /** Guides pad empty slots with titles like "No Data"; they are not programmes. */
+        internal fun isPlaceholderTitle(title: String): Boolean =
+            title.trim().lowercase().trimEnd('.', '!') in setOf(
+                "no data", "no information", "no information available", "no programme information", "no programming",
+                "sem dados", "sem informacao", "sem informação", "sem programacao", "sem programação", "n/a", "tba", "to be announced",
+            )
 
         private val noiseTokens = setOf("hd", "fhd", "uhd", "sd", "4k", "hevc", "h265", "canal", "channel")
         private val placePrefix = Regex("^.*?/[a-z]{2}\\.*\\s*")

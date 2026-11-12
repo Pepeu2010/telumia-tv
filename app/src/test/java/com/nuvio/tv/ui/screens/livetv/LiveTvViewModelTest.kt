@@ -385,6 +385,7 @@ class LiveTvViewModelTest {
         },
         catalogRepository = catalogRepository,
         streamRepository = streamRepository,
+        sportsRepository = mockk<com.nuvio.tv.core.sports.SportsRepository>(relaxed = true),
         epgRepository = mockk<com.nuvio.tv.core.livetv.EpgShareRepository> {
             every { selectedRegions() } returns listOf("BR1")
             coEvery { load(any(), any()) } returns com.nuvio.tv.core.livetv.EpgGuideResult(emptyMap(), 0, 0, emptyList())

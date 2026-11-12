@@ -114,6 +114,54 @@ fun LiveTvScreen(
 
     val nothingToWatch = allChannels.isEmpty() && !state.isLoading && !state.isLoadingAddonChannels
 
+    // Today's games: loaded once for the header counters, refreshed every minute while the tab is open.
+    LaunchedEffect(Unit) { viewModel.loadGames() }
+    LaunchedEffect(selectedMode) {
+        if (selectedMode != LiveTvMode.GAMES) return@LaunchedEffect
+        viewModel.loadGames(force = true)
+        while (true) {
+            delay(60_000L)
+            nowMillis = System.currentTimeMillis()
+            viewModel.loadGames(force = true)
+        }
+    }
+    val gameBroadcasts = remember(state.games, allChannels, channelPrograms) {
+        if (state.games.isEmpty() || channelPrograms.isEmpty()) emptyMap()
+        else state.games.mapNotNull { game ->
+            com.nuvio.tv.core.sports.GameChannelMatcher.find(game, allChannels, channelPrograms)?.let { game.id to it }
+        }.toMap()
+    }
+
+    if (selectedMode == LiveTvMode.GAMES) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 14.dp)) {
+                items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
+                    LiveTvChip(stringResource(mode.label), selectedMode == mode) {
+                        if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
+                        selectedMode = mode
+                    }
+                }
+            }
+            LiveTvGamesView(
+                games = state.games,
+                broadcasts = gameBroadcasts,
+                zone = selectedZone,
+                loading = state.isLoadingGames,
+                failed = state.gamesFailed,
+                updatedMillis = state.gamesUpdatedMillis,
+                dayOffset = state.gamesDayOffset,
+                onDayChange = viewModel::setGamesDay,
+                onWatch = ::playChannel,
+                onRefresh = { viewModel.loadGames(force = true) },
+                modifier = Modifier.weight(1f).padding(bottom = 16.dp),
+            )
+        }
+        return
+    }
+
     if (selectedMode == LiveTvMode.GUIDE && hasGuide) {
         Column(
             modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
@@ -150,6 +198,8 @@ fun LiveTvScreen(
                 subtitle = stringResource(R.string.live_tv_description_addons),
                 stats = buildList {
                     if (allChannels.isNotEmpty()) add(stringResource(R.string.live_tv_channels, allChannels.size))
+                    state.games.count { it.state == com.nuvio.tv.core.sports.GameState.LIVE }.takeIf { it > 0 }
+                        ?.let { add("● " + stringResource(R.string.live_tv_games_live_count, it)) }
                     if (state.isLoadingGuide) add(stringResource(R.string.live_tv_guide_loading))
                     else if (state.guideTotalChannels > 0) add(stringResource(R.string.live_tv_guide_coverage, state.guideMatchedChannels, state.guideTotalChannels))
                 },
@@ -393,6 +443,7 @@ private val LIVE_TV_TIME_ZONES = listOf(
 
 private enum class LiveTvMode(val label: Int) {
     NOW(R.string.live_tv_now_view),
+    GAMES(R.string.live_tv_games_view),
     GUIDE(R.string.live_tv_guide_view),
     CHANNELS(R.string.live_tv_channels_view),
     FAVORITES(R.string.live_tv_favorites_view),

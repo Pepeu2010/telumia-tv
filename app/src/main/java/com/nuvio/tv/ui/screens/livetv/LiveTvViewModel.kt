@@ -9,6 +9,8 @@ import com.nuvio.tv.core.livetv.installedLiveTvAddonCatalogs
 import com.nuvio.tv.core.livetv.project
 import com.nuvio.tv.core.livetv.LiveTvSourceImporter
 import com.nuvio.tv.core.livetv.EpgShareRepository
+import com.nuvio.tv.core.sports.SportsGame
+import com.nuvio.tv.core.sports.SportsRepository
 import com.nuvio.tv.core.livetv.LiveTvGuideCache
 import com.nuvio.tv.core.livetv.LiveTvRefreshScheduler
 import com.nuvio.tv.data.local.LiveTvSourceStore
@@ -61,6 +63,13 @@ data class LiveTvUiState(
     val guideTotalChannels: Int = 0,
     val guideFailedRegions: List<String> = emptyList(),
     val epgRegions: List<String> = emptyList(),
+    /** Today's games for the main leagues (ESPN scoreboard). */
+    val games: List<SportsGame> = emptyList(),
+    val isLoadingGames: Boolean = false,
+    val gamesFailed: Boolean = false,
+    val gamesUpdatedMillis: Long = 0L,
+    /** 0 = today, -1 = yesterday, 1 = tomorrow. */
+    val gamesDayOffset: Int = 0,
 )
 
 @HiltViewModel
@@ -75,6 +84,7 @@ class LiveTvViewModel @Inject constructor(
     private val catalogRepository: CatalogRepository,
     private val streamRepository: StreamRepository,
     private val epgRepository: EpgShareRepository,
+    private val sportsRepository: SportsRepository,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(LiveTvUiState(isLoading = true))
     val state: StateFlow<LiveTvUiState> = mutableState.asStateFlow()
@@ -92,6 +102,36 @@ class LiveTvViewModel @Inject constructor(
         epgRepository.setRegions(next)
         mutableState.update { it.copy(epgRegions = epgRepository.selectedRegions()) }
         loadGuide()
+    }
+
+    private var gamesJob: kotlinx.coroutines.Job? = null
+
+    /** Fetches today's games; [force] skips the short in-memory cache (live scores). */
+    fun setGamesDay(offset: Int) {
+        if (offset == mutableState.value.gamesDayOffset) return
+        mutableState.update { it.copy(gamesDayOffset = offset, games = emptyList(), gamesFailed = false) }
+        loadGames()
+    }
+
+    fun loadGames(force: Boolean = false) {
+        gamesJob?.cancel()
+        gamesJob = viewModelScope.launch {
+            mutableState.update { it.copy(isLoadingGames = true) }
+            try {
+                val zone = mutableState.value.timeZoneId.let { id ->
+                    if (id == LiveTvChannelStateStore.DEFAULT_TIME_ZONE_ID) java.time.ZoneId.systemDefault()
+                    else runCatching { java.time.ZoneId.of(id) }.getOrDefault(java.time.ZoneId.systemDefault())
+                }
+                val games = sportsRepository.forDay(zone, mutableState.value.gamesDayOffset, force)
+                mutableState.update {
+                    it.copy(games = games, isLoadingGames = false, gamesFailed = false, gamesUpdatedMillis = System.currentTimeMillis())
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                mutableState.update { it.copy(isLoadingGames = false, gamesFailed = it.games.isEmpty()) }
+            }
+        }
     }
 
     fun loadGuide() {

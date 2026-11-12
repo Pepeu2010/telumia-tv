@@ -3217,4 +3217,24 @@
     <string name="live_tv_guide_regions_title">Guia de programação (EPG)</string>
     <string name="live_tv_guide_regions_body">A programação vem do epgshare01.online e do free-epg.de. Escolha os países dos seus canais; os canais são associados pelo nome.</string>
     <string name="live_tv_guide_failed">Não foi possível baixar o guia de: %1$s</string>
+    <string name="live_tv_games_view">Jogos</string>
+    <string name="live_tv_games_title">Jogos</string>
+    <string name="live_tv_games_live_count">%1$d ao vivo</string>
+    <string name="live_tv_games_count">%1$d jogos</string>
+    <string name="live_tv_games_updating">Atualizando…</string>
+    <string name="live_tv_games_refresh">Atualizado %1$s • Atualizar</string>
+    <string name="live_tv_games_all">Todos</string>
+    <string name="live_tv_games_live">Ao vivo</string>
+    <string name="live_tv_games_in_guide">No seu guia</string>
+    <string name="live_tv_games_failed_title">Não foi possível carregar os jogos</string>
+    <string name="live_tv_games_failed_body">Verifique a conexão e tente de novo no botão de atualizar.</string>
+    <string name="live_tv_games_empty_title">Sem jogos hoje</string>
+    <string name="live_tv_games_empty_body">Nenhuma das ligas acompanhadas tem partida marcada para hoje.</string>
+    <string name="live_tv_games_filter_empty">Nenhum jogo neste filtro.</string>
+    <string name="live_tv_games_watch">▶ Assistir em %1$s</string>
+    <string name="live_tv_games_live_label">AO VIVO</string>
+    <string name="live_tv_games_finished">Encerrado</string>
+    <string name="live_tv_games_yesterday">Ontem</string>
+    <string name="live_tv_games_today">Hoje</string>
+    <string name="live_tv_games_tomorrow">Amanhã</string>
 </resources>

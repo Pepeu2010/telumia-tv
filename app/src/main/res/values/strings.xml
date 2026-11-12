@@ -3411,4 +3411,24 @@
     <string name="live_tv_guide_regions_title">Programme guide (EPG)</string>
     <string name="live_tv_guide_regions_body">Schedules come from epgshare01.online and free-epg.de. Pick the countries that match your channels; channels are matched by name.</string>
     <string name="live_tv_guide_failed">Could not download the guide for: %1$s</string>
+    <string name="live_tv_games_view">Games</string>
+    <string name="live_tv_games_title">Games</string>
+    <string name="live_tv_games_live_count">%1$d live</string>
+    <string name="live_tv_games_count">%1$d games</string>
+    <string name="live_tv_games_updating">Updating…</string>
+    <string name="live_tv_games_refresh">Updated %1$s • Refresh</string>
+    <string name="live_tv_games_all">All</string>
+    <string name="live_tv_games_live">Live</string>
+    <string name="live_tv_games_in_guide">In your guide</string>
+    <string name="live_tv_games_failed_title">Could not load the games</string>
+    <string name="live_tv_games_failed_body">Check your connection and try again with the refresh button.</string>
+    <string name="live_tv_games_empty_title">No games today</string>
+    <string name="live_tv_games_empty_body">None of the followed leagues has a match scheduled for today.</string>
+    <string name="live_tv_games_filter_empty">No games match this filter.</string>
+    <string name="live_tv_games_watch">▶ Watch on %1$s</string>
+    <string name="live_tv_games_live_label">LIVE</string>
+    <string name="live_tv_games_finished">Finished</string>
+    <string name="live_tv_games_yesterday">Yesterday</string>
+    <string name="live_tv_games_today">Today</string>
+    <string name="live_tv_games_tomorrow">Tomorrow</string>
 </resources>

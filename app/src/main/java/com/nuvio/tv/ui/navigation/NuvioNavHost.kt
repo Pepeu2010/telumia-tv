@@ -18,6 +18,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
@@ -93,9 +95,31 @@ private fun PlaybackNavHost(
     val playbackAvailability = LocalPlaybackAvailability.current
     val motion = LocalUiMotion.current
     val navigationDuration = motion.durationMillis(NuvioMotion.tokens.durations.medium)
+    // Top-bar tabs, left to right. Moving between them slides the content in the direction of travel.
+    val tabOrder = listOf(
+        Screen.Home.route, Screen.LiveTv.route, Screen.Search.route, Screen.Library.route, Screen.Settings.route
+    )
+    fun tabDirection(from: String, to: String): Int? {
+        val a = tabOrder.indexOf(from)
+        val b = tabOrder.indexOf(to)
+        return if (a >= 0 && b >= 0 && a != b) (if (b > a) 1 else -1) else null
+    }
+    fun spatialExit(from: String, to: String): ExitTransition {
+        val fade = fadeOut(animationSpec = tween(navigationDuration))
+        val direction = tabDirection(from, to)
+        if (direction == null || !motion.allowsSpatialEffects) return fade
+        return fade + slideOutHorizontally(tween(navigationDuration, easing = NuvioMotion.tokens.easings.emphasized)) {
+            -direction * it / 12
+        }
+    }
     fun spatialEntrance(from: String, to: String, backwards: Boolean = false): EnterTransition {
         val fade = fadeIn(tween(navigationDuration))
         if (!motion.allowsSpatialEffects || from.startsWith("player/") || to.startsWith("player/")) return fade
+        tabDirection(from, to)?.let { direction ->
+            return fade + slideInHorizontally(tween(navigationDuration, easing = NuvioMotion.tokens.easings.emphasized)) {
+                direction * it / 10
+            }
+        }
         return fade + slideInVertically(tween(navigationDuration, easing = NuvioMotion.tokens.easings.emphasized)) {
             if (backwards) -it / 64 else it / 64
         }
@@ -148,7 +172,7 @@ private fun PlaybackNavHost(
             if (isStreamToPlayer(from, to) && isAutoPlayNav) {
                 ExitTransition.None
             } else {
-                fadeOut(animationSpec = tween(navigationDuration))
+                spatialExit(from, to)
             }
         },
         popEnterTransition = {
@@ -172,7 +196,7 @@ private fun PlaybackNavHost(
             if (isPlayerToStream(from, to) && isAutoPlayNav) {
                 ExitTransition.None
             } else {
-                fadeOut(animationSpec = tween(navigationDuration))
+                spatialExit(from, to)
             }
         }
     ) {

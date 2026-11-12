@@ -178,10 +178,14 @@ fun TopNavigationBar(
                 val selectedIndicatorOffset by animateDpAsState(
                     targetValue = 12.dp + navigationItemWidths.take(selectedIndex).fold(0.dp) { total, width -> total + width } +
                         itemSpacing * selectedIndex,
-                    animationSpec = tween(
-                        durationMillis = NuvioTheme.motion.durations.medium,
-                        easing = FastOutSlowInEasing
-                    ),
+                    animationSpec = if (com.nuvio.tv.ui.theme.LocalUiMotion.current.allowsSpatialEffects) {
+                        androidx.compose.animation.core.spring(
+                            dampingRatio = 0.78f,
+                            stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
+                        )
+                    } else {
+                        tween(durationMillis = 0)
+                    },
                     label = "topNavigationSelectionOffset"
                 )
                 Box(
@@ -190,7 +194,11 @@ fun TopNavigationBar(
                         .height(44.dp)
                         .clip(RoundedCornerShape(50))
                         .background(Color(0xDA070707))
-                        .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(50))
+                        .border(
+                            1.dp,
+                            Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.26f), Color.White.copy(alpha = 0.06f))),
+                            RoundedCornerShape(50)
+                        )
                         .onFocusChanged { navigationHasFocus = it.hasFocus }
                         .focusGroup(),
                 ) {
@@ -201,9 +209,16 @@ fun TopNavigationBar(
                             .width(navigationItemWidths[selectedIndex])
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(50))
-                            // Keep the navigation rail neutral like the black cinematic chrome;
-                            // the selected icon remains white and the pill moves between routes.
-                            .background(Color.White.copy(alpha = 0.13f))
+                            // Accent-tinted glass pill that glides between routes.
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        NuvioTheme.colors.Secondary.copy(alpha = 0.34f),
+                                        NuvioTheme.colors.Secondary.copy(alpha = 0.14f)
+                                    )
+                                )
+                            )
+                            .border(1.dp, NuvioTheme.colors.Secondary.copy(alpha = 0.55f), RoundedCornerShape(50))
                     )
                     Row(
                         modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp),
@@ -307,7 +322,11 @@ private fun TopNavigationButton(
         label = "topNavigationItemFocusBorder"
     )
     val iconTint by animateColorAsState(
-        targetValue = if (isFocused || selected) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary,
+        targetValue = when {
+            isFocused -> NuvioTheme.colors.TextPrimary
+            selected -> NuvioTheme.colors.Secondary
+            else -> NuvioTheme.colors.TextSecondary
+        },
         animationSpec = tween(motion.durations.fast),
         label = "topNavigationItemIconTint",
     )

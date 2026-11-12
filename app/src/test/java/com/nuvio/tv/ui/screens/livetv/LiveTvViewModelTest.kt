@@ -124,6 +124,9 @@ class LiveTvViewModelTest {
         )
 
         runCurrent()
+        // The catalog is retried once after a short pause before it is reported as failed.
+        testScheduler.advanceTimeBy(2_000)
+        runCurrent()
 
         assertEquals(1, viewModel.state.value.addonCatalogCount)
         assertEquals(1, viewModel.state.value.addonCatalogErrorCount)

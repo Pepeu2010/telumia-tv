@@ -1297,14 +1297,28 @@ open class MainActivity : ComponentActivity() {
                             startupLoadingState.complete = true
                         }
                     }
-                    val showSplash = shouldShowStartupSplash(
+                    val splashNeeded = shouldShowStartupSplash(
                         enabled = startupSplashEnabled,
                         complete = startupLoadingState.complete,
                         destination = startupDestination
                     )
+                    // The launch "tudum" runs about 2.4 s; keep it up that long even when the app is
+                    // ready sooner, so the animation and sound are never cut in the middle.
+                    var splashEverShown by remember { mutableStateOf(false) }
+                    var splashHoldElapsed by remember { mutableStateOf(false) }
+                    LaunchedEffect(splashNeeded) { if (splashNeeded) splashEverShown = true }
+                    // Start the intro (animation, sound, hold) once the heavy startup work is done.
+                    val introGo = splashEverShown && (startupLoadingState.complete || !splashNeeded)
+                    LaunchedEffect(introGo) {
+                        if (introGo) {
+                            playLaunchSoundOnce()
+                            delay(com.nuvio.tv.ui.components.TUDUM_DURATION_MILLIS.toLong() + 200L)
+                            splashHoldElapsed = true
+                        }
+                    }
+                    val showSplash = splashNeeded || (splashEverShown && !splashHoldElapsed)
                     LaunchedEffect(showSplash) {
                         launchSplashVisible = showSplash
-                        if (showSplash) playLaunchSoundOnce()
                     }
                     val animatedSplashAlpha by animateFloatAsState(
                         targetValue = if (showSplash) 1f else 0f,
@@ -1327,6 +1341,7 @@ open class MainActivity : ComponentActivity() {
                             backgroundCacheKey = splashBackground.backgroundCacheKey,
                             skipGradient = splashBackground.skipGradient,
                             brandWordmarkRes = splashBackground.brandWordmarkRes,
+                            introStarted = introGo,
                             modifier = Modifier.graphicsLayer { alpha = splashAlpha }
                         )
                     }

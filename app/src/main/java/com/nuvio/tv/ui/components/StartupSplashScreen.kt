@@ -46,34 +46,24 @@ fun StartupSplashScreen(
     backgroundCacheKey: String? = null,
     skipGradient: Boolean = false,
     brandWordmarkRes: Int? = null,
+    // The intro only starts once startup work has finished: while the main thread is busy the
+    // animation would drop every frame and the user would only ever see its last one.
+    introStarted: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val motion = LocalUiMotion.current
-    var brandRevealed by remember { mutableStateOf(false) }
-    var lightSweepStarted by remember { mutableStateOf(false) }
-    LaunchedEffect(motion.allowsSpatialEffects) {
-        brandRevealed = true
-        if (motion.allowsSpatialEffects) {
-            delay(120L)
-            lightSweepStarted = true
-        }
+    // One value drives the whole "tudum": line of light -> halo -> wordmark -> beams -> loader.
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    // The clock never depends on the motion preference: the preference starts as OFF until it is
+    // read from disk, and restarting the intro when it flips would replay or skip it. Only the
+    // light layer is gated by the preference.
+    LaunchedEffect(introStarted) {
+        if (!introStarted) return@LaunchedEffect
+        progress.animateTo(
+            1f,
+            tween(durationMillis = TUDUM_DURATION_MILLIS, easing = androidx.compose.animation.core.LinearEasing),
+        )
     }
-    val brandReveal by animateFloatAsState(
-        targetValue = if (brandRevealed) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = motion.durationMillis(760),
-            easing = FastOutSlowInEasing,
-        ),
-        label = "telumiaTvLaunchBrandReveal",
-    )
-    val lightSweepProgress by animateFloatAsState(
-        targetValue = if (lightSweepStarted && motion.allowsSpatialEffects) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = motion.durationMillis(820),
-            easing = FastOutSlowInEasing,
-        ),
-        label = "telumiaTvLaunchLightSweep",
-    )
     val avatarColor = remember(profileColorHex) {
         profileColorHex?.let {
             runCatching { Color(android.graphics.Color.parseColor(it)) }.getOrNull()
@@ -124,72 +114,36 @@ fun StartupSplashScreen(
         }
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (motion.allowsSpatialEffects) Modifier.tudumLight({ progress.value }) else Modifier),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth().height(88.dp).clipToBounds(),
+                modifier = Modifier.fillMaxWidth().height(88.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(width = 320.dp, height = 128.dp)
-                        .graphicsLayer { alpha = brandReveal * 0.42f }
-                        .background(
-                            Brush.radialGradient(
-                                colors = listOf(Color(0xFFFFA55A).copy(alpha = 0.40f), Color.Transparent),
-                            ),
-                        ),
-                )
                 BrandWordmark(
                     modifier = Modifier
                         .height(56.dp)
                         .graphicsLayer {
-                            alpha = brandReveal
-                            val scale = 0.9f + brandReveal * 0.1f
+                            val p = progress.value
+                            alpha = tudumBrandAlpha(p)
+                            val scale = if (motion.allowsSpatialEffects) tudumBrandScale(p) else 1f
                             scaleX = scale
                             scaleY = scale
-                            translationY = (1f - brandReveal) * 16.dp.toPx()
                         },
                     contentDescription = stringResource(R.string.cd_nuvio_logo),
                     drawableOverride = brandWordmarkRes,
                 )
-                Box(
-                    modifier = Modifier
-                        .size(width = 42.dp, height = 84.dp)
-                        .graphicsLayer {
-                            val travel = size.width + 220.dp.toPx()
-                            translationX = (lightSweepProgress * 2f - 1f) * travel
-                            rotationZ = 12f
-                            alpha = if (lightSweepStarted && motion.allowsSpatialEffects) {
-                                brandReveal * (1f - lightSweepProgress).coerceIn(0f, 1f) * 0.88f
-                            } else {
-                                0f
-                            }
-                        }
-                        .clip(RoundedCornerShape(50))
-                        .background(
-                            Brush.horizontalGradient(
-                                colorStops = arrayOf(
-                                    0f to Color.Transparent,
-                                    0.2f to Color.Transparent,
-                                    0.42f to Color.White.copy(alpha = 0.34f),
-                                    0.5f to Color(0xFFFFC27A).copy(alpha = 0.78f),
-                                    0.58f to Color.White.copy(alpha = 0.58f),
-                                    0.8f to Color.Transparent,
-                                    1f to Color.Transparent,
-                                ),
-                            ),
-                        ),
-                )
             }
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxl))
-            // The brand leads; the spinner only fades in with it so the first frame is never a bare spinner.
+            // The brand leads; the loader only appears once the intro has landed.
             LoadingIndicator(
                 modifier = Modifier
                     .size(NuvioTheme.spacing.xxxl)
-                    .graphicsLayer { alpha = brandReveal }
+                    .graphicsLayer { alpha = tudumLoaderAlpha(progress.value) }
             )
         }
     }

@@ -192,9 +192,11 @@ class PlayerViewModel @Inject constructor(
         val primary = controller.exoPlayer
         val seekableVideo = primary?.videoFormat != null && primary.isCurrentMediaItemSeekable
         if (!canShowTimelinePreview(ui, timeline, foreground, focused, seekableVideo)) return null
-        val owner = bookmarks.scope?.takeIf(sceneBookmarkRepository::eligible) ?: return null
         val position = normalizedTimelinePreviewPosition(ui.pendingPreviewSeekPosition!!, timeline.duration) ?: return null
         val url = controller.getCurrentStreamUrl().takeIf { it.isNotBlank() } ?: return null
+        // The preview only needs a stable identity for the playing source. Scene bookmarks are
+        // optional (they need a resolved profile/account scope) and must not switch it off.
+        val owner: Any = bookmarks.scope?.takeIf(sceneBookmarkRepository::eligible) ?: "preview:$url"
         return TimelinePreviewInput(owner, url, controller.getCurrentHeaders().toMap(), timeline.duration, position)
     }
 

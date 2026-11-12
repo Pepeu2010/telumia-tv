@@ -41,7 +41,7 @@ internal fun PlayerTimelinePreviewHost(viewModel: PlayerViewModel) {
     val pending = ui.pendingPreviewSeekPosition ?: return
     val requested = normalizedTimelinePreviewPosition(pending, timeline.duration) ?: return
     // Recheck live account/profile/source ownership at composition, not only when decoding started.
-    val current = owner.scope != null && viewModel.isTimelinePreviewCurrent()
+    val current = viewModel.isTimelinePreviewCurrent()
     val displayed = if (current) state else TimelineFrameState.Unavailable(requested)
     PlayerTimelinePreviewSurface(displayed, pending, requested,
         compact = LocalConfiguration.current.screenHeightDp < 440)

@@ -38,7 +38,7 @@ internal class TimelineFrameSession(val owner: Any, val url: String, headers: Ma
 internal data class TimelineFrameImage(val requestedMs: Long, val decodedMs: Long, val bitmap: Bitmap)
 /** In-memory request only. Credential-bearing inputs never enter UI diagnostics or cache keys. */
 internal data class TimelinePreviewInput(
-    val owner: com.nuvio.tv.core.player.metadata.SceneBookmarkScope,
+    val owner: Any,
     val url: String,
     val headers: Map<String, String>,
     val durationMs: Long,

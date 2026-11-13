@@ -43,7 +43,7 @@ fun ProfileAvatarCircle(
     val avatarColor = runCatching { Color(android.graphics.Color.parseColor(colorHex)) }
         .getOrDefault(Color(0xFF1E88E5)).compositeOver(Color(0xFF080E18))
     val initial = name.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
-    val fontSize = (size.value * 0.4f).sp
+    val fontSize = (size.value * 0.52f).sp
     val context = LocalContext.current
     val imageRequest = remember(context, avatarImageUrl, imageCrossfade) {
         avatarImageUrl?.let {
@@ -74,7 +74,8 @@ fun ProfileAvatarCircle(
                 text = initial,
                 color = if (avatarColor.luminance() > 0.179f) Color.Black else Color.White,
                 fontSize = fontSize,
-                fontWeight = FontWeight.Bold
+                fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                fontWeight = FontWeight.Normal
             )
         }
         if (imageRequest != null) {

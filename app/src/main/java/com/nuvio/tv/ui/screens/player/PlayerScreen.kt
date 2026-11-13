@@ -2878,8 +2878,13 @@ private fun PlayerControlsTimeTextHost(viewModel: PlayerViewModel) {
 
     Text(
         text = timeText,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.White.copy(alpha = 0.9f),
+        style = MaterialTheme.typography.bodyMedium.copy(
+            fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+            fontSize = 24.sp,
+            letterSpacing = 1.sp,
+            fontWeight = FontWeight.Normal
+        ),
+        color = Color.White.copy(alpha = 0.92f),
         maxLines = 1,
         modifier = Modifier
             .padding(start = 12.dp)
@@ -3283,8 +3288,10 @@ private fun PlayerClockOverlay(
         Text(
             text = timeFormatter.format(Date(nowMs)),
             style = MaterialTheme.typography.bodyMedium.copy(
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
+                fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                fontSize = 28.sp,
+                letterSpacing = 1.sp,
+                fontWeight = FontWeight.Normal
             ),
             color = Color.White.copy(alpha = 0.96f)
         )

@@ -569,8 +569,10 @@ internal fun ModernRowSection(
             // How many titles the shelf holds (skipped for placeholders that are still loading).
             val shelfCount = row.items.list.count { !it.imageUrl.isPlaceholder() }
             if (shelfCount > 0) {
+                // The active shelf shows where the focus is ("3 / 49"); the others just show their size.
+                val position = if (isActiveRow()) rowFocusedIndex.value + 1 else 0
                 Text(
-                    text = shelfCount.toString(),
+                    text = if (position in 1..shelfCount) "$position / $shelfCount" else shelfCount.toString(),
                     style = rowTitleStyle.copy(fontSize = 20.sp, letterSpacing = 1.sp),
                     color = NuvioTheme.colors.TextSecondary,
                     modifier = Modifier.padding(bottom = 2.dp)

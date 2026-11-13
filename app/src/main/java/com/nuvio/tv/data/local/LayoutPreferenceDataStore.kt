@@ -173,7 +173,7 @@ class LayoutPreferenceDataStore @Inject constructor(
     }
 
     val continueWatchingCardStyle: Flow<ContinueWatchingCardStyle> = profileFlow { prefs ->
-        val styleName = prefs[continueWatchingCardStyleKey] ?: ContinueWatchingCardStyle.CARD.name
+        val styleName = prefs[continueWatchingCardStyleKey] ?: ContinueWatchingCardStyle.WIDE.name
         try {
             ContinueWatchingCardStyle.valueOf(styleName)
         } catch (e: IllegalArgumentException) {

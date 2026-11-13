@@ -175,16 +175,20 @@ fun LiveTvScreen(
                 else if (state.guideTotalChannels > 0) add("EPG ${state.guideMatchedChannels}/${state.guideTotalChannels}")
             },
         ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }, key = { it.name }) { mode ->
-                    LiveTvChip(stringResource(mode.label), selectedMode == mode) {
-                        if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
-                        selectedMode = mode
-                    }
-                }
-            }
+            val visibleModes = LiveTvMode.values().filter { it != LiveTvMode.GUIDE || hasGuide }
+            val modeLabels = visibleModes.map { stringResource(it.label) }
+            com.nuvio.tv.ui.components.NuvioTabStrip(
+                labels = modeLabels,
+                selectedIndex = visibleModes.indexOf(selectedMode).coerceAtLeast(0),
+                onSelect = { i ->
+                    val mode = visibleModes[i]
+                    if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
+                    selectedMode = mode
+                },
+            )
         }
     }
+
     val categoryCounts = remember(allChannels) {
         allChannels.groupingBy { LiveTvChannelCategory.fromGroup(it.groupName) }.eachCount()
     }

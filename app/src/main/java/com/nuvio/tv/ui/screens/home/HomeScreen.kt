@@ -728,30 +728,21 @@ private fun ModernHomeRoute(
         }
     )
     // Quick filter under the top bar: nav -> Down reaches it, Down again reaches the shelves.
-    androidx.compose.foundation.layout.Row(
+    val filters = listOf(
+        HomeTypeFilter.ALL to stringResource(R.string.home_filter_all),
+        HomeTypeFilter.MOVIES to stringResource(R.string.home_filter_movies),
+        HomeTypeFilter.SERIES to stringResource(R.string.home_filter_series),
+    )
+    com.nuvio.tv.ui.components.NuvioSegmentedControl(
+        labels = filters.map { it.second },
+        selectedIndex = filters.indexOfFirst { it.first == typeFilter }.coerceAtLeast(0),
+        onSelect = { viewModel.setHomeTypeFilter(filters[it].first) },
+        trailingLabel = stringResource(R.string.home_filter_live),
+        onTrailing = onOpenLiveTv,
         modifier = Modifier
             .align(androidx.compose.ui.Alignment.TopEnd)
-            .padding(end = 56.dp, top = 6.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
-    ) {
-        listOf(
-            HomeTypeFilter.ALL to R.string.home_filter_all,
-            HomeTypeFilter.MOVIES to R.string.home_filter_movies,
-            HomeTypeFilter.SERIES to R.string.home_filter_series,
-        ).forEach { (filter, label) ->
-            com.nuvio.tv.ui.components.NuvioPillChip(
-                label = stringResource(label),
-                selected = typeFilter == filter,
-                onClick = { viewModel.setHomeTypeFilter(filter) },
-            )
-        }
-        // Shortcut to what is on right now (games, channels); not a filter, so never "selected".
-        com.nuvio.tv.ui.components.NuvioPillChip(
-            label = "● " + stringResource(R.string.home_filter_live),
-            selected = false,
-            onClick = onOpenLiveTv,
-        )
-    }
+            .padding(end = 56.dp, top = 8.dp),
+    )
     }
 }
 

@@ -52,41 +52,40 @@ internal val OnAirGreen = Color(0xFF3DDC97)
 private val Ink = Color(0xFF0B1014)
 
 /**
- * One compact line: the tab title in the scoreboard face, the mode switcher, and the counters on the
- * right. It replaces a tall title block so the content starts higher on the screen.
+ * Header: title, the mode tabs, and plain status text at the far end. Tabs are text-only
+ * (see NuvioTabStrip) and the status is not a pill, so nothing here competes with the filters below.
  */
 @Composable
 internal fun LiveTvTopBar(title: String, stats: List<String>, modes: @Composable RowScope.() -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 46.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(22.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(26.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(
                 Modifier.width(5.dp).height(34.dp).clip(RoundedCornerShape(3.dp))
                     .background(Brush.verticalGradient(listOf(NuvioTheme.colors.Secondary, NuvioTheme.colors.Secondary.copy(alpha = 0.25f))))
             )
-            Text(title.uppercase(), style = scoreboard(40, 1.5f), color = NuvioTheme.colors.TextPrimary, maxLines = 1)
+            Text(title.uppercase(), style = scoreboard(36, 1.5f), color = NuvioTheme.colors.TextPrimary, maxLines = 1)
         }
-        Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically, content = modes)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) { stats.forEach { LiveTvStatPill(it) } }
+        Row(Modifier.weight(1f), content = modes)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            stats.forEach { LiveTvStat(it) }
+        }
     }
 }
 
 @Composable
-private fun LiveTvStatPill(text: String) {
-    val live = text.startsWith("●")
-    Box(
-        Modifier.clip(RoundedCornerShape(50))
-            .background((if (live) LiveRed else Color.White).copy(alpha = if (live) 0.16f else 0.06f))
-            .padding(horizontal = 14.dp, vertical = 7.dp)
-    ) {
-        Text(
-            text, style = MaterialTheme.typography.labelLarge,
-            color = if (live) LiveRed else NuvioTheme.colors.TextSecondary, maxLines = 1,
-        )
-    }
+private fun LiveTvStat(text: String) {
+    val live = text.startsWith("\u25CF")
+    Text(
+        text.removePrefix("\u25CF").trim(),
+        style = MaterialTheme.typography.labelLarge,
+        color = if (live) LiveRed else NuvioTheme.colors.TextSecondary,
+        maxLines = 1,
+        modifier = Modifier.padding(bottom = 8.dp),
+    )
 }
 
 /** Mode/zone chip: the shared pill; the selected one is filled, never "disabled", so it stays focusable. */
@@ -153,7 +152,11 @@ internal fun LiveTvChannelCard(
                 focusedBorder = Border(BorderStroke(3.dp, NuvioTheme.focusRing.solidColor), shape = shape),
             ),
         ) {
-            Box(Modifier.fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min)) {
+                // On-air marker: a green edge along the whole card, visible from across the room.
+                if (onAir) Box(
+                    Modifier.align(Alignment.CenterStart).width(5.dp).fillMaxHeight().background(OnAirGreen)
+                )
                 if (!art.isNullOrBlank()) {
                     Box(Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(360.dp)) {
                         AsyncImage(art, null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())

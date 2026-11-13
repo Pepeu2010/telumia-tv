@@ -556,12 +556,27 @@ internal fun ModernRowSection(
         val textModifier = remember(rowTitleBottom) {
             Modifier.padding(start = 52.dp, bottom = rowTitleBottom)
         }
-        Text(
-            text = rowTitle,
-            style = rowTitleStyle.copy(textDirection = rowTitle.contentTextDirection()),
-            color = textColor,
-            modifier = textModifier
-        )
+        androidx.compose.foundation.layout.Row(
+            modifier = textModifier,
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = rowTitle,
+                style = rowTitleStyle.copy(textDirection = rowTitle.contentTextDirection()),
+                color = textColor,
+            )
+            // How many titles the shelf holds (skipped for placeholders that are still loading).
+            val shelfCount = row.items.list.count { !it.imageUrl.isPlaceholder() }
+            if (shelfCount > 0) {
+                Text(
+                    text = shelfCount.toString(),
+                    style = rowTitleStyle.copy(fontSize = 20.sp, letterSpacing = 1.sp),
+                    color = NuvioTheme.colors.TextSecondary,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
+        }
 
         val rowListState = rowListStates.getOrPut(row.key) {
             // Resolved when the row is built, so a refresh that already moved the card is seen.
@@ -1548,6 +1563,34 @@ private fun ModernCarouselCard(
                             .padding(end = NuvioTheme.spacing.sm, top = NuvioTheme.spacing.sm)
                             .zIndex(2f)
                     )
+                }
+
+                // Rating chip on catalog posters so a title can be judged without opening it.
+                val ratingValue = item.heroPreview.imdbText?.toFloatOrNull()
+                    ?.takeIf { it.isFinite() && it in 0.1f..10f }
+                if (ratingValue != null && item.payload is ModernPayload.Catalog && !isBackdropExpanded &&
+                    !item.imageUrl.isPlaceholder()
+                ) {
+                    androidx.compose.foundation.layout.Row(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = NuvioTheme.spacing.xs, top = NuvioTheme.spacing.xs)
+                            .zIndex(2f)
+                            .background(Color.Black.copy(alpha = 0.66f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 7.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                    ) {
+                        Text("★", color = Color(0xFFF5C518), style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = String.format(java.util.Locale.US, "%.1f", ratingValue),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                                fontSize = 15.sp, fontWeight = FontWeight.Normal, letterSpacing = 0.5.sp
+                            )
+                        )
+                    }
                 }
             }
         }

@@ -429,6 +429,20 @@ internal fun HeroTitleContent(
     val secondary = listOfNotNull(preview.ageRatingText, status, preview.secondaryHighlightText,
         preview.languageText, preview.countryText).filter(String::isNotBlank).distinct()
     val imdb = preview.imdbText?.toFloatOrNull()?.takeIf { it.isFinite() && it in 0f..10f }
+
+    val openHint: @Composable () -> Unit = {
+        // The focused poster is the action: say what OK does, instead of leaving it to be discovered.
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(Modifier.clip(RoundedCornerShape(5.dp)).background(colors.TextPrimary)
+                .padding(horizontal = 8.dp, vertical = 0.dp)) {
+                Text("OK", style = MaterialTheme.typography.labelLarge.copy(
+                    fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 16.sp, letterSpacing = 1.sp,
+                    fontWeight = FontWeight.Normal), color = Color(0xFF0B1014))
+            }
+            Text(stringResource(R.string.home_hero_hint_open), style = MaterialTheme.typography.labelMedium,
+                color = colors.TextSecondary, maxLines = 1)
+        }
+    }
     var logoError by remember(preview.title, preview.logo) { mutableStateOf(false) }
     Column(Modifier
         .graphicsLayer { alpha = metaAlpha }
@@ -486,6 +500,7 @@ internal fun HeroTitleContent(
                                 color = colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
+                    openHint()
                 }
             }
             if (showImdbRatings && !compact) {
@@ -497,6 +512,7 @@ internal fun HeroTitleContent(
                         colors.TextSecondary, 16.dp, 6.dp)
                 }
             }
+            if (!(secondary.isNotEmpty() || (compact && showImdbRatings))) openHint()
             preview.description?.takeIf(String::isNotBlank)?.let {
                 Text(it, style = (if (shortViewport) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium).copy(
                     textDirection = it.contentTextDirection(),

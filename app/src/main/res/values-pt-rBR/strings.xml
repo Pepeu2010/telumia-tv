@@ -3254,4 +3254,5 @@
     <string name="live_tv_games_yesterday">Ontem</string>
     <string name="live_tv_games_today">Hoje</string>
     <string name="live_tv_games_tomorrow">Amanhã</string>
+    <string name="home_hero_hint_open">Ver detalhes</string>
 </resources>

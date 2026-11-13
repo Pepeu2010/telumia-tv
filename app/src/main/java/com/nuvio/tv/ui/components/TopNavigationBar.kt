@@ -132,7 +132,13 @@ fun TopNavigationBar(
             0.dp
         }
         val contentWidth = (maxWidth - horizontalInset * 2).coerceAtLeast(0.dp)
-        val requestedItemWidths = List(items.size) { iconOnlyItemWidth }
+        // The selected destination shows its name next to the icon, so the bar is learnable at a glance.
+        val showSelectedLabel = !compactLayout
+        val requestedItemWidths = items.map { item ->
+            if (showSelectedLabel && item.route == selectedRoute) {
+                (iconOnlyItemWidth.value + 28f + item.label.length * 10f).coerceIn(118f, 210f).dp
+            } else iconOnlyItemWidth
+        }
         val requestedItemsWidth = requestedItemWidths.fold(0.dp) { total, width -> total + width }
         val requestedNavigationWidth = requestedItemsWidth + itemSpacing * (items.size - 1) + 24.dp
         val profileClearance = if (profileWidth > 0.dp) profileWidth + 16.dp else 0.dp
@@ -229,6 +235,7 @@ fun TopNavigationBar(
                             TopNavigationButton(
                                 item = item,
                                 selected = item.route == selectedRoute,
+                                showLabel = showSelectedLabel && item.route == selectedRoute,
                                 selectedItemFocusRequester = selectedItemFocusRequester.takeIf { item.route == selectedRoute },
                                 onClick = { onNavigate(item.route) },
                                 onMoveToContent = onMoveToContent,
@@ -308,7 +315,8 @@ private fun TopNavigationButton(
     onClick: () -> Unit,
     onMoveToContent: () -> Unit,
     onNavigationItemFocused: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showLabel: Boolean = false
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -383,15 +391,28 @@ private fun TopNavigationButton(
         )
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(22.dp).graphicsLayer {
-                    scaleX = iconScale
-                    scaleY = iconScale
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(
+                    imageVector = item.icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(22.dp).graphicsLayer {
+                        scaleX = iconScale
+                        scaleY = iconScale
+                    }
+                )
+                if (showLabel) {
+                    Text(
+                        text = item.label.uppercase(),
+                        color = iconTint,
+                        fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                        fontSize = 20.sp,
+                        letterSpacing = 1.sp,
+                        fontWeight = FontWeight.Normal,
+                        maxLines = 1,
+                    )
                 }
-            )
+            }
         }
     }
 }

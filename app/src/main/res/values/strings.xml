@@ -3448,4 +3448,5 @@
     <string name="live_tv_games_yesterday">Yesterday</string>
     <string name="live_tv_games_today">Today</string>
     <string name="live_tv_games_tomorrow">Tomorrow</string>
+    <string name="home_hero_hint_open">View details</string>
 </resources>

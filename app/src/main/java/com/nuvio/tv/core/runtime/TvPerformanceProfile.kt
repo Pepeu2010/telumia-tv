@@ -20,6 +20,7 @@ internal data class TvPerformanceProfile(
     val seekFilmstripDelayMillis: Long?,
     val seekFrameCacheBytes: Long,
     val seekFrameThrottleMillis: Long,
+    val epgRegionConcurrency: Int,
     /** Automatically start silent focused-poster trailers only on devices with a safe memory tier. */
     val focusedTrailerPreviewEnabledByDefault: Boolean,
 ) {
@@ -52,8 +53,8 @@ internal data class TvPerformanceProfile(
             DeviceResourceTier.HIGH_CAPACITY -> HIGH_CAPACITY
         }
 
-        private val LOW_RAM = TvPerformanceProfile(0.08, 4, 2, 1, 0, 0, 0, 0, false, true, 1_500L, null, 1L * MIB, 300L, false)
-        private val BALANCED = TvPerformanceProfile(0.16, 16, 8, 2, 1, 1, 1, 1, true, false, 1_200L, 1_200L, 2L * MIB, 180L, true)
-        private val HIGH_CAPACITY = TvPerformanceProfile(0.25, 32, 16, 4, 2, 2, 2, 2, true, false, 1_200L, 650L, 4L * MIB, 120L, true)
+        private val LOW_RAM = TvPerformanceProfile(0.08, 4, 2, 1, 0, 0, 0, 0, false, true, 1_500L, null, 1L * MIB, 300L, 1, false)
+        private val BALANCED = TvPerformanceProfile(0.16, 16, 8, 2, 1, 1, 1, 1, true, false, 1_200L, 1_200L, 2L * MIB, 180L, 2, true)
+        private val HIGH_CAPACITY = TvPerformanceProfile(0.25, 32, 16, 4, 2, 2, 2, 2, true, false, 1_200L, 650L, 4L * MIB, 120L, 3, true)
     }
 }

@@ -1,6 +1,7 @@
 package com.nuvio.tv.core.livetv
 
 import android.content.Context
+import com.nuvio.tv.core.runtime.TvPerformanceProfile
 import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvProgram
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -106,7 +107,8 @@ class EpgShareRepository @Inject constructor(
             val programs = HashMap<String, List<LiveTvProgram>>()
             val failed = mutableListOf<String>()
             val now = System.currentTimeMillis()
-            val limiter = Semaphore(3)
+            // Each SAX parser holds its own XML channel index and matched programme map.
+            val limiter = Semaphore(TvPerformanceProfile.detect(context).epgRegionConcurrency)
             val regional = coroutineScope {
                 regionCodes.distinct().map { code ->
                     async {

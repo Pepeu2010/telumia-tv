@@ -22,6 +22,7 @@ class TvPerformanceProfileTest {
         assertEquals(null, profile.seekFilmstripDelayMillis)
         assertEquals(1L * MIB, profile.seekFrameCacheBytes)
         assertEquals(300L, profile.seekFrameThrottleMillis)
+        assertEquals(1, profile.epgRegionConcurrency)
         assertEquals(NavigationMotion.REDUCED, profile.effectiveNavigationMotion(NavigationMotion.FULL))
         assertEquals(NavigationMotion.REDUCED, profile.effectiveNavigationMotion(NavigationMotion.REDUCED))
         assertEquals(NavigationMotion.OFF, profile.effectiveNavigationMotion(NavigationMotion.OFF))
@@ -54,6 +55,7 @@ class TvPerformanceProfileTest {
         assertEquals(1_200L, profile.seekFilmstripDelayMillis)
         assertEquals(2L * MIB, profile.seekFrameCacheBytes)
         assertEquals(180L, profile.seekFrameThrottleMillis)
+        assertEquals(2, profile.epgRegionConcurrency)
         assertEquals(NavigationMotion.FULL, profile.effectiveNavigationMotion(NavigationMotion.FULL))
         assertEquals(AnimationIntensity.STANDARD, profile.effectiveAnimationIntensity(AnimationIntensity.STANDARD))
         assertEquals(1_200L, profile.trailerPreviewFocusDelayMillis)
@@ -76,6 +78,7 @@ class TvPerformanceProfileTest {
         assertEquals(650L, profile.seekFilmstripDelayMillis)
         assertEquals(4L * MIB, profile.seekFrameCacheBytes)
         assertEquals(120L, profile.seekFrameThrottleMillis)
+        assertEquals(3, profile.epgRegionConcurrency)
         assertEquals(1_200L, profile.trailerPreviewFocusDelayMillis)
         assertEquals(true, profile.focusedTrailerPreviewEnabledByDefault)
     }

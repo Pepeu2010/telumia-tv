@@ -251,8 +251,8 @@ fun LiveTvScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             modeBar()
-            filtersBar()
-            if (visibleChannels.isEmpty() && channelQuery.isNotBlank()) Text(
+            // No filter row here: the guide does not scroll, and the rail already narrows by source.
+            if (channelQuery.isNotBlank() && visibleChannels.isEmpty()) Text(
                 stringResource(R.string.live_tv_search_empty),
                 color = NuvioTheme.colors.TextSecondary,
             ) else LiveTvGuideView(
@@ -465,7 +465,7 @@ fun LiveTvScreen(
                         model = channel.logoUrl, contentDescription = null,
                         contentScale = androidx.compose.ui.layout.ContentScale.Fit,
                         modifier = Modifier.fillMaxSize().padding(6.dp),
-                    ) else Text(channel.displayName.take(2).uppercase(), style = MaterialTheme.typography.titleMedium,
+                    ) else Text(channel.displayName.take(2).uppercase(), style = scoreboard(40, 2f),
                         color = NuvioTheme.colors.TextSecondary)
                 },
                 name = channel.displayName,

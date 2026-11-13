@@ -251,7 +251,9 @@ fun TopNavigationBar(
                 // Icons alone are hard to learn; name the focused destination under the capsule.
                 val labelRoute = focusedRoute ?: selectedRoute
                 val focusedLabel = items.firstOrNull { it.route == labelRoute }?.label.orEmpty()
-                if (navigationHasFocus && focusedLabel.isNotBlank()) {
+                // The selected destination already shows its own label inside the capsule.
+                val alreadyLabelled = showSelectedLabel && labelRoute == selectedRoute
+                if (navigationHasFocus && focusedLabel.isNotBlank() && !alreadyLabelled) {
                     Text(
                         text = focusedLabel.uppercase(),
                         modifier = Modifier.align(Alignment.BottomCenter).offset(y = 24.dp),

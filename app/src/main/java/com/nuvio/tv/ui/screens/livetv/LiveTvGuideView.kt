@@ -382,14 +382,13 @@ private fun GuidePreview(
     nowMillis: Long,
     timeFormat: DateTimeFormatter,
 ) {
-    Row(Modifier.fillMaxWidth().height(178.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+    Row(Modifier.fillMaxWidth().height(150.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             val subtitle = listOfNotNull(channel?.displayName, channel?.addonDisplayName?.takeIf(String::isNotBlank)).joinToString("  •  ")
             Text(subtitle, style = MaterialTheme.typography.titleMedium, color = NuvioTheme.colors.TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(
                 program?.title ?: channel?.displayName.orEmpty(),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold,
+                style = scoreboard(46, 1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -415,14 +414,14 @@ private fun GuidePreview(
                     }
                 }
                 program.description?.let {
-                    Text(it, style = MaterialTheme.typography.bodyLarge, color = NuvioTheme.colors.TextSecondary, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    Text(it, style = MaterialTheme.typography.bodyLarge, color = NuvioTheme.colors.TextSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             } else if (channel != null) {
                 Text(stringResource(R.string.live_tv_guide_unavailable_body), style = MaterialTheme.typography.bodyLarge, color = NuvioTheme.colors.TextSecondary, maxLines = 2)
             }
         }
         Box(
-            Modifier.height(178.dp).aspectRatio(16f / 9f).clip(RoundedCornerShape(16.dp))
+            Modifier.height(150.dp).aspectRatio(16f / 9f).clip(RoundedCornerShape(16.dp))
                 .background(Brush.linearGradient(listOf(NuvioTheme.colors.Secondary.copy(alpha = 0.25f), Color.White.copy(alpha = 0.05f)))),
             contentAlignment = Alignment.Center,
         ) {

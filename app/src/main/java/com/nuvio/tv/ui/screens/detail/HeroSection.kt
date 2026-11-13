@@ -47,7 +47,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.BlendMode
@@ -179,7 +181,7 @@ fun HeroContentSection(
 
     // Animate logo properties for trailer mode
     val logoHeight by animateDpAsState(
-        targetValue = if (isTrailerPlaying) 60.dp else if (compactMovieHero) 64.dp else 100.dp,
+        targetValue = if (isTrailerPlaying) 60.dp else if (compactMovieHero) 72.dp else 128.dp,
         animationSpec = tween(motion.durationMillis(600)),
         label = "logoHeight"
     )
@@ -189,7 +191,7 @@ fun HeroContentSection(
         label = "logoPadding"
     )
     val logoMaxWidth by animateFloatAsState(
-        targetValue = if (isTrailerPlaying) 0.25f else 0.4f,
+        targetValue = if (isTrailerPlaying) 0.25f else 0.46f,
         animationSpec = tween(motion.durationMillis(600)),
         label = "logoWidth"
     )
@@ -216,13 +218,21 @@ fun HeroContentSection(
                     bottom = NuvioTheme.spacing.lg),
             verticalArrangement = Arrangement.Bottom
         ) {
-            if (isMovie && !isTrailerPlaying) {
-                Text(
-                    text = stringResource(R.string.type_movie).uppercase(Locale.getDefault()),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = NuvioTheme.extendedColors.textSecondary,
+            if (!isTrailerPlaying) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.padding(bottom = NuvioTheme.spacing.sm),
-                )
+                ) {
+                    Box(Modifier.width(28.dp).height(3.dp).background(NuvioTheme.colors.Secondary, RoundedCornerShape(2.dp)))
+                    Text(
+                        text = stringResource(if (isMovie) R.string.type_movie else R.string.type_series).uppercase(Locale.getDefault()),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 22.sp, letterSpacing = 3.sp, fontWeight = FontWeight.Normal,
+                        ),
+                        color = NuvioTheme.colors.Secondary,
+                    )
+                }
             }
             // Logo/Title — always visible during trailer, animates size
             if (shouldShowLogo) {
@@ -282,11 +292,9 @@ fun HeroContentSection(
                 modifier = Modifier.alpha(heroActionsAlpha)
             ) {
                 Column {
-                    if (isMovie) {
-                        MetaInfoRow(meta = meta, hideImdbRating = hideMetaInfoImdb,
-                            showFullReleaseDate = showFullReleaseDate, tmdbRating = tmdbRating)
-                        Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
-                    }
+                    MetaInfoRow(meta = meta, hideImdbRating = hideMetaInfoImdb,
+                        showFullReleaseDate = showFullReleaseDate, tmdbRating = tmdbRating)
+                    Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md),
                         verticalAlignment = Alignment.CenterVertically
@@ -394,21 +402,6 @@ fun HeroContentSection(
 
                     Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
 
-                    // Director/Writer line above description
-                    if (!creditLine.isNullOrBlank()) {
-                        Text(
-                            text = creditLine,
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                textDirection = creditLine.contentTextDirection()
-                            ),
-                            color = NuvioTheme.extendedColors.textSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth(0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(NuvioTheme.spacing.md))
-                    }
-
                     if (mdbListRatings?.isEmpty() == false) {
                         MDBListRatingsRow(ratings = mdbListRatings, order = mdbListRatingOrder)
                         Spacer(modifier = Modifier.height(14.dp))
@@ -428,12 +421,21 @@ fun HeroContentSection(
                         )
                     }
 
-                    if (!isMovie) MetaInfoRow(
-                        meta = meta,
-                        hideImdbRating = hideMetaInfoImdb,
-                        showFullReleaseDate = showFullReleaseDate,
-                        tmdbRating = tmdbRating
-                    )
+                    // Director/Writer line below the synopsis
+                    if (!creditLine.isNullOrBlank()) {
+                        Text(
+                            text = creditLine,
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                textDirection = creditLine.contentTextDirection()
+                            ),
+                            color = NuvioTheme.colors.TextTertiary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth(0.6f)
+                        )
+                                            }
+
+
                 }
             }
         }
@@ -525,10 +527,10 @@ internal fun PlayButton(
             )
         } else {
             ButtonDefaults.colors(
-                containerColor = androidx.compose.ui.graphics.Color.White,
+                containerColor = NuvioTheme.colors.Secondary,
                 focusedContainerColor = androidx.compose.ui.graphics.Color.White,
-                contentColor = androidx.compose.ui.graphics.Color.Black,
-                focusedContentColor = androidx.compose.ui.graphics.Color.Black
+                contentColor = androidx.compose.ui.graphics.Color(0xFF0B1014),
+                focusedContentColor = androidx.compose.ui.graphics.Color(0xFF0B1014)
             )
         },
         shape = ButtonDefaults.shape(
@@ -563,8 +565,10 @@ internal fun PlayButton(
                 exit = fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.quick))
             ) {
                 Text(
-                    text = text ?: "",
-                    style = MaterialTheme.typography.labelLarge
+                    text = (text ?: "").uppercase(),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 26.sp, letterSpacing = 1.5.sp, fontWeight = FontWeight.Normal,
+                    )
                 )
             }
         }
@@ -795,9 +799,12 @@ private fun MetaInfoRow(
         ) {
             if (meta.genres.isNotEmpty()) {
                 Text(
-                    text = genresText,
+                    text = genresText.uppercase(),
                     modifier = Modifier.weight(1f, fill = false),
-                    style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        shadow = HeroMetaLegibilityShadow, fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 24.sp, letterSpacing = 1.5.sp,
+                        fontWeight = FontWeight.Normal,
+                    ),
                     color = NuvioTheme.extendedColors.textSecondary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -810,7 +817,10 @@ private fun MetaInfoRow(
             yearText?.let { year ->
                 Text(
                     text = year,
-                    style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        shadow = HeroMetaLegibilityShadow, fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 24.sp, letterSpacing = 1.5.sp,
+                        fontWeight = FontWeight.Normal,
+                    ),
                     color = NuvioTheme.extendedColors.textSecondary
                 )
                 if (shouldShowImdbRating || shouldShowTmdbRating) {
@@ -831,8 +841,11 @@ private fun MetaInfoRow(
                     val ratingText = remember(rating) { String.format("%.1f", rating) }
                     Text(
                         text = ratingText,
-                        style = MaterialTheme.typography.labelLarge.copy(shadow = HeroMetaLegibilityShadow),
-                        color = NuvioTheme.extendedColors.textSecondary
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            shadow = HeroMetaLegibilityShadow, fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 26.sp, letterSpacing = 1.sp,
+                            fontWeight = FontWeight.Normal,
+                        ),
+                        color = NuvioTheme.colors.Secondary
                     )
                 }
             }

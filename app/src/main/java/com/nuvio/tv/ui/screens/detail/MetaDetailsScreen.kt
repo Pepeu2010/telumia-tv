@@ -76,6 +76,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.util.dpadVerticalFastScroll
@@ -3205,16 +3206,31 @@ private fun PeopleSectionTabButton(
         ),
         scale = CardDefaults.scale(focusedScale = 1.03f)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleLarge,
-            color = when {
-                isFocused -> NuvioTheme.colors.TextPrimary
-                selected -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.92f)
-                else -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.55f)
-            },
+        androidx.compose.foundation.layout.Column(
             modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxs, vertical = NuvioTheme.spacing.xxs)
-        )
+        ) {
+            Text(
+                text = label.uppercase(),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                    fontSize = 32.sp,
+                    letterSpacing = 1.5.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                ),
+                color = when {
+                    isFocused -> NuvioTheme.colors.TextPrimary
+                    selected -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.92f)
+                    else -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.5f)
+                },
+            )
+            Box(
+                Modifier.padding(top = 2.dp).width(40.dp).height(3.dp)
+                    .background(
+                        if (selected || isFocused) NuvioTheme.colors.Secondary else Color.Transparent,
+                        RoundedCornerShape(2.dp),
+                    )
+            )
+        }
     }
 }
 

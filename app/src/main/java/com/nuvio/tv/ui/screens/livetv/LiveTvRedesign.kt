@@ -173,16 +173,16 @@ internal fun LiveTvChannelCard(
                     horizontalArrangement = Arrangement.spacedBy(18.dp),
                 ) {
                     Box(
-                        Modifier.width(92.dp).height(60.dp).clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f)),
+                        Modifier.width(120.dp).height(72.dp).clip(RoundedCornerShape(14.dp))
+                            .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0.04f)))),
                         contentAlignment = Alignment.Center,
                     ) { logo() }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             if (onAir) Box(Modifier.width(8.dp).height(8.dp).clip(RoundedCornerShape(50)).background(OnAirGreen))
                             Text(
-                                name,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
+                                name.uppercase(),
+                                style = scoreboard(34, 1.2f),
                                 maxLines = 1,
                                 modifier = Modifier.weight(1f, fill = false),
                             )

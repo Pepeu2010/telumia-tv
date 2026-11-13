@@ -139,7 +139,12 @@ fun SeasonTabs(
     )
     val tabScale = CardDefaults.scale(focusedScale = 1.0f)
     val typography = MaterialTheme.typography
-    val tabTextStyle = remember(typography) { typography.titleMedium }
+    val tabTextStyle = remember(typography) {
+        typography.titleMedium.copy(
+            fontFamily = com.nuvio.tv.ui.theme.BebasFamily, fontSize = 26.sp, letterSpacing = 1.5.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+        )
+    }
     val textSecondary = NuvioTheme.extendedColors.textSecondary
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val lazyListState = rememberLazyListState()
@@ -289,7 +294,7 @@ fun SeasonTabs(
                 scale = tabScale
             ) {
                 Text(
-                    text = if (season == 0) stringResource(R.string.episodes_specials) else stringResource(R.string.episodes_season, season),
+                    text = (if (season == 0) stringResource(R.string.episodes_specials) else stringResource(R.string.episodes_season, season)).uppercase(),
                     style = tabTextStyle,
                     color = when {
                         isFocused -> NuvioTheme.colors.OnSecondary

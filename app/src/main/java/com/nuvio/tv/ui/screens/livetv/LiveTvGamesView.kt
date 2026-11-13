@@ -331,7 +331,8 @@ private fun Crest(team: SportsTeam, size: androidx.compose.ui.unit.Dp, modifier:
             style = if (featured) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold,
             color = NuvioTheme.colors.TextPrimary,
-            maxLines = 2, overflow = TextOverflow.Ellipsis,
+            // Two lines reserved so every card has the same height and the score never drifts.
+            minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis,
             textAlign = androidx.compose.ui.text.style.TextAlign.Center,
         )
     }

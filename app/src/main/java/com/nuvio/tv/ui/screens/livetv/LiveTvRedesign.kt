@@ -42,7 +42,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 /** Condensed scoreboard face used for titles, clock times and scores across the TV tab. */
-internal val ScoreboardFont = FontFamily(Font(R.font.bebas_neue, FontWeight.Normal))
+internal val ScoreboardFont = com.nuvio.tv.ui.theme.BebasFamily
 
 internal fun scoreboard(size: Int, spacing: Float = 0.5f) =
     TextStyle(fontFamily = ScoreboardFont, fontSize = size.sp, letterSpacing = spacing.sp, fontWeight = FontWeight.Normal)
@@ -89,26 +89,10 @@ private fun LiveTvStatPill(text: String) {
     }
 }
 
-/** Mode/zone chip: the selected one is filled, never "disabled", so it stays focusable. */
-@OptIn(ExperimentalTvMaterial3Api::class)
+/** Mode/zone chip: the shared pill; the selected one is filled, never "disabled", so it stays focusable. */
 @Composable
-internal fun LiveTvChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    androidx.tv.material3.Button(
-        onClick = onClick,
-        colors = androidx.tv.material3.ButtonDefaults.colors(
-            containerColor = if (selected) NuvioTheme.colors.Secondary else Color.Transparent,
-            contentColor = if (selected) Ink else NuvioTheme.colors.TextSecondary,
-            focusedContainerColor = Color.White,
-            focusedContentColor = Color.Black,
-        ),
-        border = androidx.tv.material3.ButtonDefaults.border(
-            border = Border(BorderStroke(1.dp, Color.White.copy(alpha = if (selected) 0f else 0.14f)), shape = RoundedCornerShape(50)),
-        ),
-        shape = androidx.tv.material3.ButtonDefaults.shape(RoundedCornerShape(50)),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 18.dp, vertical = 8.dp),
-        modifier = Modifier.semantics { this.selected = selected },
-    ) { Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1) }
-}
+internal fun LiveTvChip(label: String, selected: Boolean, onClick: () -> Unit) =
+    com.nuvio.tv.ui.components.NuvioPillChip(label, selected, onClick)
 
 @Composable
 internal fun LiveTvSectionTitle(text: String) {

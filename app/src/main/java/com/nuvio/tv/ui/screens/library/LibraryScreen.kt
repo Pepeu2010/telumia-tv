@@ -455,7 +455,7 @@ fun LibraryScreen(
                         title = title,
                         subtitle = subtitle,
                         icon = Icons.Default.BookmarkBorder,
-                        height = 130.dp,
+                        height = 240.dp,
                         iconSize = 40.dp
                     )
                 }
@@ -699,22 +699,15 @@ private fun LibraryViewModeRow(
         Row(horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)) {
             LibraryViewMode.entries.forEach { mode ->
                 val selected = mode == selectedMode
-                Button(
+                com.nuvio.tv.ui.components.NuvioPillChip(
+                    label = when (mode) {
+                        LibraryViewMode.Saved -> stringResource(R.string.library_source_saved)
+                        LibraryViewMode.Cloud -> stringResource(R.string.library_source_cloud)
+                    },
+                    selected = selected,
                     onClick = { onSelected(mode) },
-                    modifier = Modifier
-                        .then(if (selected) Modifier.focusRequester(primaryFocusRequester) else Modifier),
-                    colors = ButtonDefaults.colors(
-                        containerColor = if (selected) NuvioTheme.colors.FocusBackground else NuvioTheme.colors.BackgroundCard,
-                        contentColor = NuvioTheme.colors.TextPrimary
-                    )
-                ) {
-                    Text(
-                        text = when (mode) {
-                            LibraryViewMode.Saved -> stringResource(R.string.library_source_saved)
-                            LibraryViewMode.Cloud -> stringResource(R.string.library_source_cloud)
-                        }
-                    )
-                }
+                    modifier = Modifier.then(if (selected) Modifier.focusRequester(primaryFocusRequester) else Modifier),
+                )
             }
         }
         trailing?.invoke()

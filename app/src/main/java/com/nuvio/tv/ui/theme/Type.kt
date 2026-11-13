@@ -11,13 +11,19 @@ import androidx.tv.material3.Typography
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.AppFont
 
-/** Brand display face; the existing per-profile body-font preference is retained. */
-val TelumiaDisplayFamily = FontFamily(
-    Font(R.font.manrope_regular, FontWeight.Normal),
-    Font(R.font.manrope_medium, FontWeight.Medium),
-    Font(R.font.manrope_semibold, FontWeight.SemiBold),
-    Font(R.font.manrope_bold, FontWeight.Bold)
+/**
+ * Broadcast display face (Bebas Neue): titles, row headings, clock times and scores. The single
+ * regular file is mapped to every weight so Compose never fakes a bold on top of it.
+ */
+val BebasFamily = FontFamily(
+    Font(R.font.bebas_neue, FontWeight.Normal),
+    Font(R.font.bebas_neue, FontWeight.Medium),
+    Font(R.font.bebas_neue, FontWeight.SemiBold),
+    Font(R.font.bebas_neue, FontWeight.Bold)
 )
+
+/** Brand display face; the existing per-profile body-font preference is retained. */
+val TelumiaDisplayFamily = BebasFamily
 
 val DMSansFamily = FontFamily(
     Font(R.font.dm_sans_variable, FontWeight.Normal),
@@ -67,31 +73,31 @@ data class NuvioTextStyleTokens(
 fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = TelumiaDisplayFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 48.sp,
-        lineHeight = 56.sp,
-        letterSpacing = (-0.5).sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 60.sp,
+        lineHeight = 64.sp,
+        letterSpacing = 2.sp
     ),
     displayMedium = TextStyle(
         fontFamily = TelumiaDisplayFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 48.sp,
+        lineHeight = 52.sp,
+        letterSpacing = 1.5.sp
     ),
     headlineLarge = TextStyle(
         fontFamily = TelumiaDisplayFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 38.sp,
+        lineHeight = 42.sp,
+        letterSpacing = 1.2.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = TelumiaDisplayFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 32.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 1.sp
     ),
     titleLarge = TextStyle(
         fontFamily = fontFamily,

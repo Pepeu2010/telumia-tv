@@ -543,7 +543,13 @@ internal fun ModernRowSection(
     ) {
         val titleMediumStyle = MaterialTheme.typography.titleMedium
         val rowTitleStyle = remember(titleMediumStyle) {
-            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold)
+            // Same broadcast face as the rest of the app; the line height is kept so row layout maths holds.
+            titleMediumStyle.copy(
+                fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 26.sp,
+                letterSpacing = 1.2.sp,
+            )
         }
         val rowTitle = row.title
         val textColor = NuvioTheme.colors.TextPrimary

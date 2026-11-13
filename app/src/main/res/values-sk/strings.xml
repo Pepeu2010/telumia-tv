@@ -332,7 +332,7 @@
     <!-- AboutScreen -->
     <string name="about_title">O aplikácii</string>
     <string name="about_subtitle">Informácie o aplikácii, aktualizácie a právne odkazy</string>
-    <string name="about_made_with_love">Vytvorené s ❤️ tímom Tapframe a priateľmi</string>
+    <string name="about_made_with_love">Made with ❤️ by Pedro Miguel</string>
     <string name="about_version">Verzia %1$s</string>
     <string name="about_check_updates">Skontrolovať aktualizácie</string>
     <string name="about_check_updates_subtitle">Stiahnuť najnovšiu verziu</string>

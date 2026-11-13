@@ -727,22 +727,6 @@ private fun ModernHomeRoute(
             { catalogKey: String -> viewModel.requestLazyCatalogLoad(catalogKey) }
         }
     )
-    // Quick filter under the top bar: nav -> Down reaches it, Down again reaches the shelves.
-    val filters = listOf(
-        HomeTypeFilter.ALL to stringResource(R.string.home_filter_all),
-        HomeTypeFilter.MOVIES to stringResource(R.string.home_filter_movies),
-        HomeTypeFilter.SERIES to stringResource(R.string.home_filter_series),
-    )
-    com.nuvio.tv.ui.components.NuvioSegmentedControl(
-        labels = filters.map { it.second },
-        selectedIndex = filters.indexOfFirst { it.first == typeFilter }.coerceAtLeast(0),
-        onSelect = { viewModel.setHomeTypeFilter(filters[it].first) },
-        trailingLabel = stringResource(R.string.home_filter_live),
-        onTrailing = onOpenLiveTv,
-        modifier = Modifier
-            .align(androidx.compose.ui.Alignment.TopEnd)
-            .padding(end = 56.dp, top = 8.dp),
-    )
     }
 }
 

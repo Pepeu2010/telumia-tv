@@ -1312,7 +1312,13 @@ open class MainActivity : ComponentActivity() {
                         (startupDestination == StartupDestination.Loading || startupDestination == StartupDestination.Home)
                     ) splashEverShown = true
                     // Start the intro (animation, sound, hold) once the heavy startup work is done.
-                    val introGo = splashEverShown && (startupLoadingState.complete || !splashNeeded)
+                    // The intro no longer waits for the whole startup: after a short grace it plays while data loads,
+                    // so it is always seen. The splash itself stays until startup is complete.
+                    var introGraceElapsed by remember { mutableStateOf(false) }
+                    LaunchedEffect(splashEverShown) {
+                        if (splashEverShown) { delay(450L); introGraceElapsed = true }
+                    }
+                    val introGo = splashEverShown && (startupLoadingState.complete || !splashNeeded || introGraceElapsed)
                     LaunchedEffect(introGo) {
                         if (introGo) {
                             playLaunchSoundOnce()

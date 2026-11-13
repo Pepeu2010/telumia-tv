@@ -246,11 +246,13 @@ fun TopNavigationBar(
                 val focusedLabel = items.firstOrNull { it.route == labelRoute }?.label.orEmpty()
                 if (navigationHasFocus && focusedLabel.isNotBlank()) {
                     Text(
-                        text = focusedLabel,
-                        modifier = Modifier.align(Alignment.BottomCenter).offset(y = 22.dp),
+                        text = focusedLabel.uppercase(),
+                        modifier = Modifier.align(Alignment.BottomCenter).offset(y = 24.dp),
                         color = NuvioTheme.colors.TextPrimary,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                        fontSize = 20.sp,
+                        letterSpacing = 1.5.sp,
+                        fontWeight = FontWeight.Normal,
                         maxLines = 1,
                     )
                 }
@@ -286,8 +288,10 @@ fun TopNavigationBar(
                     text = clockText,
                     modifier = Modifier.align(Alignment.CenterEnd).padding(end = 8.dp),
                     color = NuvioTheme.colors.TextSecondary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontFamily = com.nuvio.tv.ui.theme.BebasFamily,
+                    fontSize = 26.sp,
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.Normal,
                     maxLines = 1,
                 )
             }

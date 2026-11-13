@@ -121,12 +121,12 @@ fun StartupSplashScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth().height(88.dp),
+                modifier = Modifier.fillMaxWidth().height(128.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 BrandWordmark(
                     modifier = Modifier
-                        .height(56.dp)
+                        .height(88.dp)
                         .graphicsLayer {
                             val p = progress.value
                             alpha = tudumBrandAlpha(p)
@@ -143,7 +143,10 @@ fun StartupSplashScreen(
             LoadingIndicator(
                 modifier = Modifier
                     .size(NuvioTheme.spacing.xxxl)
-                    .graphicsLayer { alpha = tudumLoaderAlpha(progress.value) }
+                    .graphicsLayer {
+                        // Before the intro starts, a dim loader shows the app is working instead of a blank screen.
+                        alpha = if (introStarted) tudumLoaderAlpha(progress.value) else 0.45f
+                    }
             )
         }
     }

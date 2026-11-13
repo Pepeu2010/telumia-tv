@@ -74,20 +74,20 @@ class EpgShareRepository @Inject constructor(
 
     private fun defaultRegions(): List<String> {
         val local = when (Locale.getDefault().country.uppercase()) {
-            "BR" -> "FE_BR,BR1,BR2"
-            "PT" -> "FE_PT,PT1"
-            "GB", "UK" -> "FE_GB,UK1"
-            "ES" -> "FE_ES"
-            "MX" -> "FE_MX"
-            "AR" -> "FE_AR"
-            "IT" -> "FE_IT"
-            "FR" -> "FE_FR"
+            "BR" -> "FE_BR,BR1,BR2,OE_BR,IE_BR,PW_BR"
+            "PT" -> "FE_PT,PT1,OE_PT,IE_PT"
+            "GB", "UK" -> "FE_GB,UK1,OE_GB"
+            "ES" -> "FE_ES,OE_ES,IE_ES"
+            "MX" -> "FE_MX,OE_MX,IE_MX"
+            "AR" -> "FE_AR,OE_AR"
+            "IT" -> "FE_IT,IE_IT"
+            "FR" -> "FE_FR,OE_FR,IE_FR"
             "DE" -> "FE_DE"
-            "CA" -> "FE_CA"
+            "CA" -> "FE_CA,OE_CA"
             else -> null
         }
         // The 78 MB US guide is only a default when nothing local exists: parsing it dominates the load time.
-        return local?.split(",").orEmpty().ifEmpty { listOf("FE_BR", "BR2") }
+        return local?.split(",").orEmpty().ifEmpty { listOf("FE_BR", "BR2", "OE_BR", "IE_BR", "PW_BR") }
     }
 
     suspend fun load(channels: List<LiveTvChannel>, regionCodes: List<String>): EpgGuideResult =
@@ -413,6 +413,8 @@ class EpgShareRepository @Inject constructor(
     companion object {
         private const val BASE_URL = "https://epgshare01.online/epgshare01"
         private const val FREE_URL = "https://www.free-epg.de/api/epg"
+        private const val OPEN_URL = "https://www.open-epg.com/files"
+        private const val IPTV_EPG_URL = "https://iptv-epg.org/files"
         private const val TAG = "EpgShare"
         private const val KEY_REGIONS = "regions"
         private const val MAX_AGE_MILLIS = 6L * 60L * 60L * 1000L
@@ -429,7 +431,30 @@ class EpgShareRepository @Inject constructor(
         private fun free(country: String, label: String) =
             EpgRegion("FE_${country.uppercase()}", "$label (FreeEPG)", "$FREE_URL/${country.lowercase()}.xml.gz", "free-epg")
 
+        /** open-epg.com: one file per country, 0.1-1 MB gzipped, up to 800 channels for Brazil. */
+        private fun open(country: String, file: String, label: String) =
+            EpgRegion("OE_${country.uppercase()}", "$label (Open-EPG)", "$OPEN_URL/$file.xml.gz", "open-epg")
+        /** iptv-epg.org: larger (2-6 MB) but carries long schedules; the 60 MB US/UK files are left out on purpose. */
+        private fun iptv(country: String, label: String) =
+            EpgRegion("IE_${country.uppercase()}", "$label (IPTV-EPG)", "$IPTV_EPG_URL/epg-${country.lowercase()}.xml.gz", "iptv-epg")
+
         val REGIONS = listOf(
+            open("br", "brazil1", "Brasil"),
+            iptv("br", "Brasil"),
+            EpgRegion("PW_BR", "Brasil (epg.pw)", "https://epg.pw/xmltv/epg_BR.xml.gz", "epg.pw"),
+            open("pt", "portugal1", "Portugal"),
+            iptv("pt", "Portugal"),
+            open("es", "spain1", "Espanha"),
+            iptv("es", "Espanha"),
+            open("mx", "mexico1", "México"),
+            iptv("mx", "México"),
+            open("ar", "argentina1", "Argentina"),
+            open("gb", "unitedkingdom1", "Reino Unido"),
+            open("fr", "france1", "França"),
+            iptv("fr", "França"),
+            iptv("it", "Itália"),
+            open("ca", "canada1", "Canadá"),
+            open("us", "unitedstates2", "Estados Unidos"),
             free("br", "Brasil"),
             share("BR1", "Brasil"),
             share("BR2", "Brasil 2"),

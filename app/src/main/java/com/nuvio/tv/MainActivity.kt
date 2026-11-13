@@ -1306,7 +1306,11 @@ open class MainActivity : ComponentActivity() {
                     // ready sooner, so the animation and sound are never cut in the middle.
                     var splashEverShown by remember { mutableStateOf(false) }
                     var splashHoldElapsed by remember { mutableStateOf(false) }
-                    LaunchedEffect(splashNeeded) { if (splashNeeded) splashEverShown = true }
+                    // Set during composition, not in an effect: when the data is already cached, startup can finish
+                    // in the same frame and an effect would run too late, skipping the intro altogether.
+                    if (!splashEverShown && startupSplashEnabled &&
+                        (startupDestination == StartupDestination.Loading || startupDestination == StartupDestination.Home)
+                    ) splashEverShown = true
                     // Start the intro (animation, sound, hold) once the heavy startup work is done.
                     val introGo = splashEverShown && (startupLoadingState.complete || !splashNeeded)
                     LaunchedEffect(introGo) {

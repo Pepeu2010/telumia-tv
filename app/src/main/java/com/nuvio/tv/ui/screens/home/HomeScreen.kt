@@ -79,6 +79,7 @@ private const val HOME_STABLE_GATE_TIMEOUT_MS = 5_000L
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onHomeTrailerFullscreenChanged: (Boolean) -> Unit = {},
+    onOpenLiveTv: () -> Unit = {},
     onNavigateToDetail: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit = { item ->
         onNavigateToDetail(
@@ -405,6 +406,7 @@ fun HomeScreen(
                             )
 
                             HomeLayout.MODERN -> ModernHomeRoute(
+                                onOpenLiveTv = onOpenLiveTv,
                                 viewModel = viewModel,
                                 uiState = uiState,
                                 onNavigateToDetail = onNavigateToDetailStable,
@@ -640,6 +642,7 @@ private fun GridHomeRoute(
 
 @Composable
 private fun ModernHomeRoute(
+    onOpenLiveTv: () -> Unit,
     viewModel: HomeViewModel,
     uiState: HomeUiState,
     onNavigateToDetail: (String, String, String) -> Unit,
@@ -686,6 +689,8 @@ private fun ModernHomeRoute(
             viewModel.preloadAdjacentItem(item)
         }
     }
+    val typeFilter by viewModel.homeTypeFilter.collectAsStateWithLifecycle()
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
     ModernHomeContent(
         uiState = uiState,
         modernPresentation = modernPresentation,
@@ -722,6 +727,32 @@ private fun ModernHomeRoute(
             { catalogKey: String -> viewModel.requestLazyCatalogLoad(catalogKey) }
         }
     )
+    // Quick filter under the top bar: nav -> Down reaches it, Down again reaches the shelves.
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier
+            .align(androidx.compose.ui.Alignment.TopEnd)
+            .padding(end = 56.dp, top = 6.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+    ) {
+        listOf(
+            HomeTypeFilter.ALL to R.string.home_filter_all,
+            HomeTypeFilter.MOVIES to R.string.home_filter_movies,
+            HomeTypeFilter.SERIES to R.string.home_filter_series,
+        ).forEach { (filter, label) ->
+            com.nuvio.tv.ui.components.NuvioPillChip(
+                label = stringResource(label),
+                selected = typeFilter == filter,
+                onClick = { viewModel.setHomeTypeFilter(filter) },
+            )
+        }
+        // Shortcut to what is on right now (games, channels); not a filter, so never "selected".
+        com.nuvio.tv.ui.components.NuvioPillChip(
+            label = "● " + stringResource(R.string.home_filter_live),
+            selected = false,
+            onClick = onOpenLiveTv,
+        )
+    }
+    }
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

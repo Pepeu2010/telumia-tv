@@ -148,6 +148,9 @@ class HomeViewModel @Inject constructor(
     val scrollToTopTrigger: StateFlow<Int> = _scrollToTopTrigger.asStateFlow()
 
     internal val _currentLocaleTag = MutableStateFlow(LocaleCache.localeTag)
+    internal val _homeTypeFilter = MutableStateFlow(HomeTypeFilter.ALL)
+    val homeTypeFilter: kotlinx.coroutines.flow.StateFlow<HomeTypeFilter> get() = _homeTypeFilter
+    fun setHomeTypeFilter(filter: HomeTypeFilter) { _homeTypeFilter.value = filter }
 
     fun notifyLocaleChanged() {
         val tag = LocaleCache.localeTag

@@ -3449,4 +3449,8 @@
     <string name="live_tv_games_today">Today</string>
     <string name="live_tv_games_tomorrow">Tomorrow</string>
     <string name="home_hero_hint_open">View details</string>
+    <string name="home_filter_all">All</string>
+    <string name="home_filter_movies">Movies</string>
+    <string name="home_filter_series">Series</string>
+    <string name="home_filter_live">Live</string>
 </resources>

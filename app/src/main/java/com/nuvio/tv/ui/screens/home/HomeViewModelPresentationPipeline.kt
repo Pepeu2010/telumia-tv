@@ -281,7 +281,7 @@ internal fun HomeViewModel.observeLayoutPreferencesPipeline() {
 @OptIn(FlowPreview::class)
 internal fun HomeViewModel.observeModernHomePresentationPipeline() {
     viewModelScope.launch {
-        combine(uiState, _currentLocaleTag) { state, localeTag ->
+        combine(uiState, _currentLocaleTag, _homeTypeFilter) { state, localeTag, typeFilter ->
                 ModernHomePresentationInput(
                     homeRows = state.homeRows,
                     catalogRows = state.catalogRows,
@@ -299,7 +299,8 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     showCatalogTypeSuffix = state.catalogTypeSuffixEnabled,
                     showFullReleaseDate = state.showFullReleaseDate,
                     showImdbRatings = state.homeImdbRatingsVisibility.showRatings,
-                    localeTag = localeTag
+                    localeTag = localeTag,
+                    typeFilter = typeFilter
                 )
             }
             // Compare by row structure only (keys + item counts), not by
@@ -315,6 +316,7 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     && old.showFullReleaseDate == new.showFullReleaseDate
                     && old.showImdbRatings == new.showImdbRatings
                     && old.localeTag == new.localeTag
+                    && old.typeFilter == new.typeFilter
                     && old.catalogRows.size == new.catalogRows.size
             }
             .debounce {

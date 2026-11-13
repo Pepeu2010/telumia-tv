@@ -278,6 +278,7 @@ private fun PlaybackNavHost(
             }
 
             HomeScreen(
+                onOpenLiveTv = { navController.navigate(Screen.LiveTv.route) },
                 onHomeTrailerFullscreenChanged = onHomeTrailerFullscreenChanged,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
                     val heroBackdrop = HeroBackdropState.consumeAndClear()

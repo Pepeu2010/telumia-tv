@@ -23,7 +23,8 @@ internal data class ModernHomePresentationInput(
     val showCatalogTypeSuffix: Boolean,
     val showFullReleaseDate: Boolean,
     val showImdbRatings: Boolean,
-    val localeTag: String
+    val localeTag: String,
+    val typeFilter: HomeTypeFilter = HomeTypeFilter.ALL
 )
 
 internal fun buildModernHomePresentation(
@@ -331,7 +332,23 @@ internal fun buildModernHomePresentation(
     )
 }
 
+/** Quick Home filter: which catalog type the shelves are limited to. */
+enum class HomeTypeFilter { ALL, MOVIES, SERIES;
+    fun accepts(rawType: String): Boolean = when (this) {
+        ALL -> true
+        MOVIES -> rawType.equals("movie", ignoreCase = true)
+        SERIES -> rawType.equals("series", ignoreCase = true) || rawType.equals("tv", ignoreCase = true)
+    }
+}
+
 private fun resolveVisibleHomeRows(input: ModernHomePresentationInput): List<HomeRow> {
+    val all = resolveVisibleHomeRowsUnfiltered(input)
+    if (input.typeFilter == HomeTypeFilter.ALL) return all
+    // Typed shelves only; collections and placeholders belong to the unfiltered view.
+    return all.filter { it is HomeRow.Catalog && input.typeFilter.accepts(it.row.rawType) }
+}
+
+private fun resolveVisibleHomeRowsUnfiltered(input: ModernHomePresentationInput): List<HomeRow> {
     if (input.homeRows.isNotEmpty()) {
         val latestCatalogByKey = input.catalogRows.associateBy(::catalogRowKey)
         return input.homeRows.mapNotNull { homeRow ->

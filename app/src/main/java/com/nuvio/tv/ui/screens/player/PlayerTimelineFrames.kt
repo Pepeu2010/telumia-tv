@@ -31,7 +31,8 @@ import kotlin.coroutines.resumeWithException
 import kotlin.math.abs
 
 /** Opaque lifetime identity. Never serialize URLs, headers or credentials into state/cache keys. */
-internal class TimelineFrameSession(val owner: Any, val url: String, headers: Map<String, String>, val durationMs: Long) {
+internal class TimelineFrameSession(val owner: Any, val url: String, headers: Map<String, String>, val durationMs: Long,
+    val mimeType: String? = null) {
     val headers = headers.toMap()
     override fun toString() = "TimelineFrameSession"
 }
@@ -43,6 +44,7 @@ internal data class TimelinePreviewInput(
     val headers: Map<String, String>,
     val durationMs: Long,
     val positionMs: Long,
+    val mimeType: String? = null,
 ) {
     override fun toString() = "TimelinePreviewInput"
 }
@@ -94,8 +96,8 @@ internal class PlayerTimelineFrames(
                 if (input == null) { hide(); return@collect }
                 val current = session?.takeIf {
                     it.owner == input.owner && it.url == input.url &&
-                        it.headers == input.headers && it.durationMs == input.durationMs
-                } ?: TimelineFrameSession(input.owner, input.url, input.headers, input.durationMs)
+                        it.headers == input.headers && it.durationMs == input.durationMs && it.mimeType == input.mimeType
+                } ?: TimelineFrameSession(input.owner, input.url, input.headers, input.durationMs, input.mimeType)
                 val beginning = latestPreviewInput == null || session !== current
                 if (beginning) filmstrip = false
                 request(current, input.positionMs, filmstrip)
@@ -207,11 +209,12 @@ internal class PlayerTimelineFrames(
                 sourceFactory.timelineMediaSourceFactory(request.session.url, request.session.headers, lifetime))
         }.also {
             extractor = it
-            it.setMediaItem(MediaItem.fromUri(request.session.url), listOf(
+            it.setMediaItem(MediaItem.Builder().setUri(request.session.url)
+                .apply { request.session.mimeType?.let(::setMimeType) }.build(), listOf(
                 Presentation.createForWidthAndHeight(320, 180, Presentation.LAYOUT_SCALE_TO_FIT)))
         }
-        val decoded = withTimeout(6000) { reader.getFrame(position).awaitFrame() }
-        check(decoded.presentationTimeMs in 0 until request.session.durationMs && abs(decoded.presentationTimeMs - position) <= 1250 &&
+        val decoded = withTimeout(8_000) { reader.getFrame(position).awaitFrame() }
+        check(decoded.presentationTimeMs in 0 until request.session.durationMs && abs(decoded.presentationTimeMs - position) <= 10_000 &&
             decoded.bitmap.width in 1..320 && decoded.bitmap.height in 1..180) { "Unavailable preview frame" }
         val result = TimelineFrameImage(position, decoded.presentationTimeMs, decoded.bitmap)
         if (sameSession(request) && result.bitmap.allocationByteCount <= quota) {

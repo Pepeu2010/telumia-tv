@@ -57,6 +57,16 @@ class SportsTest {
         assertEquals("ESPN 2", GameChannelMatcher.find(game, channels, guide)?.channel?.id)
     }
 
+    @Test fun findsEveryChannelShowingTheSameGame() {
+        val game = SportsRepository().parse(league, event("pre")).single()
+        val channels = listOf(channel("addon-a"), channel("addon-b"))
+        val guide = channels.associate { channel ->
+            channel.id to listOf(program(channel.id, "Atlético-MG x Mirassol", game.startMillis))
+        }
+        assertEquals(listOf("addon-a", "addon-b"),
+            GameChannelMatcher.findAll(game, channels, guide).map { it.channel.id })
+    }
+
     @Test fun doesNotMatchAnotherAtleticoOrAnotherTime() {
         val game = SportsRepository().parse(league, event("pre")).single()
         val channels = listOf(channel("A"))

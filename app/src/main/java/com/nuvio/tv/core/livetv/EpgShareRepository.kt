@@ -5,6 +5,11 @@ import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvProgram
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.xml.sax.Attributes
 import org.xml.sax.InputSource
@@ -47,6 +52,13 @@ class EpgShareRepository @Inject constructor(
 ) {
     private val preferences by lazy { context.getSharedPreferences("epg_share", Context.MODE_PRIVATE) }
     private val directory by lazy { File(context.cacheDir, "epgshare").apply { mkdirs() } }
+    private data class CachedGuide(
+        val channelNames: List<Pair<String, String>>,
+        val regions: List<String>,
+        val createdMillis: Long,
+        val result: EpgGuideResult,
+    )
+    @Volatile private var cachedGuide: CachedGuide? = null
 
     fun selectedRegions(): List<String> {
         val stored = preferences.getStringSet(KEY_REGIONS, null)
@@ -73,32 +85,52 @@ class EpgShareRepository @Inject constructor(
             "CA" -> "FE_CA"
             else -> null
         }
-        return (local?.split(",").orEmpty() + "US2").distinct()
+        // The 78 MB US guide is only a default when nothing local exists: parsing it dominates the load time.
+        return local?.split(",").orEmpty().ifEmpty { listOf("FE_BR", "BR2") }
     }
 
     suspend fun load(channels: List<LiveTvChannel>, regionCodes: List<String>): EpgGuideResult =
         withContext(Dispatchers.IO) {
             val wanted = channels.filter { it.displayName.isNotBlank() }
+            val channelNames = wanted.map { it.id to it.displayName }
+            cachedGuide?.takeIf {
+                it.channelNames == channelNames && it.regions == regionCodes &&
+                    System.currentTimeMillis() - it.createdMillis < GUIDE_MEMORY_AGE_MILLIS
+            }?.let { return@withContext it.result }
+            val diskKey = diskCacheKey(channelNames, regionCodes)
+            readDiskCache(diskKey, wanted.size)?.let { cached ->
+                cachedGuide = CachedGuide(channelNames, regionCodes.toList(), System.currentTimeMillis(), cached)
+                return@withContext cached
+            }
             val keysByChannel = wanted.associate { it.id to channelKeyTiers(it.displayName) }
             val programs = HashMap<String, List<LiveTvProgram>>()
             val failed = mutableListOf<String>()
             val now = System.currentTimeMillis()
-            for (code in regionCodes) {
-                try {
-                    val region = REGIONS.firstOrNull { it.code == code } ?: continue
-                    val file = ensureFile(region)
-                    val parsed = parseRegion(file, code, keysByChannel, now)
-                    // Two guides often describe the same channel with different titles; mixing them would
-                    // overlap, so each channel keeps the source with the fullest schedule.
-                    parsed.forEach { (channelId, list) ->
-                        if (list.size > (programs[channelId]?.size ?: 0)) programs[channelId] = list
+            val limiter = Semaphore(3)
+            val regional = coroutineScope {
+                regionCodes.distinct().map { code ->
+                    async {
+                        limiter.withPermit {
+                            try {
+                                val region = REGIONS.firstOrNull { it.code == code }
+                                    ?: return@withPermit code to emptyMap<String, List<LiveTvProgram>>()
+                                code to parseRegion(ensureFile(region), code, keysByChannel, now)
+                            } catch (error: IOException) {
+                                android.util.Log.w(TAG, "EPG region $code failed: ${error.message}")
+                                code to null
+                            } catch (error: SAXException) {
+                                android.util.Log.w(TAG, "EPG region $code is not valid XMLTV: ${error.message}")
+                                code to null
+                            }
+                        }
                     }
-                } catch (error: IOException) {
-                    android.util.Log.w(TAG, "EPG region $code failed: ${error.message}")
-                    failed += code
-                } catch (error: SAXException) {
-                    android.util.Log.w(TAG, "EPG region $code is not valid XMLTV: ${error.message}")
-                    failed += code
+                }.awaitAll()
+            }
+            regional.forEach { (code, parsed) ->
+                if (parsed == null) failed += code
+                else parsed.forEach { (channelId, list) ->
+                    // Keep the fullest schedule when regions overlap.
+                    if (list.size > (programs[channelId]?.size ?: 0)) programs[channelId] = list
                 }
             }
             android.util.Log.i(TAG, "EPG matched ${programs.size} of ${wanted.size} channels from ${regionCodes.joinToString()}")
@@ -106,8 +138,68 @@ class EpgShareRepository @Inject constructor(
                 list.sortedBy(LiveTvProgram::startEpochMillis)
                     .distinctBy { it.startEpochMillis to it.title }
             }.filterValues { it.isNotEmpty() }
-            EpgGuideResult(sorted, sorted.size, wanted.size, failed)
+            EpgGuideResult(sorted, sorted.size, wanted.size, failed).also {
+                if (failed.isEmpty()) {
+                    cachedGuide = CachedGuide(channelNames, regionCodes.toList(), System.currentTimeMillis(), it)
+                    writeDiskCache(diskKey, it)
+                }
+            }
         }
+
+    private fun diskCacheKey(channelNames: List<Pair<String, String>>, regionCodes: List<String>): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        digest.update(regionCodes.sorted().joinToString(",").toByteArray())
+        channelNames.sortedBy { it.first }.forEach { digest.update("${it.first}|${it.second}\n".toByteArray()) }
+        return digest.digest().take(12).joinToString("") { "%02x".format(it) }
+    }
+
+    /** The matched programmes are small (a few thousand rows); keeping them avoids re-parsing 80 MB of XML. */
+    private fun readDiskCache(key: String, totalChannels: Int): EpgGuideResult? = try {
+        val file = File(directory, "result-$key.json")
+        if (!file.isFile || System.currentTimeMillis() - file.lastModified() > DISK_RESULT_AGE_MILLIS) null
+        else {
+            val root = org.json.JSONObject(file.readText())
+            val map = HashMap<String, List<LiveTvProgram>>()
+            root.keys().forEach { channelId ->
+                val array = root.getJSONArray(channelId)
+                map[channelId] = List(array.length()) { i ->
+                    val o = array.getJSONObject(i)
+                    LiveTvProgram(
+                        sourceId = o.getString("s"), channelId = channelId, title = o.getString("t"),
+                        startEpochMillis = o.getLong("a"), endEpochMillis = o.getLong("b"),
+                        description = o.optString("d").takeIf(String::isNotBlank),
+                        category = o.optString("c").takeIf(String::isNotBlank),
+                        iconUrl = o.optString("i").takeIf(String::isNotBlank),
+                    )
+                }
+            }
+            if (map.isEmpty()) null else EpgGuideResult(map, map.size, totalChannels, emptyList())
+        }
+    } catch (_: Exception) {
+        null
+    }
+
+    private fun writeDiskCache(key: String, result: EpgGuideResult) {
+        try {
+            directory.listFiles { f -> f.name.startsWith("result-") }?.forEach(File::delete)
+            val root = org.json.JSONObject()
+            result.programsByChannelId.forEach { (channelId, list) ->
+                root.put(channelId, org.json.JSONArray().also { array ->
+                    list.forEach { p ->
+                        array.put(org.json.JSONObject().apply {
+                            put("s", p.sourceId); put("t", p.title); put("a", p.startEpochMillis); put("b", p.endEpochMillis)
+                            p.description?.let { put("d", it.take(400)) }
+                            p.category?.let { put("c", it) }
+                            p.iconUrl?.let { put("i", it) }
+                        })
+                    }
+                })
+            }
+            File(directory, "result-$key.json").writeText(root.toString())
+        } catch (_: Exception) {
+            // The cache is an optimisation only.
+        }
+    }
 
     private fun ensureFile(region: EpgRegion): File {
         val code = region.code
@@ -322,6 +414,8 @@ class EpgShareRepository @Inject constructor(
         private const val TAG = "EpgShare"
         private const val KEY_REGIONS = "regions"
         private const val MAX_AGE_MILLIS = 6L * 60L * 60L * 1000L
+        private const val GUIDE_MEMORY_AGE_MILLIS = 15L * 60L * 1000L
+        private const val DISK_RESULT_AGE_MILLIS = 45L * 60L * 1000L
         private const val MAX_DOWNLOAD_BYTES = 32L * 1024L * 1024L
         private const val PAST_MILLIS = 2L * 60L * 60L * 1000L
         private const val FUTURE_MILLIS = 48L * 60L * 60L * 1000L

@@ -87,7 +87,7 @@ class SearchViewModelSuggestionsTest {
     fun `company result mapping trims labels rejects invalid ids and keeps the first duplicate`() {
         val results = mapCompanySearchResults(
             listOf(
-                TmdbCompanySearchResult(id = 8, name = "  Fox Studios ", originCountry = " US "),
+                TmdbCompanySearchResult(id = 8, name = "  Fox Studios ", originCountry = " US ", logoPath = "/fox.png"),
                 TmdbCompanySearchResult(id = 8, name = "Fox Studios Duplicate", originCountry = "GB"),
                 TmdbCompanySearchResult(id = 9, name = "  "),
                 TmdbCompanySearchResult(id = 0, name = "Invalid ID"),
@@ -96,7 +96,7 @@ class SearchViewModelSuggestionsTest {
         )
 
         assertEquals(
-            listOf(SearchCompanyResult(8, "Fox Studios", "US"), SearchCompanyResult(10, "Studio Ten")),
+            listOf(SearchCompanyResult(8, "Fox Studios", "US", "https://image.tmdb.org/t/p/w185/fox.png"), SearchCompanyResult(10, "Studio Ten")),
             results,
         )
     }

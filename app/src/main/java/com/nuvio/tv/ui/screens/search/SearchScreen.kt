@@ -1136,26 +1136,61 @@ internal fun CompanySearchResultsSection(
                     Button(
                         onClick = { onItemClick(index, result) },
                         modifier = Modifier
-                            .width(220.dp)
-                            .height(82.dp)
+                            .width(360.dp)
+                            .height(126.dp)
                             .focusRequester(requester)
                             .focusProperties {
                                 if (index == 0) up = searchFocusRequester
                             }
-                            .onFocusChanged { if (it.isFocused) onItemFocused(index) }
+                            .onFocusChanged { if (it.isFocused) onItemFocused(index) },
+                        colors = ButtonDefaults.colors(
+                            containerColor = NuvioTheme.colors.BackgroundCard,
+                            focusedContainerColor = NuvioTheme.colors.FocusBackground,
+                            contentColor = NuvioTheme.colors.TextPrimary,
+                            focusedContentColor = NuvioTheme.colors.TextPrimary
+                        )
                     ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(4.dp),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(
-                                text = result.name,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            result.originCountry?.let { country ->
-                                Text(text = country, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                Modifier.size(72.dp).background(
+                                    if (result.logoUrl != null) Color.White else NuvioTheme.colors.Background,
+                                    RoundedCornerShape(12.dp)
+                                ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (result.logoUrl != null) AsyncImage(
+                                    model = result.logoUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize().padding(8.dp)
+                                ) else Text(
+                                    text = result.name.take(1).uppercase(),
+                                    style = androidx.tv.material3.MaterialTheme.typography.headlineMedium,
+                                    color = NuvioTheme.colors.Secondary
+                                )
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    text = result.name,
+                                    style = androidx.tv.material3.MaterialTheme.typography.titleLarge,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = listOfNotNull(
+                                        stringResource(R.string.tmdb_entity_kind_company),
+                                        result.originCountry?.takeIf(String::isNotBlank)
+                                    ).joinToString(" • "),
+                                    style = androidx.tv.material3.MaterialTheme.typography.bodySmall,
+                                    color = NuvioTheme.colors.TextSecondary,
+                                    maxLines = 1,
+                                )
+                                Text(
+                                    text = stringResource(R.string.search_explore_company),
+                                    style = androidx.tv.material3.MaterialTheme.typography.labelMedium,
+                                    color = NuvioTheme.colors.Secondary,
+                                )
                             }
                         }
                     }

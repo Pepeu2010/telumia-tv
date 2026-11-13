@@ -197,7 +197,8 @@ class PlayerViewModel @Inject constructor(
         // The preview only needs a stable identity for the playing source. Scene bookmarks are
         // optional (they need a resolved profile/account scope) and must not switch it off.
         val owner: Any = bookmarks.scope?.takeIf(sceneBookmarkRepository::eligible) ?: "preview:$url"
-        return TimelinePreviewInput(owner, url, controller.getCurrentHeaders().toMap(), timeline.duration, position)
+        return TimelinePreviewInput(owner, url, controller.getCurrentHeaders().toMap(), timeline.duration, position,
+            controller.currentStreamMimeType)
     }
 
     internal fun isTimelinePreviewCurrent(): Boolean = timelineFrames.isCurrent(timelinePreviewInput(

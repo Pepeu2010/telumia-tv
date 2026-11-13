@@ -57,7 +57,8 @@ data class SearchUiState(
 data class SearchCompanyResult(
     val tmdbId: Int,
     val name: String,
-    val originCountry: String? = null
+    val originCountry: String? = null,
+    val logoUrl: String? = null,
 )
 
 @Immutable

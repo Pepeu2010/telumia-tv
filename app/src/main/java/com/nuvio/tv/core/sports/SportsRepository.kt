@@ -10,6 +10,7 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.HttpURLConnection
+import java.io.IOException
 import java.net.URL
 import java.time.Instant
 import java.time.LocalDate
@@ -60,30 +61,33 @@ data class SportsGame(
  */
 @Singleton
 class SportsRepository @Inject constructor() {
-    @Volatile private var cache: Map<Int, Pair<Long, List<SportsGame>>> = emptyMap()
+    @Volatile private var cache: Map<Pair<LocalDate, ZoneId>, Pair<Long, List<SportsGame>>> = emptyMap()
 
     suspend fun forDay(zone: ZoneId, dayOffset: Int = 0, force: Boolean = false): List<SportsGame> = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
-        cache[dayOffset]?.takeIf { !force && now - it.first < CACHE_MILLIS }?.let { return@withContext it.second }
         val localToday = LocalDate.now(zone).plusDays(dayOffset.toLong())
+        val cacheKey = localToday to zone
+        cache[cacheKey]?.takeIf { !force && now - it.first < CACHE_MILLIS }?.let { return@withContext it.second }
         val utcDays = setOf(
             localToday.atStartOfDay(zone).toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
             localToday.plusDays(1).atStartOfDay(zone).minusSeconds(1).toInstant().atZone(ZoneOffset.UTC).toLocalDate(),
         )
         val semaphore = Semaphore(6)
-        val games = coroutineScope {
+        val responses = coroutineScope {
             LEAGUES.flatMap { league -> utcDays.map { day -> league to day } }.map { (league, day) ->
                 async { semaphore.withPermit { fetch(league, day) } }
-            }.awaitAll().flatten()
+            }.awaitAll()
         }
+        if (responses.all { it == null }) throw IOException("No scoreboards could be loaded")
+        val games = responses.filterNotNull().flatten()
         val result = games.distinctBy { it.id }
             .filter { Instant.ofEpochMilli(it.startMillis).atZone(zone).toLocalDate() == localToday || (dayOffset == 0 && it.state == GameState.LIVE) }
             .sortedWith(compareBy<SportsGame>({ it.state != GameState.LIVE }, { it.startMillis }))
-        cache = cache + (dayOffset to (now to result))
+        cache = cache.filterValues { now - it.first < CACHE_MILLIS } + (cacheKey to (now to result))
         result
     }
 
-    private fun fetch(league: SportsLeague, day: LocalDate): List<SportsGame> = try {
+    private fun fetch(league: SportsLeague, day: LocalDate): List<SportsGame>? = try {
         val url = "$BASE/${league.slug}/scoreboard?dates=${day.format(DateTimeFormatter.BASIC_ISO_DATE)}"
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 12_000
@@ -98,7 +102,7 @@ class SportsRepository @Inject constructor() {
             connection.disconnect()
         }
     } catch (_: Exception) {
-        emptyList()
+        null
     }
 
     internal fun parse(league: SportsLeague, body: String): List<SportsGame> {
@@ -170,7 +174,7 @@ class SportsRepository @Inject constructor() {
 
     companion object {
         private const val BASE = "https://site.api.espn.com/apis/site/v2/sports"
-        private const val CACHE_MILLIS = 45_000L
+        private const val CACHE_MILLIS = 5L * 60L * 1000L
 
         val LEAGUES = listOf(
             SportsLeague("soccer/bra.1", "Brasileirão Série A", SportsGroup.BRAZIL),

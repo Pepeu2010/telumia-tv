@@ -61,6 +61,7 @@ internal fun mapCompanySearchResults(results: Iterable<TmdbCompanySearchResult>)
             tmdbId = result.id,
             name = name,
             originCountry = result.originCountry?.trim()?.takeIf(String::isNotEmpty),
+            logoUrl = result.logoPath?.takeIf { it.startsWith('/') }?.let { "https://image.tmdb.org/t/p/w185$it" },
         )
     }.distinctBy(SearchCompanyResult::tmdbId)
 

@@ -243,3 +243,26 @@ internal fun LiveTvAddonBadge(addonName: String) {
 internal fun LiveTvHeader(title: String, subtitle: String, stats: List<String>) {
     LiveTvTopBar(title, stats) { }
 }
+
+/** Pill-shaped search field that matches the chips instead of the stock Material outline. */
+@Composable
+internal fun LiveTvSearchField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
+    androidx.compose.material3.OutlinedTextField(
+        value = value,
+        onValueChange = { onValueChange(it.take(60)) },
+        modifier = modifier,
+        singleLine = true,
+        placeholder = { androidx.compose.material3.Text(placeholder, color = NuvioTheme.colors.TextSecondary) },
+        shape = RoundedCornerShape(50),
+        textStyle = androidx.compose.material3.MaterialTheme.typography.bodyLarge,
+        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = NuvioTheme.colors.Secondary,
+            unfocusedBorderColor = Color.White.copy(alpha = 0.14f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            cursorColor = NuvioTheme.colors.Secondary,
+            focusedContainerColor = Color.White.copy(alpha = 0.06f),
+            unfocusedContainerColor = Color.Transparent,
+        ),
+    )
+}

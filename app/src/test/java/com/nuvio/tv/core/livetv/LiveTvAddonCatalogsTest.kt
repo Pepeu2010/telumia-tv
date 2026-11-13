@@ -60,6 +60,24 @@ class LiveTvAddonCatalogsTest {
         assertTrue(installedLiveTvAddonCatalogs(listOf(addon, disabledAddon)).isEmpty())
     }
 
+    @Test
+    fun categoriesUseOnlyExplicitMetadataAndSameChannelFromDifferentAddonsStaysDistinct() {
+        val catalog = CatalogDescriptor(ContentType.CHANNEL, "channel", "channels", "Channels")
+        val first = installedLiveTvAddonCatalogs(listOf(addon(catalogs = listOf(catalog)))).single()
+        val second = installedLiveTvAddonCatalogs(listOf(addon(id = "org.other", catalogs = listOf(catalog)))).single()
+        val sports = preview("match", "Canal Notícias").copy(genres = listOf("Esportes"))
+        val firstChannel = first.project(listOf(sports)).single()
+        val secondChannel = second.project(listOf(sports)).single()
+
+        assertEquals("SPORTS", firstChannel.groupName)
+        assertFalse(firstChannel.id == secondChannel.id)
+        assertEquals(LiveTvChannelCategory.NEWS, LiveTvChannelCategory.fromGroup("Jornalismo"))
+        assertEquals(LiveTvChannelCategory.OTHER, LiveTvChannelCategory.fromGenres(listOf("Lifestyle")))
+        assertEquals(LiveTvChannelCategory.UNCATEGORIZED, LiveTvChannelCategory.fromGenres(emptyList()))
+        assertEquals(LiveTvChannelCategory.UNCATEGORIZED,
+            LiveTvChannelCategory.fromGenres(listOf("Esportes", "Jornalismo")))
+    }
+
     private fun addon(
         id: String = "org.test.channels",
         name: String = "Test addon",

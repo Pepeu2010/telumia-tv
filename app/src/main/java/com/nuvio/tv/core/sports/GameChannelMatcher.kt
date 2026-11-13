@@ -18,15 +18,22 @@ object GameChannelMatcher {
         game: SportsGame,
         channels: List<LiveTvChannel>,
         programsByChannel: Map<String, List<LiveTvProgram>>,
-    ): GameBroadcast? {
+    ): GameBroadcast? = findAll(game, channels, programsByChannel).firstOrNull()
+
+    fun findAll(
+        game: SportsGame,
+        channels: List<LiveTvChannel>,
+        programsByChannel: Map<String, List<LiveTvProgram>>,
+    ): List<GameBroadcast> {
         val home = TeamKey.of(game.home.name)
         val away = TeamKey.of(game.away.name)
-        if (home.tokens.isEmpty() || away.tokens.isEmpty()) return null
+        if (home.tokens.isEmpty() || away.tokens.isEmpty()) return emptyList()
         val from = game.startMillis - 40 * minuteMillis
         val to = game.startMillis + 20 * minuteMillis
-        var best: GameBroadcast? = null
+        val matches = mutableListOf<GameBroadcast>()
         for (channel in channels) {
             val programs = programsByChannel[channel.id] ?: continue
+            var best: GameBroadcast? = null
             for (program in programs) {
                 if (program.startEpochMillis !in from..to && !(game.state == GameState.LIVE &&
                         program.startEpochMillis <= System.currentTimeMillis() && program.endEpochMillis > System.currentTimeMillis())
@@ -36,11 +43,12 @@ object GameChannelMatcher {
                     // Prefer a programme whose title (not just the description) names the teams.
                     val inTitle = (" " + normalize(program.title) + " ").let { t -> home.matches(t) && away.matches(t) }
                     if (best == null || inTitle) best = GameBroadcast(channel, program)
-                    if (inTitle) return best
+                    if (inTitle) break
                 }
             }
+            best?.let(matches::add)
         }
-        return best
+        return matches
     }
 
     /** Words of a team name that identify it; short or generic-only names must match in full. */
@@ -62,9 +70,12 @@ object GameChannelMatcher {
         }
     }
 
+    private val marks = Regex("\\p{Mn}+")
+    private val nonAlnum = Regex("[^a-z0-9]+")
+
     private fun normalize(value: String): String = Normalizer.normalize(value, Normalizer.Form.NFD)
-        .replace(Regex("\\p{Mn}+"), "")
+        .replace(marks, "")
         .lowercase()
-        .replace(Regex("[^a-z0-9]+"), " ")
+        .replace(nonAlnum, " ")
         .trim()
 }

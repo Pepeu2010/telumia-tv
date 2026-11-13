@@ -19,6 +19,8 @@ import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.model.LiveTvChannel
 import com.nuvio.tv.domain.model.LiveTvProgram
 import com.nuvio.tv.domain.model.LiveTvSource
+import com.nuvio.tv.domain.model.supportsExtra
+import com.nuvio.tv.domain.model.skipStep
 import com.nuvio.tv.domain.repository.AddonRepository
 import com.nuvio.tv.domain.repository.CatalogRepository
 import com.nuvio.tv.domain.repository.StreamRepository
@@ -105,6 +107,7 @@ class LiveTvViewModel @Inject constructor(
     }
 
     private var gamesJob: kotlinx.coroutines.Job? = null
+    private var loadingGamesDayOffset: Int? = null
 
     /** Fetches today's games; [force] skips the short in-memory cache (live scores). */
     fun setGamesDay(offset: Int) {
@@ -114,7 +117,10 @@ class LiveTvViewModel @Inject constructor(
     }
 
     fun loadGames(force: Boolean = false) {
+        val offset = mutableState.value.gamesDayOffset
+        if (!force && gamesJob?.isActive == true && loadingGamesDayOffset == offset) return
         gamesJob?.cancel()
+        loadingGamesDayOffset = offset
         gamesJob = viewModelScope.launch {
             mutableState.update { it.copy(isLoadingGames = true) }
             try {
@@ -122,7 +128,7 @@ class LiveTvViewModel @Inject constructor(
                     if (id == LiveTvChannelStateStore.DEFAULT_TIME_ZONE_ID) java.time.ZoneId.systemDefault()
                     else runCatching { java.time.ZoneId.of(id) }.getOrDefault(java.time.ZoneId.systemDefault())
                 }
-                val games = sportsRepository.forDay(zone, mutableState.value.gamesDayOffset, force)
+                val games = sportsRepository.forDay(zone, offset, force)
                 mutableState.update {
                     it.copy(games = games, isLoadingGames = false, gamesFailed = false, gamesUpdatedMillis = System.currentTimeMillis())
                 }
@@ -198,7 +204,7 @@ class LiveTvViewModel @Inject constructor(
     }
 
     private suspend fun loadAddonChannels(addons: List<Addon>) {
-        val catalogs = installedLiveTvAddonCatalogs(addons).take(MAX_TV_ADDON_CATALOGS)
+        val catalogs = installedLiveTvAddonCatalogs(addons)
         if (catalogs.isEmpty()) {
             mutableState.update {
                 it.copy(
@@ -220,58 +226,85 @@ class LiveTvViewModel @Inject constructor(
         }
 
         val semaphore = Semaphore(MAX_PARALLEL_TV_ADDON_CATALOGS)
-        val results = coroutineScope {
-            catalogs.map { request ->
+        val results = arrayOfNulls<AddonCatalogLoad>(catalogs.size)
+        coroutineScope {
+            catalogs.mapIndexed { index, request ->
                 async {
-                    semaphore.withPermit { loadAddonCatalog(request) }
+                    val result = semaphore.withPermit { loadAddonCatalog(request) { partial ->
+                        results[index] = AddonCatalogLoad(partial, failed = false)
+                        publishAddonCatalogResults(results)
+                    } }
+                    results[index] = result
+                    publishAddonCatalogResults(results)
                 }
             }.awaitAll()
         }
-        val channels = results.flatMap(AddonCatalogLoad::channels)
-            .distinctBy(LiveTvChannel::id)
-            .take(MAX_TV_ADDON_CHANNELS)
         mutableState.update {
             it.copy(
-                addonChannels = channels,
                 addonCatalogCount = catalogs.size,
-                addonCatalogErrorCount = results.count(AddonCatalogLoad::failed),
                 isLoadingAddonChannels = false,
             )
         }
         loadGuide()
     }
 
-    /** One quiet retry: an add-on that is still waking up often answers the second request. */
-    private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog): AddonCatalogLoad {
-        val first = loadAddonCatalogOnce(request)
-        if (!first.failed) return first
-        kotlinx.coroutines.delay(1_500L)
-        return loadAddonCatalogOnce(request)
+    private fun publishAddonCatalogResults(results: Array<AddonCatalogLoad?>) {
+        mutableState.update {
+            it.copy(
+                addonChannels = results.filterNotNull().flatMap(AddonCatalogLoad::channels)
+                    .distinctBy(::addonChannelIdentity),
+                addonCatalogErrorCount = results.filterNotNull().count(AddonCatalogLoad::failed),
+            )
+        }
     }
 
-    private suspend fun loadAddonCatalogOnce(request: LiveTvAddonCatalog): AddonCatalogLoad =
-        try {
-            val result = catalogRepository.getCatalog(
+    /** One quiet retry: an add-on that is still waking up often answers the second request. */
+    private suspend fun loadAddonCatalog(request: LiveTvAddonCatalog, onPage: (List<LiveTvChannel>) -> Unit): AddonCatalogLoad {
+        val first = loadAddonCatalogOnce(request, onPage)
+        if (!first.failed || first.channels.isNotEmpty()) return first
+        kotlinx.coroutines.delay(1_500L)
+        return loadAddonCatalogOnce(request, onPage)
+    }
+
+    private suspend fun loadAddonCatalogOnce(request: LiveTvAddonCatalog, onPage: (List<LiveTvChannel>) -> Unit): AddonCatalogLoad {
+        val channels = linkedMapOf<String, LiveTvChannel>()
+        val supportsSkip = request.catalog.supportsExtra("skip")
+        var skip = 0
+        return try {
+            repeat(MAX_TV_CATALOG_PAGES) { page ->
+                val result = catalogRepository.getCatalog(
                 addonBaseUrl = request.addon.baseUrl,
                 addonId = request.addon.id,
                 addonName = request.addon.displayName,
                 catalogId = request.catalog.id,
                 catalogName = request.catalog.name,
                 type = request.catalog.apiType,
-                skip = 0,
-                supportsSkip = false,
+                skip = skip,
+                skipStep = request.catalog.skipStep(),
+                supportsSkip = supportsSkip,
             ).first { it !is NetworkResult.Loading }
-            when (result) {
-                is NetworkResult.Success -> AddonCatalogLoad(request.project(result.data.items), failed = false)
-                is NetworkResult.Error -> AddonCatalogLoad(emptyList(), failed = true)
-                NetworkResult.Loading -> AddonCatalogLoad(emptyList(), failed = true)
+                when (result) {
+                    is NetworkResult.Success -> {
+                        val projected = request.project(result.data.items)
+                        val previousSize = channels.size
+                        projected.forEach { channels.putIfAbsent(it.id, it) }
+                        if (channels.size > previousSize) onPage(channels.values.toList())
+                        val nextSkip = result.data.nextSkip
+                        if (!supportsSkip || projected.isEmpty() || channels.size == previousSize ||
+                            !result.data.hasMore || nextSkip <= skip) return AddonCatalogLoad(channels.values.toList(), false)
+                        skip = nextSkip
+                    }
+                    is NetworkResult.Error, NetworkResult.Loading -> return AddonCatalogLoad(channels.values.toList(), true)
+                }
             }
+            AddonCatalogLoad(channels.values.toList(), failed = true)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (_: Exception) {
             // Addon errors are isolated and URLs may contain private config tokens.
-            AddonCatalogLoad(emptyList(), failed = true)
+            AddonCatalogLoad(channels.values.toList(), failed = true)
         }
+    }
 
     fun playChannel(channel: LiveTvChannel, onPlay: (LiveTvChannel) -> Unit) {
         if (!channel.streamUrl.isNullOrBlank()) {
@@ -530,7 +563,10 @@ private data class AddonCatalogLoad(
     val failed: Boolean,
 )
 
-private const val MAX_TV_ADDON_CATALOGS = 24
-private const val MAX_TV_ADDON_CHANNELS = 600
+private const val MAX_TV_CATALOG_PAGES = 100
 private const val MAX_PARALLEL_TV_ADDON_CATALOGS = 3
+
+private fun addonChannelIdentity(channel: LiveTvChannel): String =
+    listOf(channel.addonId, channel.addonBaseUrl, channel.displayName.trim().lowercase().replace(Regex("\\s+"), " "))
+        .joinToString("|")
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -40,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Border
+import androidx.tv.material3.Button
 import androidx.tv.material3.ClickableSurfaceDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -48,6 +53,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.nuvio.tv.R
 import com.nuvio.tv.core.sports.GameBroadcast
+import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.core.sports.GameState
 import com.nuvio.tv.core.sports.SportsGame
 import com.nuvio.tv.core.sports.SportsGroup
@@ -73,7 +79,7 @@ private sealed interface GamesFilter {
 @Composable
 internal fun LiveTvGamesView(
     games: List<SportsGame>,
-    broadcasts: Map<String, GameBroadcast>,
+    broadcasts: Map<String, List<GameBroadcast>>,
     zone: ZoneId,
     loading: Boolean,
     failed: Boolean,
@@ -90,6 +96,11 @@ internal fun LiveTvGamesView(
             .format(Instant.now().plusSeconds(dayOffset * 86_400L))
     }
     var filter by remember { mutableStateOf<GamesFilter>(GamesFilter.All) }
+    var selectedGame by remember { mutableStateOf<SportsGame?>(null) }
+    val channelFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(selectedGame) {
+        if (selectedGame != null) channelFocusRequester.requestFocus()
+    }
     val liveCount = games.count { it.state == GameState.LIVE }
     val groups = remember(games) { SportsGroup.values().filter { g -> games.any { it.league.group == g } } }
     val shown = remember(games, filter, broadcasts) {
@@ -152,7 +163,7 @@ internal fun LiveTvGamesView(
             else null
             featured?.let { game ->
                 item(key = "featured") {
-                    GameCard(game, broadcasts[game.id], timeFormat, onWatch, featured = true, modifier = Modifier.fillMaxWidth())
+                    GameCard(game, broadcasts[game.id].orEmpty(), timeFormat, { selectedGame = game }, featured = true, modifier = Modifier.fillMaxWidth())
                 }
             }
             items(sections, key = { it.first.slug }) { (league, leagueGames) ->
@@ -164,12 +175,34 @@ internal fun LiveTvGamesView(
                     }
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         items(leagueGames, key = { it.id }) { game ->
-                            GameCard(game, broadcasts[game.id], timeFormat, onWatch, modifier = Modifier.width(330.dp))
+                            GameCard(game, broadcasts[game.id].orEmpty(), timeFormat, { selectedGame = game }, modifier = Modifier.width(330.dp))
                         }
                     }
                 }
             }
             item { Spacer(Modifier.height(24.dp)) }
+        }
+    }
+    selectedGame?.let { game ->
+        NuvioDialog(
+            onDismiss = { selectedGame = null },
+            title = "${game.away.name} × ${game.home.name}",
+            subtitle = stringResource(R.string.live_tv_games_choose_channel),
+            suppressFirstKeyUp = false,
+        ) {
+            LazyColumn(Modifier.heightIn(max = 360.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                items(broadcasts[game.id].orEmpty(), key = { it.channel.id }) { broadcast ->
+                    Button(onClick = {
+                        selectedGame = null
+                        onWatch(broadcast.channel)
+                    }, modifier = Modifier.fillMaxWidth().then(
+                        if (broadcast.channel.id == broadcasts[game.id]?.firstOrNull()?.channel?.id)
+                            Modifier.focusRequester(channelFocusRequester) else Modifier
+                    )) {
+                        Text("${broadcast.channel.displayName} • ${broadcast.channel.addonDisplayName ?: broadcast.channel.groupName ?: broadcast.channel.sourceId}")
+                    }
+                }
+            }
         }
     }
 }
@@ -185,9 +218,9 @@ private fun GamesPill(text: String, color: Color) {
 @Composable
 private fun GameCard(
     game: SportsGame,
-    broadcast: GameBroadcast?,
+    broadcasts: List<GameBroadcast>,
     timeFormat: DateTimeFormatter,
-    onWatch: (LiveTvChannel) -> Unit,
+    onChoose: () -> Unit,
     featured: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
@@ -196,7 +229,7 @@ private fun GameCard(
     val homeColor = remember(game.home.colorHex) { parseTeamColor(game.home.colorHex) }
     val crest = if (featured) 84.dp else 60.dp
     Surface(
-        onClick = { broadcast?.let { onWatch(it.channel) } },
+        onClick = { if (broadcasts.isNotEmpty()) onChoose() },
         modifier = modifier,
         shape = ClickableSurfaceDefaults.shape(shape),
         scale = ClickableSurfaceDefaults.scale(focusedScale = 1f),
@@ -224,12 +257,13 @@ private fun GameCard(
                     Crest(game.home, crest, Modifier.weight(1f), featured)
                 }
                 when {
-                    broadcast != null -> Box(
+                    broadcasts.isNotEmpty() -> Box(
                         Modifier.clip(RoundedCornerShape(50)).background(OnAirGreen)
                             .padding(horizontal = 16.dp, vertical = 7.dp)
                     ) {
                         Text(
-                            stringResource(R.string.live_tv_games_watch, broadcast.channel.displayName),
+                            if (broadcasts.size == 1) stringResource(R.string.live_tv_games_watch, broadcasts.first().channel.displayName)
+                            else stringResource(R.string.live_tv_games_channels_count, broadcasts.size),
                             style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold,
                             color = Color(0xFF04110B), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )

@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.livetv
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,7 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.nuvio.tv.data.local.LiveTvChannelStateStore
+import com.nuvio.tv.core.livetv.LiveTvChannelCategory
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.tv.material3.Button
 import androidx.compose.ui.semantics.selected
 import androidx.tv.material3.MaterialTheme
@@ -71,6 +75,11 @@ fun LiveTvScreen(
         (state.channels + state.addonChannels).distinctBy(LiveTvChannel::id)
     }
     var selectedMode by remember { mutableStateOf(LiveTvMode.NOW) }
+    var channelQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<LiveTvChannelCategory?>(null) }
+    var selectedSource by remember { mutableStateOf<String?>(null) }
+    val listState = rememberLazyListState()
+    val scrollScope = rememberCoroutineScope()
     var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(selectedMode) {
@@ -101,12 +110,30 @@ fun LiveTvScreen(
     LaunchedEffect(hasGuide) {
         if (!hasGuide && selectedMode == LiveTvMode.GUIDE) selectedMode = LiveTvMode.NOW
     }
-    val visibleChannels = remember(allChannels, state.favoriteChannelIds, state.recentChannelIds, selectedMode) {
-        when (selectedMode) {
+    val sourceOptions = remember(allChannels, state.sources) {
+        allChannels.map { channel ->
+            val key = channel.addonBaseUrl ?: channel.sourceId
+            key to (channel.addonDisplayName ?: state.sources.firstOrNull { it.id == channel.sourceId }?.name
+                ?: channel.sourceId)
+        }.distinctBy { it.first }
+    }
+    val visibleChannels = remember(allChannels, state.favoriteChannelIds, state.recentChannelIds,
+        selectedMode, channelQuery, selectedCategory, selectedSource) {
+        val modeChannels = when (selectedMode) {
             LiveTvMode.FAVORITES -> allChannels.filter { it.id in state.favoriteChannelIds }
             LiveTvMode.RECENTS -> state.recentChannelIds.mapNotNull(channelsById::get)
             else -> allChannels
         }
+        val query = channelQuery.trim()
+        modeChannels.filter { channel ->
+            (query.isEmpty() || channel.displayName.contains(query, ignoreCase = true) ||
+                channel.addonDisplayName?.contains(query, ignoreCase = true) == true) &&
+                (selectedSource == null || (channel.addonBaseUrl ?: channel.sourceId) == selectedSource) &&
+                (selectedCategory == null || LiveTvChannelCategory.fromGroup(channel.groupName) == selectedCategory)
+        }
+    }
+    LaunchedEffect(channelQuery) {
+        if (selectedMode != LiveTvMode.GUIDE && selectedMode != LiveTvMode.GAMES) listState.scrollToItem(0)
     }
     fun playChannel(channel: LiveTvChannel) {
         viewModel.playChannel(channel, onPlayChannel)
@@ -114,22 +141,26 @@ fun LiveTvScreen(
 
     val nothingToWatch = allChannels.isEmpty() && !state.isLoading && !state.isLoadingAddonChannels
 
-    // Today's games: loaded once for the header counters, refreshed every minute while the tab is open.
-    LaunchedEffect(Unit) { viewModel.loadGames() }
+    // Scoreboards are independent from channels and EPG; fetch them only when the games tab is opened.
     LaunchedEffect(selectedMode) {
         if (selectedMode != LiveTvMode.GAMES) return@LaunchedEffect
-        viewModel.loadGames(force = true)
+        viewModel.loadGames()
         while (true) {
             delay(60_000L)
             nowMillis = System.currentTimeMillis()
             viewModel.loadGames(force = true)
         }
     }
-    val gameBroadcasts = remember(state.games, allChannels, channelPrograms) {
-        if (state.games.isEmpty() || channelPrograms.isEmpty()) emptyMap()
-        else state.games.mapNotNull { game ->
-            com.nuvio.tv.core.sports.GameChannelMatcher.find(game, allChannels, channelPrograms)?.let { game.id to it }
-        }.toMap()
+    val gameBroadcasts by androidx.compose.runtime.produceState(
+        emptyMap<String, List<com.nuvio.tv.core.sports.GameBroadcast>>(), state.games, allChannels, channelPrograms,
+    ) {
+        value = if (state.games.isEmpty() || channelPrograms.isEmpty()) emptyMap()
+        else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            state.games.mapNotNull { game ->
+                com.nuvio.tv.core.sports.GameChannelMatcher.findAll(game, allChannels, channelPrograms)
+                    .takeIf { it.isNotEmpty() }?.let { game.id to it }
+            }.toMap()
+        }
     }
 
     val modeBar: @Composable () -> Unit = {
@@ -138,7 +169,7 @@ fun LiveTvScreen(
             stats = buildList {
                 state.games.count { it.state == com.nuvio.tv.core.sports.GameState.LIVE }.takeIf { it > 0 }
                     ?.let { add("● " + stringResource(R.string.live_tv_games_live_count, it)) }
-                if (state.isLoadingGuide) add(stringResource(R.string.live_tv_guide_loading))
+                if (state.isLoadingGuide) add("EPG…")
                 else if (state.guideTotalChannels > 0) add("EPG ${state.guideMatchedChannels}/${state.guideTotalChannels}")
             },
         ) {
@@ -148,6 +179,38 @@ fun LiveTvScreen(
                         if (mode == LiveTvMode.GUIDE) nowMillis = System.currentTimeMillis()
                         selectedMode = mode
                     }
+                }
+            }
+        }
+    }
+    val categoryCounts = remember(allChannels) {
+        allChannels.groupingBy { LiveTvChannelCategory.fromGroup(it.groupName) }.eachCount()
+    }
+    val filtersBar: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                LiveTvSearchField(
+                    value = channelQuery,
+                    onValueChange = { channelQuery = it },
+                    placeholder = stringResource(R.string.live_tv_search_channels),
+                    modifier = Modifier.width(300.dp),
+                )
+                // Only categories that really have channels are offered, so no filter ever leads to an empty list.
+                val shownCategories = LiveTvChannelCategory.values().filter { (categoryCounts[it] ?: 0) > 0 }
+                if (shownCategories.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item { LiveTvChip(stringResource(R.string.live_tv_filter_all), selectedCategory == null) { selectedCategory = null } }
+                    items(shownCategories, key = { it.name }) { category ->
+                        LiveTvChip(
+                            stringResource(category.labelRes) + " (" + (categoryCounts[category] ?: 0) + ")",
+                            selectedCategory == category,
+                        ) { selectedCategory = category }
+                    }
+                }
+            }
+            if (sourceOptions.size > 1) LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item { LiveTvChip(stringResource(R.string.live_tv_filter_all_sources), selectedSource == null) { selectedSource = null } }
+                items(sourceOptions, key = { it.first }) { (key, label) ->
+                    LiveTvChip(label, selectedSource == key) { selectedSource = key }
                 }
             }
         }
@@ -182,8 +245,12 @@ fun LiveTvScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             modeBar()
-            LiveTvGuideView(
-                channels = allChannels,
+            filtersBar()
+            if (visibleChannels.isEmpty() && channelQuery.isNotBlank()) Text(
+                stringResource(R.string.live_tv_search_empty),
+                color = NuvioTheme.colors.TextSecondary,
+            ) else LiveTvGuideView(
+                channels = visibleChannels,
                 favoriteIds = state.favoriteChannelIds,
                 programsByChannel = channelPrograms,
                 nowMillis = nowMillis,
@@ -195,11 +262,16 @@ fun LiveTvScreen(
         return
     }
 
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
+        state = listState,
         modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background).padding(horizontal = 40.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item { modeBar() }
+        if (selectedMode != LiveTvMode.SOURCES) {
+            item(key = "channel_filters") { filtersBar() }
+        }
         if (state.isLoading) item { Text(stringResource(R.string.live_tv_loading), color = NuvioTheme.colors.TextSecondary) }
         state.error?.let { message -> item { Text(message, color = MaterialTheme.colorScheme.error) } }
         if (state.backgroundRefreshUnavailable) {
@@ -320,6 +392,7 @@ fun LiveTvScreen(
             if (!state.isLoading && !state.isLoadingAddonChannels && visibleChannels.isEmpty() && !nothingToWatch) {
                 val emptyMessage = when {
                     allChannels.isEmpty() -> R.string.live_tv_empty_channels
+                    channelQuery.isNotBlank() -> R.string.live_tv_search_empty
                     selectedMode == LiveTvMode.FAVORITES -> R.string.live_tv_empty_favorites
                     selectedMode == LiveTvMode.RECENTS -> R.string.live_tv_empty_recents
                     else -> R.string.live_tv_empty_channels
@@ -415,9 +488,28 @@ fun LiveTvScreen(
         }
         item { androidx.compose.foundation.layout.Spacer(Modifier.padding(bottom = 28.dp)) }
     }
+    if (selectedMode != LiveTvMode.SOURCES && listState.firstVisibleItemIndex > 4) {
+        Button(
+            onClick = { scrollScope.launch { listState.animateScrollToItem(0) } },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+        ) { Text(stringResource(R.string.live_tv_back_to_top)) }
+    }
+    }
 }
 
 private data class LiveTvTimeZoneOption(val id: String, val label: Int)
+
+private val LiveTvChannelCategory.labelRes: Int get() = when (this) {
+    LiveTvChannelCategory.NEWS -> R.string.live_tv_filter_news
+    LiveTvChannelCategory.ENTERTAINMENT -> R.string.live_tv_filter_entertainment
+    LiveTvChannelCategory.SPORTS -> R.string.live_tv_filter_sports
+    LiveTvChannelCategory.KIDS -> R.string.live_tv_filter_kids
+    LiveTvChannelCategory.MOVIES -> R.string.live_tv_filter_movies
+    LiveTvChannelCategory.MUSIC -> R.string.live_tv_filter_music
+    LiveTvChannelCategory.DOCUMENTARY -> R.string.live_tv_filter_documentary
+    LiveTvChannelCategory.OTHER -> R.string.live_tv_filter_other
+    LiveTvChannelCategory.UNCATEGORIZED -> R.string.live_tv_filter_uncategorized
+}
 
 private val LIVE_TV_TIME_ZONES = listOf(
     LiveTvTimeZoneOption(LiveTvChannelStateStore.DEFAULT_TIME_ZONE_ID, R.string.live_tv_timezone_device),

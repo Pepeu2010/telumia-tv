@@ -203,6 +203,7 @@ fun SharedTrailerOverlay(
                     trailerUrl = trailerUrl,
                     trailerAudioUrl = trailerAudioUrl,
                     isPlaying = true,
+                    muted = false,
                     isPaused = isPaused,
                     seekRequestToken = seekToken,
                     seekDeltaMs = seekDeltaMs,

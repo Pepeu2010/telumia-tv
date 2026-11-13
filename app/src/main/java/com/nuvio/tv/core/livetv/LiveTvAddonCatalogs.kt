@@ -42,7 +42,7 @@ internal fun LiveTvAddonCatalog.project(items: List<MetaPreview>): List<LiveTvCh
                 sourceId = sourceId,
                 displayName = item.name,
                 logoUrl = item.logo?.takeIf(String::isNotBlank) ?: item.poster,
-                groupName = addon.displayName,
+                groupName = LiveTvChannelCategory.fromGenres(item.genres).name,
                 tvgId = item.id,
                 tvgName = item.name,
                 addonBaseUrl = addon.baseUrl,

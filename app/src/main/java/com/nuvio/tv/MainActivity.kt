@@ -282,9 +282,13 @@ open class MainActivity : ComponentActivity() {
     private var launchSoundStarted = false
     @Volatile private var launchSplashVisible = false
 
-    private fun playLaunchSoundOnce() {
-        if (launchSoundStarted) return
-        launchSoundStarted = true
+    private var launchSampleId = 0
+    @Volatile private var launchSoundLoaded = false
+    @Volatile private var launchPlayPending = false
+
+    /** Loads the launch sound ahead of time so it is ready the instant the intro starts. */
+    private fun prepareLaunchSound() {
+        if (launchSoundPool != null) return
         runCatching {
             val attributes = android.media.AudioAttributes.Builder()
                 .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
@@ -292,13 +296,31 @@ open class MainActivity : ComponentActivity() {
                 .build()
             val pool = android.media.SoundPool.Builder().setMaxStreams(1).setAudioAttributes(attributes).build()
             launchSoundPool = pool
-            pool.setOnLoadCompleteListener { soundPool, sampleId, status ->
-                if (status == 0 && launchSplashVisible && !isFinishing && !isDestroyed) {
-                    soundPool.play(sampleId, 0.72f, 0.72f, 1, 0, 1f)
-                }
+            pool.setOnLoadCompleteListener { _, _, status ->
+                android.util.Log.i("LaunchSound", "loaded status=$status pending=$launchPlayPending")
+                launchSoundLoaded = status == 0
+                if (launchSoundLoaded && launchPlayPending) startLaunchSound()
             }
-            pool.load(this, R.raw.telumia_launch, 1)
-        }.onFailure { launchSoundPool?.release(); launchSoundPool = null }
+            launchSampleId = pool.load(this, R.raw.telumia_launch, 1)
+        }.onFailure {
+            android.util.Log.w("LaunchSound", "prepare failed", it)
+            launchSoundPool?.release(); launchSoundPool = null
+        }
+    }
+
+    private fun startLaunchSound() {
+        val pool = launchSoundPool ?: return
+        if (isFinishing || isDestroyed) return
+        launchPlayPending = false
+        val stream = pool.play(launchSampleId, 1f, 1f, 1, 0, 1f)
+        android.util.Log.i("LaunchSound", "play stream=$stream")
+    }
+
+    private fun playLaunchSoundOnce() {
+        if (launchSoundStarted) return
+        launchSoundStarted = true
+        prepareLaunchSound()
+        if (launchSoundLoaded) startLaunchSound() else launchPlayPending = true
     }
 
 
@@ -1315,6 +1337,7 @@ open class MainActivity : ComponentActivity() {
                     // The intro no longer waits for the whole startup: after a short grace it plays while data loads,
                     // so it is always seen. The splash itself stays until startup is complete.
                     var introGraceElapsed by remember { mutableStateOf(false) }
+                    LaunchedEffect(splashEverShown) { if (splashEverShown) prepareLaunchSound() }
                     LaunchedEffect(splashEverShown) {
                         if (splashEverShown) { delay(450L); introGraceElapsed = true }
                     }

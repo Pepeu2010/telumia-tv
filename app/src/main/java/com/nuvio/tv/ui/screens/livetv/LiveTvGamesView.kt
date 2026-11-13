@@ -287,10 +287,13 @@ private fun StatusRow(game: SportsGame, featured: Boolean) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         when (game.state) {
             GameState.LIVE -> {
-                val pulse by rememberInfiniteTransition(label = "live").animateFloat(
-                    initialValue = 1f, targetValue = 0.25f,
-                    animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse",
-                )
+                val pulse = if (com.nuvio.tv.ui.theme.LocalUiMotion.current.allowsSpatialEffects) {
+                    val animated by rememberInfiniteTransition(label = "live").animateFloat(
+                        initialValue = 1f, targetValue = 0.25f,
+                        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse), label = "pulse",
+                    )
+                    animated
+                } else 1f
                 Box(Modifier.clip(RoundedCornerShape(6.dp)).background(LiveRed).padding(horizontal = 10.dp, vertical = 3.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(8.dp).alpha(pulse).clip(CircleShape).background(Color.White))

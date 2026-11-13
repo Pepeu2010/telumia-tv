@@ -49,6 +49,7 @@ import com.nuvio.tv.ui.components.LiveTvGuideRow
 import com.nuvio.tv.ui.components.LiveTvNowNext
 import com.nuvio.tv.ui.components.LiveTvProgramPresentation
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.LocalUiMotion
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -80,6 +81,7 @@ fun LiveTvScreen(
     var selectedSource by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val scrollScope = rememberCoroutineScope()
+    val motion = LocalUiMotion.current
     var nowMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(selectedMode) {
@@ -490,7 +492,13 @@ fun LiveTvScreen(
     }
     if (selectedMode != LiveTvMode.SOURCES && listState.firstVisibleItemIndex > 4) {
         Button(
-            onClick = { scrollScope.launch { listState.animateScrollToItem(0) } },
+            onClick = { scrollScope.launch {
+                if (motion.allowsSpatialEffects && listState.firstVisibleItemIndex < 20) {
+                    listState.animateScrollToItem(0)
+                } else {
+                    listState.scrollToItem(0)
+                }
+            } },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
         ) { Text(stringResource(R.string.live_tv_back_to_top)) }
     }

@@ -27,7 +27,9 @@ object SentryInitializer {
     fun start(application: Application, settings: SentrySettingsDataStore) {
         if (started) return
         started = true
-        val initialEnabled = runBlocking(Dispatchers.IO) {
+        // Without a DSN Sentry can never start, so do not block the main thread on a DataStore read
+        // during Application.onCreate; the settings are still observed in the background below.
+        val initialEnabled = if (BuildConfig.SENTRY_DSN.isBlank()) false else runBlocking(Dispatchers.IO) {
             settings.enabled.first()
         }
         applyEnabled(application, initialEnabled)

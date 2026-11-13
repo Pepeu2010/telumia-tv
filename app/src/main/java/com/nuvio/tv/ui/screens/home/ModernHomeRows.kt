@@ -567,7 +567,7 @@ internal fun ModernRowSection(
                 color = textColor,
             )
             // How many titles the shelf holds (skipped for placeholders that are still loading).
-            val shelfCount = row.items.list.count { !it.imageUrl.isPlaceholder() }
+            val shelfCount = remember(row.items) { row.items.list.count { !it.imageUrl.isPlaceholder() } }
             if (shelfCount > 0) {
                 // The active shelf shows where the focus is ("3 / 49"); the others just show their size.
                 val position = if (isActiveRow()) rowFocusedIndex.value + 1 else 0
